@@ -6,7 +6,7 @@ garantías. Diseñar la app antes de resolver esto es construir sobre supuestos.
 
 ## 1.1 El problema en una frase
 
-El dato que hace **único** a Bus Checker (saber dónde está cada bus para decidir
+El dato que hace **único** a Kupay (saber dónde está cada bus para decidir
 si realmente viene) es precisamente el dato que **no** está disponible de forma
 pública, abierta y estable.
 
@@ -83,7 +83,7 @@ El brief propone combinar (a) datos oficiales de posición y (b) información de
 usuarios. Si (a) no está disponible, el producto se apoya sólo en (b) y en
 horarios programados. Eso cambia la propuesta de valor:
 
-| Escenario | Qué puede prometer Bus Checker |
+| Escenario | Qué puede prometer Kupay |
 |---|---|
 | **A. Con acceso oficial a GPS/predictor** | La visión completa del brief: "esta micro está a 3 cuadras y viene hacia acá", detección automática de desvíos, "esta micro no va a llegar". |
 | **B. Sin acceso oficial, con telemetría propia** | Posición real de los buses deducida de los usuarios a bordo. Equivalente funcional del escenario A, y **bajo control propio**. Depende de densidad local de usuarios (`04` §4.7). |
@@ -133,7 +133,7 @@ la app nunca debe hablar directamente con una fuente externa.**
 
 ```
                     ┌──────────────────────────┐
-   App móvil  ───►  │   API propia Bus Checker │
+   App móvil  ───►  │   API propia Kupay │
                     └───────────┬──────────────┘
                                 │
                 ┌───────────────┼───────────────┬───────────────┐

@@ -9,7 +9,7 @@ programar nada.
 
 En [supabase.com](https://supabase.com), **New project**:
 
-- **Name:** buschecker *(o el nombre que definas)*
+- **Name:** kupay *(o el nombre que definas)*
 - **Database Password:** genera una y **guárdala**, se usa en el paso 4
 - **Region:** `South America (São Paulo)` — es la más cercana a Chile y baja la
   latencia frente a las regiones de Estados Unidos

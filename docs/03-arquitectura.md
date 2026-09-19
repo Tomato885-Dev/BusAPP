@@ -27,7 +27,7 @@ por cuatro razones independientes —cada una suficiente por sí sola:
 └───────────────────────────┬──────────────────────────────────┘
                             │ HTTPS / JSON
 ┌───────────────────────────▼──────────────────────────────────┐
-│                       API BUS CHECKER                        │
+│                       API KUPAY                        │
 │   /stops/nearby   /stops/{id}/arrivals   /plan   /reports    │
 └───┬──────────────────┬───────────────────┬───────────────────┘
     │                  │                   │

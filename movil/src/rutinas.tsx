@@ -13,7 +13,7 @@ import { segundosEnSantiago } from "./red";
 import { supabase } from "./supabase";
 import { useSesion } from "./useSesion";
 
-const CLAVE_LOCAL = "buschecker.rutinas";
+const CLAVE_LOCAL = "kupay.rutinas";
 
 export interface Rutina {
   id: string;

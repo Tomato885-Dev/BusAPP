@@ -35,7 +35,7 @@ python -m gtfs.cli descargar                      # baja el feed oficial
 python -m gtfs.cli resumen  data/GTFS.zip         # qué trae
 python -m gtfs.cli validar  data/GTFS.zip         # ¿sirve?
 python -m gtfs.cli exportar data/GTFS.zip --recorridos 506 D09 210
-python -m gtfs.cli cargar   data/GTFS.zip --dsn postgresql://localhost/buschecker
+python -m gtfs.cli cargar   data/GTFS.zip --dsn postgresql://localhost/kupay
 ```
 
 Sin argumentos de feed puedes usar el ejemplo sintético:

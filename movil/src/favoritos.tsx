@@ -12,7 +12,7 @@ import {
 import { supabase } from "./supabase";
 import { useSesion } from "./useSesion";
 
-const CLAVE_LOCAL = "buschecker.favoritos";
+const CLAVE_LOCAL = "kupay.favoritos";
 
 interface Contexto {
   favoritos: string[];

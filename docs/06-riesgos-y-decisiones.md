@@ -79,14 +79,16 @@ bajo la Ley 19.628 y su reforma.
 *Mitigación:* las seis reglas de `03` §3.7 desde el diseño; asesoría legal antes
 de activar la telemetría, no después.
 
-### R6 — Conflicto de nombre 🟡 Medio
+### R6 — Conflicto de nombre 🟢 Resuelto parcialmente
 
-"Bus Checker" es prácticamente idéntico a **Transantiago Bus Checker**, una app
-existente que el propio brief cita como referente. Riesgo de confusión, de
-rechazo en App Store y eventualmente de marca.
+El nombre original, "Bus Checker", era prácticamente idéntico a **Transantiago
+Bus Checker**, una app existente que el propio brief cita como referente.
 
-*Mitigación:* definir un nombre propio en la fase 0 (F0-6), antes de invertir en
-identidad visual, dominio o difusión.
+*Resuelto:* la app se llama **Kupay** (`09-nombre.md`). Queda pendiente la
+verificación de disponibilidad en tiendas, dominio e INAPI —con un caso concreto
+que revisar, la marca **Kuapay**—, y la confirmación de la traducción con una
+persona hablante de mapudungun. Todo eso **antes** de invertir en identidad
+visual o difusión.
 
 ### R7 — Costo de infraestructura 🟡 Medio
 

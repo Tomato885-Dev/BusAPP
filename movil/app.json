@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Bus Checker",
-    "slug": "buschecker",
+    "name": "Kupay",
+    "slug": "kupay",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,13 +23,13 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "buschecker",
+    "scheme": "kupay",
     "plugins": [
       "expo-router",
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Bus Checker usa tu ubicaci\u00f3n para mostrarte los paraderos que tienes cerca y cu\u00e1nto falta para que llegue tu micro."
+          "locationWhenInUsePermission": "Kupay usa tu ubicación para mostrarte los paraderos que tienes cerca y cuánto falta para que llegue tu micro."
         }
       ]
     ],
