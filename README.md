@@ -16,10 +16,9 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 
 ## Verlo en el navegador
 
-Publicado en GitHub Pages, sin instalar nada:
+La app publicada en GitHub Pages, sin instalar nada:
 
-- **La app** → https://tomato885-dev.github.io/BusAPP/
-- **La maqueta de diseño** (con selector de escenarios) → https://tomato885-dev.github.io/BusAPP/prototipo/
+**https://tomato885-dev.github.io/BusAPP/**
 
 ## Documentación
 

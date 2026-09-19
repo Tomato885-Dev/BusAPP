@@ -1,92 +1,85 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { llegadasDeParadero } from "../../src/api";
-import { Cargando, Problema } from "../../src/componentes/Estado";
 import { FilaLlegada } from "../../src/componentes/FilaLlegada";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
-import { espacio, useColores, type Colores } from "../../src/tema";
-import type { RespuestaParadero } from "../../src/tipos";
+import { Vacio } from "../../src/componentes/Vacio";
+import { PARADERO_POR_ID } from "../../src/red";
+import { esp, tipo, useColores, type Colores } from "../../src/tema";
 
 /** Cada cuánto se refresca sola la pantalla. */
 const REFRESCO_MS = 20_000;
 
-export default function Llegadas() {
+export default function PantallaParadero() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const c = useColores();
   const s = estilos(c);
 
-  const [datos, setDatos] = useState<RespuestaParadero | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refrescando, setRefrescando] = useState(false);
-
-  const cargar = useCallback(async () => {
-    try {
-      setDatos(await llegadasDeParadero(id));
-      setError(null);
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }, [id]);
+  const paradero = PARADERO_POR_ID.get(id);
+  const [tic, setTic] = useState(0);
 
   useEffect(() => {
-    void cargar();
-    const t = setInterval(() => void cargar(), REFRESCO_MS);
+    const t = setInterval(() => setTic((n) => n + 1), REFRESCO_MS);
     return () => clearInterval(t);
-  }, [cargar]);
+  }, []);
 
-  const alRefrescar = useCallback(async () => {
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  }, [cargar]);
+  const datos = useMemo(
+    () => (paradero ? llegadasDeParadero(paradero.id) : null),
+    // `tic` fuerza el refresco periódico aunque el paradero no cambie.
+    [paradero, tic],
+  );
 
-  if (error && !datos) return <Problema mensaje={error} />;
-  if (!datos) return <Cargando />;
+  if (!paradero || !datos) {
+    return (
+      <Vacio
+        titulo="No encontramos ese paradero"
+        detalle="Puede estar fuera de la zona que la app tiene cargada."
+      />
+    );
+  }
 
   return (
     <>
-      <Stack.Screen options={{ title: datos.codigo }} />
-      <FlatList
-        data={datos.llegadas}
-        keyExtractor={(l, i) => `${l.recorrido}-${i}`}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={alRefrescar} tintColor={c.acento} />
-        }
-        ListHeaderComponent={
-          <View>
-            <View style={s.cabecera}>
-              <Text style={s.nombre}>{datos.nombre}</Text>
-              <Text style={s.meta}>
-                Actualizado hace {datos.actualizadoHace} s
-              </Text>
-            </View>
-            {datos.aviso ? <TarjetaAviso aviso={datos.aviso} /> : null}
-          </View>
-        }
-        renderItem={({ item }) => <FilaLlegada llegada={item} />}
-        ListFooterComponent={
-          <Text style={s.pie}>
-            Los rangos reflejan la incertidumbre real de cada estimación.
-          </Text>
-        }
-      />
+      <Stack.Screen options={{ title: paradero.codigo }} />
+      <ScrollView style={s.pantalla} contentContainerStyle={s.contenido}>
+        <Text style={s.nombre}>{paradero.nombre}</Text>
+        <Text style={s.meta}>
+          {paradero.codigo} · actualizado hace {datos.actualizadoHace} s
+        </Text>
+
+        <View style={s.lista}>
+          {datos.aviso ? <TarjetaAviso aviso={datos.aviso} /> : null}
+          {datos.llegadas.length === 0 ? (
+            <Vacio titulo="Sin micros registradas en este paradero" />
+          ) : (
+            datos.llegadas.map((l, i) => <FilaLlegada key={`${l.recorrido}-${i}`} llegada={l} />)
+          )}
+        </View>
+
+        <Text style={s.pie}>
+          Los rangos muestran la incertidumbre real de cada estimación. Los tiempos son
+          simulados hasta que el servidor esté en pie.
+        </Text>
+      </ScrollView>
     </>
   );
 }
 
 const estilos = (c: Colores) =>
   StyleSheet.create({
-    cabecera: { paddingHorizontal: espacio.lg, paddingTop: espacio.md, paddingBottom: espacio.sm },
-    nombre: { fontSize: 19, fontWeight: "700", color: c.texto },
-    meta: { fontSize: 12.5, color: c.texto3, marginTop: 2 },
+    pantalla: { flex: 1, backgroundColor: c.fondo },
+    contenido: { padding: esp.lg, paddingBottom: esp.xxl },
+    nombre: { ...tipo.titulo, color: c.texto },
+    meta: { ...tipo.menor, color: c.textoTenue, marginTop: 4, marginBottom: esp.lg },
+    lista: { gap: 0 },
     pie: {
-      fontSize: 12,
-      color: c.texto3,
+      ...tipo.menor,
+      color: c.textoTenue,
       textAlign: "center",
-      paddingHorizontal: espacio.xl,
-      paddingVertical: espacio.xl,
-      lineHeight: 17,
+      marginTop: esp.xl,
+      lineHeight: 18,
+      paddingHorizontal: esp.md,
     },
   });

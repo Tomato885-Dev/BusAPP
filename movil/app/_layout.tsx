@@ -11,14 +11,15 @@ export default function Layout() {
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: c.panel },
-          headerTintColor: c.acento,
-          headerTitleStyle: { color: c.texto },
+          headerStyle: { backgroundColor: c.superficie },
+          headerTintColor: c.marca,
+          headerTitleStyle: { color: c.texto, fontWeight: "700" },
+          headerShadowVisible: false,
           contentStyle: { backgroundColor: c.fondo },
         }}
       >
-        <Stack.Screen name="index" options={{ title: "Paraderos cercanos" }} />
-        <Stack.Screen name="paradero/[id]" options={{ title: "Llegadas" }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="paradero/[id]" options={{ title: "Paradero" }} />
       </Stack>
     </SafeAreaProvider>
   );

@@ -1,13 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { espacio, useColores, type Colores } from "../tema";
+import { esp, radio, tipo, useColores, type Colores } from "../tema";
 import type { Aviso } from "../tipos";
 
 /**
- * Aviso de desvío o discrepancia.
+ * Aviso de desvío o de discrepancia entre fuentes.
  *
- * Cuando es crítico **siempre** lleva alternativa: avisar que la micro no viene
- * sin decir qué hacer en su lugar sólo le traslada el problema al usuario.
+ * Va arriba de todo y es lo primero que se lee. Cuando la micro no viene, esta
+ * tarjeta es el producto entero: es lo que ninguna otra app dice.
  */
 export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   const c = useColores();
@@ -17,11 +17,14 @@ export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   const fondo = critico ? c.maloFondo : c.avisoFondo;
 
   return (
-    <View style={[s.caja, { backgroundColor: fondo }]}>
-      <Text style={[s.titulo, { color }]}>{aviso.titulo}</Text>
+    <View style={[s.caja, { backgroundColor: fondo, borderLeftColor: color }]}>
+      <View style={s.encabezado}>
+        <Text style={[s.icono, { color }]}>{critico ? "✕" : "!"}</Text>
+        <Text style={[s.titulo, { color }]}>{aviso.titulo}</Text>
+      </View>
       <Text style={[s.cuerpo, { color }]}>{aviso.cuerpo}</Text>
       {aviso.alternativa ? (
-        <View style={[s.separador, { borderTopColor: color }]}>
+        <View style={[s.alternativa, { borderTopColor: color }]}>
           <Text style={[s.cuerpo, { color }]}>{aviso.alternativa}</Text>
         </View>
       ) : null}
@@ -32,16 +35,18 @@ export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
 const estilos = (c: Colores) =>
   StyleSheet.create({
     caja: {
-      marginHorizontal: espacio.lg,
-      marginTop: espacio.md,
-      padding: espacio.md,
-      borderRadius: 12,
+      padding: esp.lg,
+      borderRadius: radio.md,
+      borderLeftWidth: 4,
+      marginBottom: esp.md,
     },
-    titulo: { fontSize: 14.5, fontWeight: "700", marginBottom: 3 },
-    cuerpo: { fontSize: 13, lineHeight: 18 },
-    separador: {
-      marginTop: espacio.sm,
-      paddingTop: espacio.sm,
+    encabezado: { flexDirection: "row", alignItems: "flex-start", gap: esp.sm },
+    icono: { fontSize: 15, fontWeight: "800", lineHeight: 21 },
+    titulo: { ...tipo.cuerpoFuerte, flex: 1, lineHeight: 21 },
+    cuerpo: { ...tipo.menor, lineHeight: 19, marginTop: 4, opacity: 0.92 },
+    alternativa: {
+      marginTop: esp.md,
+      paddingTop: esp.md,
       borderTopWidth: StyleSheet.hairlineWidth,
     },
   });

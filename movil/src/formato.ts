@@ -33,20 +33,29 @@ export function rangoTexto(llegada: Llegada): string {
 export function origenTexto(llegada: Llegada): string {
   switch (llegada.estado) {
     case "no_llegara":
-      return "✕ No pasa por aquí";
+      return "No pasa por aquí";
     case "probable_desvio":
-      return "▲ Desvío probable";
+      return "Desvío probable";
     case "discrepancia":
-      return "▲ Fuentes no coinciden";
+      return "Las fuentes no coinciden";
     default:
       break;
   }
-  if (llegada.fuente === "horario") return "Estimado · sin datos en vivo";
+  if (llegada.fuente === "horario") return "Estimado, sin datos en vivo";
   if (llegada.personasABordo) {
     const n = llegada.personasABordo;
-    return `● En vivo · ${n} ${n === 1 ? "persona" : "personas"} a bordo`;
+    return `En vivo · ${n} ${n === 1 ? "persona" : "personas"} a bordo`;
   }
-  return "● En vivo";
+  return "En vivo";
+}
+
+/** Duración larga, para el planificador: «1 h 12 min». */
+export function duracionTexto(segundos: number): string {
+  const min = Math.max(1, Math.round(segundos / 60));
+  if (min < 60) return `${min} min`;
+  const horas = Math.floor(min / 60);
+  const resto = min % 60;
+  return resto === 0 ? `${horas} h` : `${horas} h ${resto} min`;
 }
 
 export type Tono = "ok" | "aviso" | "malo" | "neutro";
