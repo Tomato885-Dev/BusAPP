@@ -53,12 +53,59 @@ python -m pytest tests/ -q
 ## Estado
 
 - ✅ **Probado:** geometría, lectura del feed, ubicación de paradas, validación.
-  38 pruebas, todas sobre el feed de ejemplo sintético.
-- ⚠️ **Sin ejecutar contra el feed real:** el entorno de desarrollo donde se
-  escribió esto tiene bloqueado el acceso a `dtpm.cl`. Correrlo contra el feed
-  oficial es la tarea F0-1 del roadmap.
+  39 pruebas.
+- ✅ **Ejecutado contra el feed real del DTPM** (tarea F0-1 completada).
 - ⚠️ **Sin ejecutar contra una base de datos:** `load.py` y `schema.sql` están
   escritos pero nunca se han corrido contra un PostgreSQL real.
+
+## El feed real: qué trae y qué calidad tiene
+
+Validado el 19 de septiembre de 2026 contra `GTFS.zip` del DTPM (10,7 MB
+comprimidos, ~70 MB descomprimidos).
+
+| | |
+|---|---|
+| Paraderos | **12.880** |
+| Recorridos | **427** (418 de bus, 7 líneas de Metro) |
+| Viajes | **26.137** |
+| Trazados | **980** |
+| Horarios (`stop_times`) | **1.097.285** |
+| Viajes con trazado | **26.137 de 26.137** ✅ |
+| Largo de recorrido | mediana 18,9 km · máximo 82,3 km |
+
+**Veredicto: apto para producción, sin anomalías.**
+
+Que *todos* los viajes traigan trazado es la mejor noticia posible: es la
+condición que `validar.py` marca como error bloqueante, porque sin trazados el
+motor de estimación no existe.
+
+### Calidad geométrica
+
+Distancia entre cada paradero y el trazado de su propio recorrido, sobre una
+muestra de 800 viajes y 33.125 paradas:
+
+| | |
+|---|---|
+| Mediana | 5,7 m |
+| Percentil 95 | 54,5 m |
+| Percentil 99 | 101,0 m |
+| Máximo | 138,8 m |
+
+Una mediana de 5,7 m es excelente: los trazados del feed calzan con los
+paraderos. Estos números calibraron `DESVIACION_SOSPECHOSA_M` (ver
+`posiciones.py`).
+
+### Hallazgos que corrigieron el código
+
+1. **Rendimiento.** `pasos_por_viaje` recorría la lista completa de pasos en cada
+   llamada. Con el ejemplo sintético (10 pasos) daba igual; con el feed real
+   (1,1 millones de pasos y 26.000 viajes) son 28 mil millones de comparaciones
+   y la ingesta no termina. Ahora va por un índice perezoso.
+2. **Nombres duplicados.** El feed trae el código repetido dentro del nombre:
+   `"PD1641-Parada 7 / (M) Macul"`. Se limpia al leer.
+3. **Paraderos que no son paraderos.** El feed incluye estaciones "padre" de
+   Metro y accesos peatonales de `pathways.txt`. No sirven ningún recorrido y
+   hay que filtrarlos antes de mostrarlos.
 
 ## Decisiones que conviene conocer
 

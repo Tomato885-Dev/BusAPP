@@ -69,12 +69,34 @@ class Feed:
     trazados: dict[str, list[Punto]] = field(default_factory=dict)
     pasos: list[PasoPorParada] = field(default_factory=list)
 
+    # Índice perezoso de pasos por viaje. Se construye en el primer uso.
+    _indice: dict[str, list[PasoPorParada]] | None = field(
+        default=None, repr=False, compare=False
+    )
+
     def pasos_por_viaje(self, viaje_id: str) -> list[PasoPorParada]:
-        """Paradas de un viaje, en orden."""
-        return sorted(
-            (p for p in self.pasos if p.viaje_id == viaje_id),
-            key=lambda p: p.orden,
-        )
+        """Paradas de un viaje, en orden.
+
+        Va por un índice y no por un recorrido lineal de ``pasos`` porque el
+        feed real de Santiago trae 1,1 millones de pasos y 26.000 viajes:
+        filtrar la lista completa en cada llamada son 28 mil millones de
+        comparaciones, y la ingesta no termina nunca. Con índice son 1,1
+        millones de inserciones, una sola vez.
+
+        El índice se invalida con `olvidar_indice` si se modifica ``pasos``.
+        """
+        if self._indice is None:
+            indice: dict[str, list[PasoPorParada]] = {}
+            for paso in self.pasos:
+                indice.setdefault(paso.viaje_id, []).append(paso)
+            for lista in indice.values():
+                lista.sort(key=lambda p: p.orden)
+            self._indice = indice
+        return self._indice.get(viaje_id, [])
+
+    def olvidar_indice(self) -> None:
+        """Invalida el índice tras modificar ``pasos``."""
+        self._indice = None
 
     def resumen(self) -> str:
         return (
@@ -113,6 +135,18 @@ class _Fuente:
             self._zip.close()
 
 
+def _limpiar_nombre(nombre: str, codigo: str) -> str:
+    """Quita el código repetido al inicio del nombre.
+
+    El feed del DTPM trae los nombres como ``"PD1641-Parada 7 / (M) Macul"``:
+    el código va otra vez adentro del nombre. En pantalla eso es ruido, porque
+    el código ya se muestra aparte.
+    """
+    nombre = nombre.strip()
+    prefijo = f"{codigo}-"
+    return nombre[len(prefijo):].strip() if nombre.startswith(prefijo) else nombre
+
+
 def _decimal(valor: str | None) -> float | None:
     """Convierte a float tolerando vacíos y basura, en vez de reventar."""
     if valor is None or valor.strip() == "":
@@ -145,10 +179,11 @@ def leer_feed(ruta: str | Path) -> Feed:
             lat, lon = _decimal(f.get("stop_lat")), _decimal(f.get("stop_lon"))
             if lat is None or lon is None:
                 continue  # una parada sin coordenadas no sirve para nada
+            codigo = (f.get("stop_code") or f["stop_id"]).strip()
             feed.paradas[f["stop_id"]] = Parada(
                 id=f["stop_id"],
-                codigo=(f.get("stop_code") or f["stop_id"]).strip(),
-                nombre=(f.get("stop_name") or "").strip(),
+                codigo=codigo,
+                nombre=_limpiar_nombre(f.get("stop_name") or "", codigo),
                 lat=lat,
                 lon=lon,
             )

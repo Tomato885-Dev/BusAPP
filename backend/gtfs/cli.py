@@ -4,6 +4,7 @@
     python -m gtfs.cli resumen    <feed>
     python -m gtfs.cli validar    <feed>
     python -m gtfs.cli exportar   <feed> --destino ../prototipo/datos.json
+    python -m gtfs.cli paraderos  <feed> --centro -33.4451,-70.6544
     python -m gtfs.cli cargar     <feed> --dsn postgresql://...
 
 ``<feed>`` es un .zip o un directorio ya descomprimido.
@@ -138,6 +139,76 @@ def _exportar(args: argparse.Namespace) -> int:
     return 0
 
 
+def _paraderos(args: argparse.Namespace) -> int:
+    """Exporta paraderos cercanos a un punto, con los recorridos que los sirven.
+
+    Es lo que consume la app mientras no exista el backend: paraderos, nombres,
+    códigos y líneas reales, con los tiempos todavía simulados.
+    """
+    from collections import defaultdict
+
+    from .geo import distancia_m
+
+    feed = leer_feed(args.feed)
+    centro = tuple(float(x) for x in args.centro.split(","))
+    if len(centro) != 2:
+        print("El centro debe ser 'lat,lon'", file=sys.stderr)
+        return 1
+
+    # Se toman más candidatos de los pedidos porque hay que descartar los que no
+    # sirven ningún recorrido: el feed incluye estaciones "padre" de Metro y
+    # accesos peatonales (de pathways.txt) que son puntos del mapa, no paraderos.
+    cercanos = sorted(
+        ((distancia_m(centro, p.punto), p) for p in feed.paradas.values()),
+        key=lambda t: t[0],
+    )[: args.cantidad * 8]
+    ids = {p.id for _, p in cercanos}
+
+    # Qué recorridos sirven cada uno de esos paraderos.
+    recorridos_de = defaultdict(set)
+    for viaje in feed.viajes.values():
+        recorrido = feed.recorridos.get(viaje.recorrido_id)
+        if recorrido is None:
+            continue
+        for paso in feed.pasos_por_viaje(viaje.id):
+            if paso.parada_id in ids:
+                recorridos_de[paso.parada_id].add((recorrido.nombre_corto, viaje.letrero))
+
+    salida = []
+    for metros, parada in cercanos:
+        if len(salida) >= args.cantidad:
+            break
+        # Un recorrido puede aparecer con varios letreros (sentidos, variantes).
+        # En pantalla interesa una entrada por línea, no una por letrero.
+        por_linea: dict[str, str] = {}
+        for nombre_linea, letrero in sorted(recorridos_de.get(parada.id, set())):
+            por_linea.setdefault(nombre_linea, letrero)
+        lineas = list(por_linea.items())
+        if not lineas:
+            continue  # estación padre o acceso peatonal, no un paradero
+        salida.append({
+            "id": parada.id,
+            "codigo": parada.codigo,
+            "nombre": parada.nombre,
+            "lat": round(parada.lat, 5),
+            "lon": round(parada.lon, 5),
+            "distanciaM": round(metros),
+            "recorridos": [
+                {"nombre": n, "destino": d} for n, d in lineas[: args.max_recorridos]
+            ],
+        })
+
+    destino = Path(args.destino)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(
+        json.dumps({"paraderos": salida}, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"Exportados {len(salida)} paraderos a {destino}")
+    for p in salida:
+        print(f"  {p['codigo']:8} {p['distanciaM']:>5} m  {len(p['recorridos']):>2} líneas  {p['nombre'][:44]}")
+    return 0
+
+
 def _cargar(args: argparse.Namespace) -> int:
     from .load import cargar
 
@@ -182,6 +253,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--destino", default="../prototipo/datos.json")
     p.add_argument("--recorridos", nargs="*", help="nombres, ej: 506 D09 210")
     p.set_defaults(fn=_exportar)
+
+    p = sub.add_parser("paraderos", help="paraderos cercanos a un punto, para la app")
+    p.add_argument("feed")
+    p.add_argument("--centro", required=True, help="lat,lon")
+    p.add_argument("--cantidad", type=int, default=6)
+    p.add_argument("--max-recorridos", type=int, default=6)
+    p.add_argument("--destino", default="../movil/src/paraderos.json")
+    p.set_defaults(fn=_paraderos)
 
     p = sub.add_parser("cargar", help="carga el feed a PostGIS")
     p.add_argument("feed")

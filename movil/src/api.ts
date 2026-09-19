@@ -1,86 +1,200 @@
 /**
  * Acceso a datos.
  *
- * Hoy devuelve datos simulados. Cuando el backend esté en pie sólo cambia la
- * implementación de estas dos funciones: las pantallas no se enteran, porque
- * hablan con esta capa y no con la red.
+ * Los **paraderos, códigos, nombres, coordenadas y recorridos son reales**:
+ * salen del feed GTFS del DTPM, extraídos con
+ * `backend/gtfs/cli.py paraderos`. Lo único simulado son los tiempos de
+ * llegada, porque para eso hace falta el backend con datos en vivo.
  *
- * Los datos simulados no son adorno: reproducen los cuatro escenarios del motor
- * (`docs/04` §4.4) para poder ver la interfaz en cada estado sin backend.
+ * Cuando el backend esté en pie sólo cambia `USAR_DATOS_SIMULADOS`: las
+ * pantallas hablan con esta capa y no con la red, así que no se enteran.
  */
 
-import type { Paradero, RespuestaParadero } from "./tipos";
+import crudos from "./paraderos.json";
+import type { Aviso, Llegada, Paradero, RespuestaParadero } from "./tipos";
 
 /** Cambia esto cuando el backend esté desplegado. */
 export const USAR_DATOS_SIMULADOS = true;
 export const URL_BASE = "http://localhost:8000/v1";
 
-const PARADEROS: Paradero[] = [
-  { id: "S4", codigo: "PA420", nombre: "Parada 5 / Av. Grecia", distanciaM: 80, recorridos: ["506", "D09", "210"] },
-  { id: "N1", codigo: "PA433", nombre: "Irarrázaval / Pedro de Valdivia", distanciaM: 240, recorridos: ["D09", "513", "346"] },
-  { id: "S3", codigo: "PA415", nombre: "Av. Grecia / Tobalaba", distanciaM: 410, recorridos: ["506", "D09"] },
-  { id: "S5", codigo: "PA425", nombre: "Av. Grecia / Chile España", distanciaM: 620, recorridos: ["506", "226"] },
-];
+interface ParaderoCrudo {
+  id: string;
+  codigo: string;
+  nombre: string;
+  lat: number;
+  lon: number;
+  distanciaM: number;
+  recorridos: { nombre: string; destino: string }[];
+}
+
+const CRUDOS = crudos.paraderos as ParaderoCrudo[];
+
+const PARADEROS: Paradero[] = CRUDOS.map((p) => ({
+  id: p.id,
+  codigo: p.codigo,
+  nombre: p.nombre,
+  distanciaM: p.distanciaM,
+  recorridos: p.recorridos.map((r) => r.nombre),
+}));
+
+/* -------------------------------------------------------------------------- */
+/* Simulación de llegadas                                                     */
+/* -------------------------------------------------------------------------- */
 
 /**
- * Escenarios del motor. Se rotan por paradero para que al navegar se vean
- * todos los estados; con backend real esto lo decide el servidor.
+ * Escenarios del motor (`docs/04` §4.4). Se reparten entre los paraderos para
+ * poder ver los cuatro estados sin backend.
  */
-const ESCENARIOS: Record<string, Omit<RespuestaParadero, "paraderoId" | "codigo" | "nombre">> = {
-  S4: {
-    actualizadoHace: 8,
-    aviso: {
-      nivel: "critico",
-      titulo: "La 506 no va a pasar por este paradero",
-      cuerpo: "Los buses de esta línea se desviaron hace 12 minutos por un corte en Av. Grecia.",
-      alternativa: "Camina 2 cuadras al paradero PA433 y toma la D09 — llega en 6 min.",
-    },
-    llegadas: [
-      { recorrido: "506", destino: "Peñalolén", etaSegundos: null, rangoSegundos: null,
-        confianza: "alta", fuente: "telemetria", estado: "no_llegara", via: "Desvío confirmado · 12 min" },
-      { recorrido: "D09", destino: "Estación Central", etaSegundos: 380, rangoSegundos: [300, 480],
-        confianza: "alta", fuente: "telemetria", estado: "en_ruta", personasABordo: 4, via: "Vía Irarrázaval" },
-      { recorrido: "210", destino: "Recoleta", etaSegundos: 960, rangoSegundos: [720, 1260],
-        confianza: "baja", fuente: "horario", estado: "sin_telemetria", via: "Vía Vicuña Mackenna" },
-    ],
-  },
-  N1: {
-    actualizadoHace: 4,
-    llegadas: [
-      { recorrido: "D09", destino: "Providencia", etaSegundos: 240, rangoSegundos: [180, 360],
-        confianza: "alta", fuente: "telemetria", estado: "en_ruta", personasABordo: 3, via: "Vía Irarrázaval" },
-      { recorrido: "513", destino: "Las Condes", etaSegundos: 540, rangoSegundos: [420, 720],
-        confianza: "media", fuente: "telemetria", estado: "en_ruta", personasABordo: 1, via: "Vía Tobalaba" },
-      { recorrido: "346", destino: "La Reina", etaSegundos: 1020, rangoSegundos: [780, 1320],
-        confianza: "baja", fuente: "horario", estado: "sin_telemetria" },
-    ],
-  },
-  S3: {
-    actualizadoHace: 12,
-    aviso: {
-      nivel: "advertencia",
-      titulo: "La 506 podría demorar más de lo anunciado",
-      cuerpo: "El dato oficial y la posición real de los buses no coinciden. Estamos verificando.",
-    },
-    llegadas: [
-      { recorrido: "506", destino: "Peñalolén", etaSegundos: 180, rangoSegundos: [180, 900],
-        confianza: "baja", fuente: "gps_oficial", estado: "discrepancia", via: "Vía Grecia" },
-      { recorrido: "D09", destino: "Providencia", etaSegundos: 500, rangoSegundos: [420, 660],
-        confianza: "alta", fuente: "telemetria", estado: "en_ruta", personasABordo: 2 },
-    ],
-  },
-  S5: {
-    actualizadoHace: 31,
-    llegadas: [
-      { recorrido: "506", destino: "Peñalolén", etaSegundos: 420, rangoSegundos: [240, 840],
-        confianza: "baja", fuente: "horario", estado: "sin_telemetria", via: "Vía Grecia" },
-      { recorrido: "226", destino: "Macul", etaSegundos: null, rangoSegundos: null,
-        confianza: "sin_datos", fuente: "horario", estado: "sin_telemetria" },
-    ],
-  },
-};
+type Escenario = "normal" | "sin_telemetria" | "discrepancia" | "no_llegara";
 
-function demora<T>(valor: T, ms = 350): Promise<T> {
+const ESCENARIOS: Escenario[] = [
+  "no_llegara",
+  "normal",
+  "normal",
+  "discrepancia",
+  "sin_telemetria",
+  "normal",
+];
+
+/** Generador determinista: el mismo paradero muestra siempre lo mismo. */
+function semilla(texto: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < texto.length; i++) {
+    h ^= texto.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return () => {
+    h += 0x6d2b79f5;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function entre(azar: () => number, min: number, max: number): number {
+  return Math.round(min + azar() * (max - min));
+}
+
+function llegadaNormal(
+  azar: () => number,
+  ruta: { nombre: string; destino: string },
+  indice: number,
+): Llegada {
+  const eta = entre(azar, 120, 300) + indice * entre(azar, 240, 420);
+  const holgura = Math.round(eta * 0.18) + 40;
+  const aBordo = entre(azar, 1, 5);
+  return {
+    recorrido: ruta.nombre,
+    destino: ruta.destino,
+    etaSegundos: eta,
+    rangoSegundos: [Math.max(0, eta - holgura), eta + holgura],
+    confianza: aBordo >= 3 ? "alta" : "media",
+    fuente: "telemetria",
+    estado: "en_ruta",
+    personasABordo: aBordo,
+  };
+}
+
+function llegadaSinTelemetria(
+  azar: () => number,
+  ruta: { nombre: string; destino: string },
+  indice: number,
+): Llegada {
+  const eta = entre(azar, 180, 420) + indice * entre(azar, 300, 600);
+  // Sin telemetría el rango se ensancha mucho: es lo honesto.
+  const holgura = Math.round(eta * 0.55);
+  return {
+    recorrido: ruta.nombre,
+    destino: ruta.destino,
+    etaSegundos: eta,
+    rangoSegundos: [Math.max(0, eta - holgura), eta + holgura],
+    confianza: "baja",
+    fuente: "horario",
+    estado: "sin_telemetria",
+  };
+}
+
+/** Busca una alternativa real: otro paradero cercano y una línea que sí pasa. */
+function alternativaReal(paraderoId: string): string | undefined {
+  const otro = CRUDOS.find((p) => p.id !== paraderoId && p.recorridos.length > 0);
+  if (!otro) return undefined;
+  const linea = otro.recorridos[0];
+  return `Camina ${otro.distanciaM} m al paradero ${otro.codigo} y toma la ${linea.nombre} — va a ${linea.destino}.`;
+}
+
+function construir(p: ParaderoCrudo, escenario: Escenario): RespuestaParadero {
+  const azar = semilla(p.id);
+  const rutas = p.recorridos;
+  const llegadas: Llegada[] = [];
+  let aviso: Aviso | undefined;
+
+  rutas.forEach((ruta, i) => {
+    if (escenario === "no_llegara" && i === 0) {
+      llegadas.push({
+        recorrido: ruta.nombre,
+        destino: ruta.destino,
+        etaSegundos: null,
+        rangoSegundos: null,
+        confianza: "alta",
+        fuente: "telemetria",
+        estado: "no_llegara",
+        via: "Desvío confirmado hace 12 min",
+      });
+      aviso = {
+        nivel: "critico",
+        titulo: `La ${ruta.nombre} no va a pasar por este paradero`,
+        cuerpo:
+          "Los buses de esta línea se desviaron hace 12 minutos. Ninguno se está acercando.",
+        alternativa: alternativaReal(p.id),
+      };
+      return;
+    }
+
+    if (escenario === "discrepancia" && i === 0) {
+      const eta = entre(azar, 120, 200);
+      llegadas.push({
+        recorrido: ruta.nombre,
+        destino: ruta.destino,
+        etaSegundos: eta,
+        rangoSegundos: [eta, eta * 5],
+        confianza: "baja",
+        fuente: "gps_oficial",
+        estado: "discrepancia",
+      });
+      aviso = {
+        nivel: "advertencia",
+        titulo: `La ${ruta.nombre} podría demorar más de lo anunciado`,
+        cuerpo:
+          "El dato oficial y la posición real de los buses no coinciden. Estamos verificando.",
+      };
+      return;
+    }
+
+    // Las últimas líneas de la lista suelen quedar sin telemetría: son las de
+    // menor frecuencia, y es realista que nadie de la app vaya arriba.
+    const sinDatos = escenario === "sin_telemetria" || i >= 3;
+    llegadas.push(
+      sinDatos ? llegadaSinTelemetria(azar, ruta, i) : llegadaNormal(azar, ruta, i),
+    );
+  });
+
+  llegadas.sort((a, b) => (a.etaSegundos ?? Infinity) - (b.etaSegundos ?? Infinity));
+
+  return {
+    paraderoId: p.id,
+    codigo: p.codigo,
+    nombre: p.nombre,
+    actualizadoHace: entre(azar, 3, 40),
+    aviso,
+    llegadas,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* API                                                                        */
+/* -------------------------------------------------------------------------- */
+
+function demora<T>(valor: T, ms = 300): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(valor), ms));
 }
 
@@ -93,15 +207,9 @@ export async function paraderosCercanos(): Promise<Paradero[]> {
 
 export async function llegadasDeParadero(id: string): Promise<RespuestaParadero> {
   if (USAR_DATOS_SIMULADOS) {
-    const paradero = PARADEROS.find((p) => p.id === id);
-    const escenario = ESCENARIOS[id];
-    if (!paradero || !escenario) throw new Error("No encontramos ese paradero");
-    return demora({
-      paraderoId: paradero.id,
-      codigo: paradero.codigo,
-      nombre: paradero.nombre,
-      ...escenario,
-    });
+    const indice = CRUDOS.findIndex((p) => p.id === id);
+    if (indice < 0) throw new Error("No encontramos ese paradero");
+    return demora(construir(CRUDOS[indice], ESCENARIOS[indice % ESCENARIOS.length]));
   }
   const r = await fetch(`${URL_BASE}/stops/${id}/arrivals`);
   if (!r.ok) throw new Error(`El servidor respondió ${r.status}`);

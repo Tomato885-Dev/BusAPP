@@ -74,3 +74,21 @@ def test_ignora_paradas_sin_coordenadas(tmp_path):
     )
     feed = leer_feed(tmp_path)
     assert list(feed.paradas) == ["BUENA"]
+
+
+def test_limpia_el_codigo_repetido_en_el_nombre(tmp_path):
+    """El feed del DTPM trae 'PD1641-Parada 7 / (M) Macul' como nombre."""
+    for nombre, contenido in (
+        ("routes.txt", "route_id,route_short_name,route_long_name,route_type\n"),
+        ("trips.txt", "route_id,service_id,trip_id\n"),
+        ("stop_times.txt", "trip_id,stop_id,stop_sequence\n"),
+    ):
+        (tmp_path / nombre).write_text(contenido)
+    (tmp_path / "stops.txt").write_text(
+        "stop_id,stop_code,stop_name,stop_lat,stop_lon\n"
+        "A,PD1641,PD1641-Parada 7 / (M) Macul,-33.50,-70.58\n"
+        "B,PA420,Parada 5 / Av. Grecia,-33.45,-70.60\n"
+    )
+    feed = leer_feed(tmp_path)
+    assert feed.paradas["A"].nombre == "Parada 7 / (M) Macul"
+    assert feed.paradas["B"].nombre == "Parada 5 / Av. Grecia", "sin prefijo, no se toca"
