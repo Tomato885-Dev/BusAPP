@@ -173,10 +173,18 @@ create policy "aportar llegadas" on llegadas_observadas
 -- ============================================================================
 -- 4. CONSULTAS DE LA APP
 -- ============================================================================
+--
+-- El cuerpo de una función se revisa al crearla, usando el search_path de la
+-- sesión y no el que la propia función declara. En Supabase PostGIS vive en el
+-- esquema `extensions`, así que sin esta línea las llamadas a st_makepoint y
+-- st_dwithin no se resuelven y las tres funciones fallan al crearse —aunque las
+-- tablas, que sí se habían creado antes, queden bien.
+
+set search_path = public, extensions;
 
 -- Paraderos dentro de un radio, ordenados por cercanía.
 -- Se llama desde la app con supabase.rpc('paraderos_cercanos', {...}).
-create or replace function paraderos_cercanos(
+create or replace function public.paraderos_cercanos(
     lat double precision,
     lon double precision,
     radio_m double precision default 500,
@@ -192,7 +200,6 @@ returns table (
 )
 language sql
 stable
-security invoker
 set search_path = public, extensions
 as $$
     select
@@ -202,14 +209,14 @@ as $$
         st_y(p.ubicacion::geometry),
         st_x(p.ubicacion::geometry),
         st_distance(p.ubicacion, st_makepoint(lon, lat)::geography)
-    from paraderos p
+    from public.paraderos p
     where st_dwithin(p.ubicacion, st_makepoint(lon, lat)::geography, radio_m)
     order by 6
     limit tope;
 $$;
 
 -- Recorridos que sirven un paradero, con su frecuencia oficial.
-create or replace function recorridos_de_paradero(paradero text)
+create or replace function public.recorridos_de_paradero(paradero text)
 returns table (
     id text,
     nombre text,
@@ -219,25 +226,23 @@ returns table (
 )
 language sql
 stable
-security invoker
 set search_path = public
 as $$
     select distinct r.id, r.nombre, r.destino, r.tipo, r.frecuencias
-    from pasos s
-    join recorridos r on r.id = s.recorrido_id
+    from public.pasos s
+    join public.recorridos r on r.id = s.recorrido_id
     where s.paradero_id = paradero
     order by r.nombre;
 $$;
 
 -- Crea el perfil la primera vez y refresca la última visita.
-create or replace function registrar_visita()
+create or replace function public.registrar_visita()
 returns void
 language plpgsql
-security invoker
 set search_path = public
 as $$
 begin
-    insert into perfiles (id) values (auth.uid())
+    insert into public.perfiles (id) values (auth.uid())
     on conflict (id) do update set visto_en = now();
 end;
 $$;
