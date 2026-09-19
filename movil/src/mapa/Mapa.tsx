@@ -10,6 +10,7 @@ import {
   View,
   type LayoutChangeEvent,
 } from "react-native";
+import Svg, { Polyline } from "react-native-svg";
 
 import { type Colores, elevacion, esp, fuente, radio, tipo, useColores, useEsOscuro } from "../tema";
 import { TESELA, latAY, lonAX, xALon, yALat } from "./proyeccion";
@@ -21,10 +22,20 @@ export interface Marcador {
   etiqueta: string;
 }
 
+/** Una línea dibujada sobre el mapa: el recorrido de una micro o del Metro. */
+export interface Trazado {
+  puntos: { lat: number; lon: number }[];
+  color: string;
+}
+
 interface Props {
   centroInicial: { lat: number; lon: number };
   zoomInicial?: number;
   marcadores: Marcador[];
+  /** Recorrido dibujado encima de las teselas. */
+  trazado?: Trazado | null;
+  /** Dibuja los marcadores en cualquier zoom, para ver una línea completa. */
+  marcadoresSiempre?: boolean;
   seleccionado?: string | null;
   onSeleccionar?: (id: string) => void;
   irA?: { lat: number; lon: number; zoom?: number; nonce: number } | null;
@@ -103,6 +114,8 @@ export function Mapa({
   centroInicial,
   zoomInicial = 15,
   marcadores,
+  trazado = null,
+  marcadoresSiempre = false,
   seleccionado,
   onSeleccionar,
   irA,
@@ -210,8 +223,17 @@ export function Mapa({
     return salida;
   }, [listo, izquierda, arriba, ancho, alto, zoom, oscuroActivo]);
 
+  // El trazado se recalcula igual que los marcadores. No se recorta a la
+  // pantalla: una línea cortada en el borde se ve peor que una que se sale.
+  const trazadoEnPantalla = useMemo(() => {
+    if (!listo || !trazado || trazado.puntos.length < 2) return null;
+    return trazado.puntos
+      .map((p) => `${lonAX(p.lon, zoom) - izquierda},${latAY(p.lat, zoom) - arriba}`)
+      .join(" ");
+  }, [trazado, listo, zoom, izquierda, arriba]);
+
   const visibles = useMemo(() => {
-    if (!listo || zoom < ZOOM_MARCADORES) return [];
+    if (!listo || (zoom < ZOOM_MARCADORES && !marcadoresSiempre)) return [];
     const margen = TESELA;
     const salida: (Marcador & { x: number; y: number })[] = [];
     for (const m of marcadores) {
@@ -222,7 +244,7 @@ export function Mapa({
       if (salida.length >= MAX_MARCADORES) break;
     }
     return salida;
-  }, [marcadores, listo, zoom, izquierda, arriba, ancho, alto]);
+  }, [marcadores, listo, zoom, izquierda, arriba, ancho, alto, marcadoresSiempre]);
 
   const movimiento = {
     transform: [
@@ -248,8 +270,52 @@ export function Mapa({
             ),
           )}
 
+          {trazadoEnPantalla ? (
+            <Svg
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+              width={ancho}
+              height={alto}
+            >
+              {/* Dos trazos: uno claro y grueso debajo, para que la línea se lea
+                  igual sobre un plano con calles del mismo tono. */}
+              <Polyline
+                points={trazadoEnPantalla}
+                fill="none"
+                stroke={c.superficie}
+                strokeWidth={9}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Polyline
+                points={trazadoEnPantalla}
+                fill="none"
+                stroke={trazado!.color}
+                strokeWidth={5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          ) : null}
+
           {visibles.map((m) => {
             const activo = m.id === seleccionado;
+            // Al mostrar una línea completa las paradas van casi pegadas, y un
+            // marcador de tamaño normal taparía el trazado que uno vino a ver.
+            if (marcadoresSiempre && !activo) {
+              return (
+                <Pressable
+                  key={m.id}
+                  onPress={() => onSeleccionar?.(m.id)}
+                  style={[s.marcadorChico, { left: m.x - 11, top: m.y - 11 }]}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Parada ${m.etiqueta}`}
+                >
+                  <View style={[s.puntoChico, { borderColor: c.marca }]} />
+                </Pressable>
+              );
+            }
             return (
               <Pressable
                 key={m.id}
@@ -279,7 +345,7 @@ export function Mapa({
         </Animated.View>
       </View>
 
-      {zoom < ZOOM_MARCADORES ? (
+      {zoom < ZOOM_MARCADORES && !marcadoresSiempre ? (
         <View style={[s.pista, { top: margenSuperior }, elevacion(c, 1)]} pointerEvents="none">
           <Text style={s.pistaTexto}>Acércate para ver los paraderos</Text>
         </View>
@@ -337,6 +403,20 @@ const estilos = (c: Colores) =>
       height: 30,
       alignItems: "center",
       justifyContent: "center",
+    },
+    marcadorChico: {
+      position: "absolute",
+      width: 22,
+      height: 22,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    puntoChico: {
+      width: 9,
+      height: 9,
+      borderRadius: 5,
+      borderWidth: 2.5,
+      backgroundColor: c.superficie,
     },
     punto: {
       width: 16,

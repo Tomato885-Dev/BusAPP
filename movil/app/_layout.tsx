@@ -65,6 +65,9 @@ export default function Layout() {
             name="viaje"
             options={{ title: "Voy en camino", presentation: "modal" }}
           />
+          <Stack.Screen name="lineas" options={{ title: "Líneas" }} />
+          <Stack.Screen name="linea/[id]" options={{ title: "Línea" }} />
+          <Stack.Screen name="premium" options={{ title: "Kupay Premium" }} />
         </Stack>
         </View>
       </ProveedorViaje>

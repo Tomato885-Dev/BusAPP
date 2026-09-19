@@ -12,12 +12,16 @@
 import crudo from "./red.json";
 import { distanciaM } from "./mapa/proyeccion";
 
+/** 3 = paradero de micro, 1 = estación de Metro, 0 = tren ligero. */
+export type TipoParada = 0 | 1 | 3;
+
 export interface Paradero {
   id: string;
   codigo: string;
   nombre: string;
   lat: number;
   lon: number;
+  tipo: TipoParada;
 }
 
 /** `[inicio, fin, intervalo]` en segundos desde medianoche. */
@@ -27,7 +31,7 @@ export interface Recorrido {
   id: string;
   nombre: string;
   destino: string;
-  tipo: number; // 3 = bus, 1 = metro
+  tipo: TipoParada;
   paradas: string[];
   /** Frecuencias oficiales del DTPM por franja horaria. */
   frecuencias: Franja[];
@@ -160,6 +164,31 @@ export function largoDeTramo(recorrido: Recorrido, desde: number, hasta: number)
     if (a && b) total += distanciaM(a, b);
   }
   return total;
+}
+
+/** Nombre en singular de cada modo, para la pantalla de líneas. */
+export const NOMBRE_DE_TIPO: Record<TipoParada, string> = {
+  3: "Micro",
+  1: "Metro",
+  0: "Tren",
+};
+
+/**
+ * Si un recorrido está operando ahora.
+ *
+ * Se decide con las franjas horarias oficiales del feed, que es el único dato
+ * de operación disponible sin el motor en vivo. Un recorrido fuera de su franja
+ * no es una falla: simplemente no es su hora.
+ */
+export function estaOperando(recorrido: Recorrido, ahora = new Date()): boolean {
+  return intervaloOficial(recorrido, ahora) !== null;
+}
+
+/** Los recorridos de un modo, ordenados como los nombraría un pasajero. */
+export function recorridosDeTipo(tipo: TipoParada): Recorrido[] {
+  return RECORRIDOS.filter((r) => r.tipo === tipo).sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, "es", { numeric: true }),
+  );
 }
 
 export { indicePorParadero };

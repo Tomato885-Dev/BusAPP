@@ -18,7 +18,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .parse import Feed
+from .parse import Feed, _a_segundos
 
 
 @dataclass(frozen=True)
@@ -42,6 +42,34 @@ def _es_paradero_de_calle(codigo: str) -> bool:
         and codigo[1].isalpha()
         and codigo[2:].isdigit()
     )
+
+
+#: Tipos de GTFS que no son bus: 0 = tranvía o tren ligero, 1 = metro.
+TIPOS_SOBRE_RIELES = (0, 1)
+
+
+def _estaciones_sobre_rieles(feed: Feed) -> set[str]:
+    """Paradas servidas por Metro o tren ligero.
+
+    El filtro de paraderos de calle las descartaba a todas, y con ellas
+    desaparecían las siete líneas del Metro y los dos trenes: sus estaciones no
+    se codifican como ``PA123`` sino como ``MT_L5_V1``, sin código de paradero.
+    """
+    recorridos = {
+        r.id for r in feed.recorridos.values() if r.tipo in TIPOS_SOBRE_RIELES
+    }
+    viajes = {v.id for v in feed.viajes.values() if v.recorrido_id in recorridos}
+    return {p.parada_id for vid in viajes for p in feed.pasos_por_viaje(vid)}
+
+
+def _limpiar_estacion(nombre: str) -> str:
+    """Quita el sentido del nombre de una estación de Metro.
+
+    El feed nombra cada andén por separado: «Monte Tabor Dirección Vicente
+    Valdés». Al pasajero le sirve la estación, no el andén.
+    """
+    corte = nombre.find(" Dirección ")
+    return (nombre[:corte] if corte > 0 else nombre).strip()
 
 
 def _franjas_del_recorrido(
@@ -73,12 +101,71 @@ def _franjas_del_recorrido(
     ]
 
 
+def _franjas_por_horario(
+    feed: Feed, recorrido_id: str, sentido: int | None
+) -> list[list[int]]:
+    """Deduce franjas de frecuencia a partir de un horario fijo.
+
+    El Metro de Santiago no declara ``frequencies.txt``: publica cada tren en
+    ``stop_times.txt``. Sin esto sus seis líneas aparecían «fuera de servicio»
+    las 24 horas, que es exactamente lo contrario de la verdad.
+
+    Se cuentan las salidas de cada hora y se reparte la hora entre ellas: doce
+    trenes entre las 8 y las 9 son uno cada cinco minutos. Es la lectura
+    correcta para el pasajero, que no consulta el horario del Metro —llega y
+    espera— y cuya pregunta real es cuánto.
+    """
+    propios = [
+        v
+        for v in feed.viajes.values()
+        if v.recorrido_id == recorrido_id
+        and (sentido is None or v.sentido == sentido)
+    ]
+    if not propios:
+        return []
+
+    # Un mismo recorrido trae los viajes de todos los calendarios: día hábil,
+    # sábado y domingo. Contarlos juntos triplica la frecuencia y hace aparecer
+    # un tren cada minuto donde pasa uno cada tres. Se toma el calendario con
+    # más viajes, que es el día hábil.
+    por_servicio: dict[str, int] = {}
+    for v in propios:
+        por_servicio[v.servicio_id] = por_servicio.get(v.servicio_id, 0) + 1
+    servicio = max(por_servicio, key=lambda s: por_servicio[s])
+
+    salidas: list[int] = []
+    for viaje in propios:
+        if viaje.servicio_id != servicio:
+            continue
+        pasos = feed.pasos_por_viaje(viaje.id)
+        if not pasos:
+            continue
+        segundos = _a_segundos(pasos[0].hora_salida or pasos[0].hora_llegada or "")
+        if segundos is not None:
+            salidas.append(segundos)
+
+    if len(salidas) < 2:
+        return []
+
+    por_hora: dict[int, int] = {}
+    for s in salidas:
+        por_hora[s // 3600] = por_hora.get(s // 3600, 0) + 1
+
+    franjas = [
+        [hora * 3600, (hora + 1) * 3600, max(60, round(3600 / cuantos))]
+        for hora, cuantos in sorted(por_hora.items())
+    ]
+    return franjas
+
+
 def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
     """Exporta paraderos y recorridos de la zona a un JSON compacto."""
+    sobre_rieles = _estaciones_sobre_rieles(feed)
     paraderos = {
         p.id: p
         for p in feed.paradas.values()
-        if recuadro.contiene(p.lat, p.lon) and _es_paradero_de_calle(p.codigo)
+        if recuadro.contiene(p.lat, p.lon)
+        and (_es_paradero_de_calle(p.codigo) or p.id in sobre_rieles)
     }
 
     # Un recorrido tiene muchos viajes casi idénticos. Se elige el que más
@@ -97,6 +184,9 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
 
     recorridos = []
     usados: set[str] = set()
+    # Una parada que sirve a un tren y a micros se muestra como estación: es lo
+    # que la hace reconocible en el mapa.
+    tipo_por_parada: dict[str, int] = {}
     for recorrido_id, (_, _, viaje_id) in mejor_viaje.items():
         recorrido = feed.recorridos.get(recorrido_id)
         viaje = feed.viajes.get(viaje_id)
@@ -106,7 +196,12 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
             p.parada_id for p in feed.pasos_por_viaje(viaje_id) if p.parada_id in paraderos
         ]
         usados.update(secuencia)
+        if recorrido.tipo in TIPOS_SOBRE_RIELES:
+            for pid in secuencia:
+                tipo_por_parada[pid] = recorrido.tipo
         frecuencias = _franjas_del_recorrido(feed, recorrido_id, viaje.sentido)
+        if not frecuencias:
+            frecuencias = _franjas_por_horario(feed, recorrido_id, viaje.sentido)
         recorridos.append({
             "id": recorrido.id,
             "nombre": recorrido.nombre_corto,
@@ -121,10 +216,14 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
         "paraderos": [
             {
                 "id": p.id,
-                "codigo": p.codigo,
-                "nombre": p.nombre,
+                "codigo": p.codigo or p.id,
+                "nombre": (
+                    _limpiar_estacion(p.nombre) if p.id in sobre_rieles else p.nombre
+                ),
                 "lat": round(p.lat, 5),
                 "lon": round(p.lon, 5),
+                # 3 = paradero de micro, 1 = estación de Metro, 0 = tren ligero.
+                "tipo": tipo_por_parada.get(pid, 3),
             }
             for pid, p in paraderos.items()
             if pid in usados

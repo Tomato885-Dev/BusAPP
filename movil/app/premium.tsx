@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Interruptor } from "../../src/componentes/Interruptor";
-import { esperaTexto, misEstadisticas, type Estadisticas } from "../../src/estadisticas";
-import { useFavoritos } from "../../src/favoritos";
-import { LIMITE_FAVORITOS, LIMITE_RUTINAS } from "../../src/limites";
-import { usePremium } from "../../src/premium";
-import { diasTexto, horaTexto, useRutinas } from "../../src/rutinas";
-import { PARADERO_POR_ID } from "../../src/red";
-import { type Colores, esp, fuente, radio, tipo, useColores } from "../../src/tema";
-import { useSesion } from "../../src/useSesion";
+import { Interruptor } from "../src/componentes/Interruptor";
+import { esperaTexto, misEstadisticas, type Estadisticas } from "../src/estadisticas";
+import { useFavoritos } from "../src/favoritos";
+import { LIMITE_FAVORITOS, LIMITE_RUTINAS } from "../src/limites";
+import { usePremium } from "../src/premium";
+import { diasTexto, horaTexto, useRutinas } from "../src/rutinas";
+import { PARADERO_POR_ID } from "../src/red";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../src/tema";
+import { useSesion } from "../src/useSesion";
 
 /** Las funciones del plan pagado, en el orden en que se explican. */
 const FUNCIONES: { icono: string; titulo: string; cuerpo: string; lista?: boolean }[] = [

@@ -163,7 +163,7 @@ export default function PantallaParadero() {
         </View>
 
         {topeAlcanzado ? (
-          <Pressable style={s.tope} onPress={() => router.push("/rutina")}>
+          <Pressable style={s.tope} onPress={() => router.push("/premium")}>
             <Text style={s.topeTexto}>
               Llegaste a tus {cupo.tope} favoritos del plan gratis. Con Premium son
               ilimitados.
@@ -176,7 +176,7 @@ export default function PantallaParadero() {
           onPress={() =>
             esPremium
               ? router.push({ pathname: "/viaje", params: { paraderoId: paradero.id } })
-              : router.push("/rutina")
+              : router.push("/premium")
           }
           accessibilityRole="button"
           accessibilityLabel="Me subí a una micro: avisarme antes de bajarme"

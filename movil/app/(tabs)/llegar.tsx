@@ -375,7 +375,7 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
       {!viaje.fueraDeHorario ? (
         <Pressable
           style={s.comenzar}
-          onPress={() => (esPremium ? comenzarViaje() : router.push("/rutina"))}
+          onPress={() => (esPremium ? comenzarViaje() : router.push("/premium"))}
           accessibilityRole="button"
         >
           <Text style={s.comenzarTexto}>
