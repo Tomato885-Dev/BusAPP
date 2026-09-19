@@ -55,6 +55,13 @@ export default function Pestanas() {
         }}
       />
       <Tabs.Screen
+        name="favoritos"
+        options={{
+          title: "Favoritos",
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>★</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="llegar"
         options={{
           title: "Cómo llegar",
