@@ -32,7 +32,6 @@ interface Props {
 }
 
 const ZOOM_MIN = 11;
-const ZOOM_MAX = 18;
 /** Bajo este zoom los paraderos se amontonan y el mapa deja de leerse. */
 const ZOOM_MARCADORES = 14;
 const MAX_MARCADORES = 140;
@@ -66,6 +65,16 @@ function urlDeTesela(zoom: number, x: number, y: number, oscuro: boolean): strin
   const plano = oscuro ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
   return `https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/${plano}/MapServer/tile/${zoom}/${y}/${x}`;
 }
+
+/**
+ * Hasta dónde se puede acercar.
+ *
+ * **No es una preferencia, es un límite del proveedor.** Los planos Canvas de
+ * Esri sólo tienen teselas hasta el zoom 16: más allá devuelven una imagen gris
+ * que dice «Map data not yet available», y el mapa parece roto. Stadia llega
+ * bastante más lejos.
+ */
+const ZOOM_MAX = LLAVE_STADIA ? 19 : 16;
 
 const CREDITO = LLAVE_STADIA
   ? "© Stadia Maps · OpenMapTiles · OpenStreetMap"
@@ -158,7 +167,9 @@ export function Mapa({
   useEffect(() => {
     if (!irA) return;
     setCentro({ lat: irA.lat, lon: irA.lon });
-    if (irA.zoom !== undefined) setZoom(irA.zoom);
+    if (irA.zoom !== undefined) {
+      setZoom(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, irA.zoom)));
+    }
   }, [irA?.nonce]);
 
   const alMedir = useCallback((e: LayoutChangeEvent) => {
