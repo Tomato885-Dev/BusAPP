@@ -17,6 +17,7 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 | [`docs/04-motor-de-estimacion.md`](docs/04-motor-de-estimacion.md) | El diferenciador: cómo se decide si una micro "viene o no viene". |
 | [`docs/05-roadmap.md`](docs/05-roadmap.md) | Fases de desarrollo, alcance del MVP y criterios de avance. |
 | [`docs/06-riesgos-y-decisiones.md`](docs/06-riesgos-y-decisiones.md) | Riesgos abiertos, decisiones pendientes y supuestos del diseño. |
+| [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
 
 ## Resumen ejecutivo de las conclusiones
 
