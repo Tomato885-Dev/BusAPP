@@ -90,11 +90,53 @@ Siempre.
 
 | Función premium | Por qué es legítimo cobrarla |
 |---|---|
+| **Widget de rutina** ⭐ — ver abajo | La función más vendible del producto |
 | **Notificaciones inteligentes** — "sal ahora", "tu micro se desvió, anda al otro paradero" | La información está gratis; lo que se cobra es que te busque a ti en vez de que tú la busques |
-| **Live Activity / Dynamic Island / widget** — el ETA en la pantalla bloqueada | Comodidad pura. Es además la función más vistosa y la que más convierte |
+| **Live Activity / Dynamic Island** — el ETA en la pantalla bloqueada | Comodidad pura, y muy vistosa |
 | **Alertas de viaje recurrente** — "avísame todos los días a las 7:40 cómo está la 506" | Automatización, no información |
 | **Historial personal** — cuánto esperas realmente al mes, qué línea te falla más | Dato propio, entretenido, cero impacto en quien no paga |
 | **Apple Watch / Wear OS** | Comodidad de plataforma |
+
+### ⭐ El widget de rutina
+
+*Idea del autor, 19 de septiembre de 2026. Es la función premium más fuerte que
+tiene el producto.*
+
+**Cómo funciona:** la app nota que esta persona toma la micro casi todos los
+días alrededor de las 7:00 en el mismo paradero. Sin que tenga que configurar
+nada, **quince minutos antes aparece en la pantalla de inicio del teléfono un
+widget con las micros que vienen a ese paradero**. La persona mira el celular
+mientras se toma el café y decide si sale ya o le quedan cinco minutos.
+
+**Por qué es tan buena:**
+
+1. **Invierte la relación con la app.** Todas las apps de transporte esperan a
+   que las abras. Esta te busca a ti, justo cuando sirve. Es la diferencia entre
+   una herramienta y un hábito.
+2. **Se paga sola en el momento de mayor valor.** La gente paga por lo que le
+   ahorra estrés a las 7 de la mañana, no por lo que le sirve una vez al mes.
+3. **Es visible sin abrir nada.** Un widget en la pantalla de inicio es
+   publicidad permanente y gratuita del producto, en el teléfono del usuario.
+4. **Respeta la regla de §7.4:** no entrega información que la versión gratuita
+   no tenga. Lo que se cobra es la **anticipación**: que aparezca sola, en el
+   momento justo, sin pedirla.
+5. **Sólo la puede hacer quien tenga el historial.** Aprender la rutina exige
+   saber qué hace la persona todos los días, lo que a su vez exige el servidor.
+   Es una ventaja que no se copia fácil.
+
+**Lo que hay que resolver:**
+
+- Los widgets **no se pueden escribir en React Native**. En iOS hay que hacerlos
+  en SwiftUI con WidgetKit y en Android con Kotlin, igual que la app del reloj
+  (`02` §2.2b). Son módulos nativos chicos, alimentados por la misma API.
+- **Detectar la rutina** requiere guardar patrones de uso. Eso es dato personal,
+  así que va con consentimiento explícito y bajo las reglas de `03` §3.7.
+- La rutina se puede **inferir** (sin que el usuario configure nada) o
+  **declarar** (el usuario elige paradero y hora). Conviene empezar por la
+  declarada, que es mucho más simple y ya vale, y agregar la inferencia después.
+
+**Encaja naturalmente con el reloj:** la misma información, en la muñeca, quince
+minutos antes. El mismo módulo nativo sirve para los dos.
 
 **Precio sugerido:** CLP 990–1.490 mensuales, o CLP 8.900 al año. Y considerar
 seriamente un **pago único** (CLP 4.900–6.900): en Chile la resistencia a las
@@ -207,6 +249,174 @@ usuarios que le den poder de negociación.
 | Datos a aseguradoras, bancos o corredores de datos | Riesgo reputacional desproporcionado al ingreso |
 
 ---
+
+## 7.7b Los números reales, revisados en 2026
+
+Datos de mercado al 19 de septiembre de 2026. Conviene rehacer este cálculo
+antes de tomar cualquier decisión de inversión: cambia rápido.
+
+### Lo que se gasta
+
+| Etapa | Mensual |
+|---|---|
+| **Hoy (desarrollo)** | **USD 0** — Supabase, Stadia, GitHub y OpenStreetMap tienen plan gratuito suficiente |
+| Al publicar | ~USD 55: Apple USD 99/año, Supabase ~25, Stadia ~20, dominio ~1 |
+| Con tracción | Crece con la telemetría, que es lo que más escribe en la base |
+
+### Lo que entra, y la mala noticia
+
+**El ingreso por usuario en Latinoamérica ronda los USD 0,10**, frente a
+mercados como Estados Unidos que están en otro orden de magnitud. Es la
+restricción que manda sobre todo lo demás, y no se arregla con mejor producto.
+
+La compensación: Latinoamérica tiene **la mayor tasa de crecimiento de ingresos
+recurrentes de cualquier región** (~17% mensual mediano). Es un mercado chico
+por usuario, pero que crece rápido.
+
+Para apps de utilidad, la publicidad rinde del orden de USD 0,01 a 0,05 por
+usuario activo, y la suscripción supera a la publicidad en cuanto el producto
+resuelve un problema real: mil suscriptores rinden más que cien mil usuarios con
+avisos.
+
+### Comisión de las tiendas
+
+- **Programa de Pequeñas Empresas de Apple:** 15% mientras se facture menos de
+  USD 1 millón al año. Hay que inscribirse; no es automático.
+- **Pagos fuera de la app:** tras los fallos de Epic contra Apple, en Estados
+  Unidos hoy se puede enlazar a un pago externo **sin comisión**, y Apple
+  propuso cobrar 5% a pequeñas empresas. En Chile la situación no es la misma:
+  hay que verificarla antes de contar con ello.
+
+### La cuenta para este producto
+
+Suscripción de CLP 1.490 (~USD 1,50) con 2% de conversión, menos 15% de
+comisión:
+
+| Usuarios activos | Suscriptores | Ingreso neto mensual | ¿Cubre los ~USD 55? |
+|---|---|---|---|
+| 5.000 | ~100 | ~USD 127 | Sí, con holgura |
+| 20.000 | ~400 | ~USD 510 | Sí |
+| 50.000 | ~1.000 | ~USD 1.275 | Sí, pero no es un sueldo |
+
+**Conclusión incómoda y central:** con los ingresos de consumidores en Chile,
+este producto **cubre sus costos, no se convierte en negocio**. Llegar a 50.000
+usuarios activos —que sería un éxito rotundo para una app nueva— rinde menos que
+un sueldo.
+
+Eso no invalida el plan: **lo confirma**. Por eso el negocio está en la capa 3
+(§7.5), donde un solo contrato anual con un municipio o un operador puede
+superar todo el ingreso de consumidores del año. La app no es el producto que se
+vende; es el instrumento que produce el dato que sí se vende.
+
+### Qué hacer con esto
+
+1. **No apurarse a monetizar.** Cobrar antes de tener el diferenciador
+   funcionando sólo frena el crecimiento, que es lo único que importa ahora.
+2. **Inscribirse en el Programa de Pequeñas Empresas de Apple** apenas se tenga
+   la cuenta: es la diferencia entre 15% y 30%.
+3. **Tratar la suscripción como cobertura de costos**, no como el negocio.
+4. **Empezar a hablar con posibles compradores del dato mucho antes de tener el
+   dato.** Un municipio tarda meses en comprar; conviene que el proceso corra en
+   paralelo al desarrollo, no después.
+
+### Fuentes
+
+- [RevenueCat — State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps)
+- [AppsFlyer — The State of App Monetization 2026](https://www.appsflyer.com/resources/reports/app-marketing-monetization-report/)
+- [Apple App Store Small Business Program 2026](https://appbuilder24.com/blog/apple-small-business-program)
+- [TechCrunch — Apple proposes 15% cut on external purchases](https://techcrunch.com/2026/08/14/apple-proposes-to-take-a-15-cut-of-purchases-made-outside-the-app-store/)
+- [MonetizeMore — Ad revenue benchmarks 2026](https://www.monetizemore.com/blog/how-much-ad-revenue-can-apps-generate/)
+
+## 7.7c Plan concreto para llegar a un sueldo extra
+
+*Objetivo declarado por el autor: un ingreso complementario. Se toma como meta
+**CLP 400.000 mensuales netos (~USD 430)**. Si la meta real es otra, los números
+de abajo escalan proporcionalmente.*
+
+### Aclaración previa: las tiendas no pagan por descargas
+
+Conviene dejarlo escrito porque es un malentendido frecuente y caro.
+
+**Apple y Google no pagan nada por descargas.** Son intermediarios de cobro: se
+quedan con un porcentaje de lo que tú vendes. El Programa de Pequeñas Empresas
+no es un ingreso, es un **descuento en la comisión** —de 30% a 15%— sobre
+ventas que tú tienes que generar. Una app gratis descargada un millón de veces
+genera exactamente cero pesos.
+
+Todo ingreso sale de una de tres fuentes: **alguien paga dentro de la app,
+alguien paga por publicidad, o alguien paga por el dato.**
+
+### Las tres vías, ordenadas por cuándo pueden rendir
+
+#### Vía rápida — Estudios de accesibilidad *(desde ya, sin un solo usuario)*
+
+La menos obvia y la única que puede rendir en los próximos meses.
+
+Con el feed del DTPM ya cargado se puede responder, para cualquier dirección de
+Santiago: cuántas líneas la sirven, a qué distancia está el paradero más
+cercano, cuánto se demora hasta el centro, qué comunas quedan a menos de 45
+minutos. Eso es un **estudio de accesibilidad**, y lo compran inmobiliarias,
+corredoras y consultoras urbanas para sus proyectos.
+
+- **Ingreso estimado:** del orden de CLP 250.000 a 600.000 por estudio.
+  *(Rango a validar con clientes reales; no hay precio de lista.)*
+- **Requiere:** cero usuarios. El dato ya está.
+- **Contra:** es consultoría, no ingreso pasivo. Cada peso cuesta horas.
+- **A favor:** financia el proyecto mientras crece, y obliga a hablar con los
+  mismos compradores que después comprarán el dato de movilidad.
+
+#### Vía media — Suscripción *(mes 12 en adelante)*
+
+Cubre los costos de operación, y poco más (§7.7b).
+
+Para que aporte CLP 400.000 netos harían falta del orden de **15.000
+suscriptores**, o sea cientos de miles de usuarios activos. No es el camino.
+
+#### Vía principal — Datos agregados de movilidad *(mes 12 a 24)*
+
+**Un solo contrato anual del orden de CLP 5 millones equivale a CLP 416.000
+mensuales.** Es decir: *un* cliente alcanza la meta.
+
+Compradores por orden de facilidad:
+
+| Comprador | Por qué compra | Dificultad |
+|---|---|---|
+| Consultoras e inmobiliarias | Estudios de accesibilidad para proyectos | Baja: venta directa, sin licitación |
+| Operadores de buses | Saber dónde pierden tiempo antes de que se lo descuenten | Media: tienen incentivo económico directo |
+| Municipios | Planificación de vías y corredores | Media-alta: compra pública, lenta |
+| DTPM / MTT | Fiscalización independiente de los operadores | Alta, pero es el cliente natural |
+
+### Cronograma con cifras
+
+| Meses | Qué se hace | Ingreso mensual esperado |
+|---|---|---|
+| 0–6 | Construir. **No monetizar.** | CLP 0 |
+| 3–9 | Primeros estudios de accesibilidad | CLP 0–500.000, irregular |
+| 9–15 | Lanzar, crecer, activar suscripción | Cubre costos |
+| 12–24 | Primer contrato de datos | **CLP 400.000+, estable** |
+
+### Las tres cosas que hay que hacer ahora para que esto ocurra
+
+1. **Hablar con posibles compradores antes de tener el producto.** Un municipio
+   tarda meses en comprar. Si la conversación parte cuando el dato ya existe, se
+   suma medio año al calendario. Si parte ahora, el producto llega con clientes
+   esperando.
+2. **Probar la vía rápida con un caso real.** Un solo estudio de accesibilidad
+   vendido valida que alguien paga por esto, y eso vale más que cualquier
+   proyección de esta tabla.
+3. **Guardar el histórico desde el primer día.** El valor del dato agregado es
+   proporcional a cuántos meses se lleven acumulados. Los datos que no se
+   capturan hoy no se recuperan (`04` §4.6).
+
+### La advertencia honesta
+
+Nada de esto es ingreso pasivo en el corto plazo. Una app que rinde un sueldo
+extra con usuarios chilenos es rara, y las que lo logran tardan años. **Lo que
+puede rendir antes es vender el análisis, no la app.**
+
+Quien quiera un ingreso complementario pronto debería tratar los estudios de
+accesibilidad como el producto inmediato, y la app como la inversión que
+después convierte ese trabajo por hora en algo que escala.
 
 ## 7.8 Cronología
 

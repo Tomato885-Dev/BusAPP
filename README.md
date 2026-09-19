@@ -32,7 +32,7 @@ La app publicada en GitHub Pages, sin instalar nada:
 | [`docs/05-roadmap.md`](docs/05-roadmap.md) | Fases de desarrollo, alcance del MVP y criterios de avance. |
 | [`docs/06-riesgos-y-decisiones.md`](docs/06-riesgos-y-decisiones.md) | Riesgos abiertos, decisiones pendientes y supuestos del diseño. |
 | [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
-| [`docs/08-lo-que-necesito-de-ti.md`](docs/08-lo-que-necesito-de-ti.md) | **Tareas, decisiones y definiciones de estilo que dependen de ti.** |
+| [`docs/08-plan-de-trabajo.md`](docs/08-plan-de-trabajo.md) | **El plan: qué está hecho, qué sigue, y quién hace cada cosa.** Empieza aquí. |
 | [`docs/09-nombre.md`](docs/09-nombre.md) | Alternativas al nombre, y por qué «Bus Checker» no sirve. |
 
 ## Resumen ejecutivo de las conclusiones

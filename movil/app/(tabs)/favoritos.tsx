@@ -19,11 +19,19 @@ export default function PantallaFavoritos() {
   const insets = useSafeAreaInsets();
   const s = estilos(c);
   const { favoritos, alternar } = useFavoritos();
-  const { conServidor, usuarioId } = useSesion();
+  const { conServidor, usuarioId, listo, error } = useSesion();
 
   const paraderos = favoritos
     .map((id) => PARADERO_POR_ID.get(id))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+  function textoDeEstado(): string {
+    if (!conServidor) return "Tus favoritos se guardan en este dispositivo";
+    if (error) return `Sin servidor: ${error}. Tus favoritos se guardan en este dispositivo.`;
+    if (!listo) return "Conectando con el servidor…";
+    if (usuarioId) return "Tus favoritos se guardan en el servidor";
+    return "Tus favoritos se guardan en este dispositivo";
+  }
 
   return (
     <View style={[s.pantalla, { paddingTop: insets.top + esp.md }]}>
@@ -80,13 +88,7 @@ export default function PantallaFavoritos() {
         </ScrollView>
       )}
 
-      <Text style={s.pie}>
-        {conServidor
-          ? usuarioId
-            ? "Tus favoritos se guardan en el servidor"
-            : "Conectando con el servidor…"
-          : "Tus favoritos se guardan en este dispositivo"}
-      </Text>
+      <Text style={[s.pie, error && { color: c.malo }]}>{textoDeEstado()}</Text>
     </View>
   );
 }

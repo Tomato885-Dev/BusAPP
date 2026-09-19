@@ -6,7 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { llegadasDeParadero } from "../../src/api";
 import { FilaLlegada } from "../../src/componentes/FilaLlegada";
+import { TarjetaRutina } from "../../src/componentes/TarjetaRutina";
 import { useFavoritos } from "../../src/favoritos";
+import { usePremium } from "../../src/premium";
+import { useRutinas } from "../../src/rutinas";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
 import { PARADEROS, PARADERO_POR_ID } from "../../src/red";
@@ -21,6 +24,8 @@ export default function PantallaMapa() {
   const s = estilos(c);
 
   const { esFavorito, alternar } = useFavoritos();
+  const { rutinaActiva, minutosParaSalir } = useRutinas();
+  const { esPremium } = usePremium();
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [irA, setIrA] = useState<{ lat: number; lon: number; zoom?: number; nonce: number } | null>(null);
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
@@ -76,6 +81,18 @@ export default function PantallaMapa() {
           <Text style={s.lupa}>⌕</Text>
           <Text style={s.buscadorTexto}>Buscar paradero o destino</Text>
         </Pressable>
+
+        {/* La rutina aparece sola cuando falta poco para la hora habitual.
+            Es lo que después será el widget de la pantalla de inicio. */}
+        {esPremium && rutinaActiva && minutosParaSalir !== null && !paradero ? (
+          <View style={{ marginTop: esp.md }}>
+            <TarjetaRutina
+              rutina={rutinaActiva}
+              minutosParaSalir={minutosParaSalir}
+              onAbrir={() => setSeleccionado(rutinaActiva.paraderoId)}
+            />
+          </View>
+        ) : null}
       </View>
 
       <Pressable
@@ -133,6 +150,19 @@ export default function PantallaMapa() {
             contentContainerStyle={{ paddingBottom: esp.lg }}
             showsVerticalScrollIndicator={false}
           >
+            <Pressable
+              style={s.botonRutina}
+              onPress={() =>
+                router.push({
+                  pathname: "/nueva-rutina",
+                  params: { paraderoId: paradero.id },
+                })
+              }
+            >
+              <Text style={s.botonRutinaIcono}>◔</Text>
+              <Text style={s.botonRutinaTexto}>Avisarme a una hora</Text>
+            </Pressable>
+
             {datos.aviso ? <TarjetaAviso aviso={datos.aviso} /> : null}
             {datos.llegadas.map((l, i) => (
               <FilaLlegada key={`${l.recorrido}-${i}`} llegada={l} />
@@ -212,6 +242,18 @@ const estilos = (c: Colores) =>
     cerrar: { fontSize: 17, color: c.textoTenue, paddingHorizontal: esp.xs },
 
     panelLista: { flex: 1, paddingHorizontal: esp.lg },
+    botonRutina: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: esp.sm,
+      backgroundColor: c.marcaSuave,
+      borderRadius: radio.md,
+      paddingVertical: esp.md,
+      marginBottom: esp.md,
+    },
+    botonRutinaIcono: { fontSize: 15, color: c.marcaTexto },
+    botonRutinaTexto: { ...tipo.cuerpoFuerte, color: c.marcaTexto },
     pie: {
       ...tipo.menor,
       color: c.textoTenue,

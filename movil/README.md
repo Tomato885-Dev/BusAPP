@@ -60,9 +60,12 @@ npx expo export --platform web --output-dir ../sitio
 | Mapa con paraderos | ✅ 3.748 paraderos reales en sus coordenadas |
 | Llegadas del paradero | ✅ Recorridos reales, de menor a mayor tiempo |
 | Cómo llegar (viajes) | ✅ Viajes directos sobre la red real |
-| Favoritos | ⬜ Pendiente |
+| Favoritos | ✅ Sincronizados con el servidor |
+| **Rutinas y avisos** (premium) | ✅ Funcionando |
 | Combinaciones con transbordo | ⬜ Necesita el servidor |
-| Apple Watch | ⬜ Fase 5 |
+| Widget en pantalla de inicio | ⬜ Necesita cuenta de desarrollador |
+| Apple Watch | ⬜ Necesita cuenta de desarrollador |
+| Cobro real de la suscripción | ⬜ Necesita cuentas de tiendas |
 
 **Qué es real y qué no:**
 
