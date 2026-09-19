@@ -246,3 +246,107 @@ begin
     on conflict (id) do update set visto_en = now();
 end;
 $$;
+
+
+-- ============================================================================
+-- 5. FUNCIONES PREMIUM
+-- ============================================================================
+--
+-- Se agregó el 19 de septiembre de 2026. Ejecutar este bloque sobre una base
+-- que ya tenga el esquema anterior; es idempotente.
+
+set search_path = public, extensions;
+
+-- Rutinas del usuario.
+--
+-- «Todos los días hábiles tomo la micro a las 7:40 en el paradero PA420.» Con
+-- eso la app puede avisar quince minutos antes sin que la persona abra nada.
+create table if not exists rutinas (
+    id            uuid primary key default gen_random_uuid(),
+    usuario_id    uuid not null references auth.users(id) on delete cascade,
+    paradero_id   text not null references paraderos(id) on delete cascade,
+    -- Opcional: una línea concreta. Si va en null, se muestran todas las del
+    -- paradero, que es lo habitual cuando cualquiera de varias sirve.
+    recorrido_id  text references recorridos(id) on delete set null,
+    -- Minutos desde medianoche, hora de Santiago.
+    hora          smallint not null check (hora between 0 and 1439),
+    -- Días en que aplica: 1 = lunes … 7 = domingo.
+    dias          smallint[] not null default '{1,2,3,4,5}',
+    aviso_minutos smallint not null default 15 check (aviso_minutos between 1 and 60),
+    activa        boolean not null default true,
+    creada_en     timestamptz not null default now()
+);
+
+create index if not exists rutinas_usuario_idx on rutinas (usuario_id);
+
+-- Registro de consultas, para las estadísticas personales.
+--
+-- Guarda QUÉ se consultó, no dónde estaba la persona. Es distinto de la
+-- telemetría y por eso va en otra tabla: aquí el identificador del usuario sí
+-- corresponde, porque son sus propias estadísticas.
+create table if not exists consultas (
+    id           bigserial primary key,
+    usuario_id   uuid not null references auth.users(id) on delete cascade,
+    paradero_id  text not null references paraderos(id) on delete cascade,
+    recorrido_id text references recorridos(id) on delete set null,
+    espera_s     integer,
+    consultada_en timestamptz not null default now()
+);
+
+create index if not exists consultas_usuario_idx on consultas (usuario_id, consultada_en desc);
+
+-- Estado de la suscripción.
+--
+-- Se escribe desde el servidor cuando la tienda confirma un pago. La app sólo
+-- lee: si pudiera escribir, cualquiera se regalaría premium editando la
+-- petición.
+create table if not exists suscripciones (
+    usuario_id uuid primary key references auth.users(id) on delete cascade,
+    activa     boolean not null default false,
+    hasta      timestamptz,
+    origen     text not null default 'ninguno',  -- app_store | play_store | cortesia
+    creada_en  timestamptz not null default now()
+);
+
+alter table rutinas       enable row level security;
+alter table consultas     enable row level security;
+alter table suscripciones enable row level security;
+
+drop policy if exists "rutinas propias" on rutinas;
+create policy "rutinas propias" on rutinas
+    for all using (auth.uid() = usuario_id) with check (auth.uid() = usuario_id);
+
+drop policy if exists "consultas propias" on consultas;
+create policy "consultas propias" on consultas
+    for all using (auth.uid() = usuario_id) with check (auth.uid() = usuario_id);
+
+-- La suscripción se lee, no se escribe: el cliente no puede regalarse premium.
+drop policy if exists "suscripcion propia legible" on suscripciones;
+create policy "suscripcion propia legible" on suscripciones
+    for select using (auth.uid() = usuario_id);
+
+-- Estadísticas personales: cuánto espera y qué línea le falla más.
+create or replace function public.mis_estadisticas(desde_dias integer default 30)
+returns table (
+    consultas_totales bigint,
+    espera_media_s numeric,
+    paradero_habitual text,
+    recorrido_habitual text
+)
+language sql
+stable
+set search_path = public
+as $$
+    with propias as (
+        select * from public.consultas
+        where usuario_id = auth.uid()
+          and consultada_en > now() - make_interval(days => desde_dias)
+    )
+    select
+        (select count(*) from propias),
+        (select round(avg(espera_s)) from propias where espera_s is not null),
+        (select paradero_id from propias group by paradero_id
+         order by count(*) desc limit 1),
+        (select recorrido_id from propias where recorrido_id is not null
+         group by recorrido_id order by count(*) desc limit 1);
+$$;

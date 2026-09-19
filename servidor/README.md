@@ -114,6 +114,15 @@ queda como estaba en vez de quedar a medio cargar.
 
 ---
 
+## 4b. Actualizar el esquema con las funciones premium
+
+Si ya ejecutaste el esquema antes del 19 de septiembre de 2026, vuelve a
+abrir **SQL Editor → New query**, pega de nuevo el contenido completo de
+[`esquema.sql`](esquema.sql) y dale **Run**.
+
+Agrega las tablas de rutinas, consultas y suscripciones. Es idempotente: no
+toca lo que ya está cargado.
+
 ## 5. Conectar la app
 
 **Settings → API**, copia `Project URL` y la llave `anon public`.
