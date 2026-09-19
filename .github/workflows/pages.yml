@@ -1,8 +1,6 @@
 name: Publicar en GitHub Pages
 
-# Publica dos cosas:
-#   /            la app real (React Native corriendo en web)
-#   /prototipo/  la maqueta de diseño con el selector de escenarios
+# Publica la app real (React Native corriendo en web) en la raíz del sitio.
 
 on:
   push:
@@ -44,7 +42,6 @@ jobs:
           # 404.html hace que los enlaces profundos y los refrescos funcionen
           # en una aplicación de una sola página.
           cp sitio/index.html sitio/404.html
-          cp -r prototipo sitio/prototipo
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -209,6 +209,19 @@ def _paraderos(args: argparse.Namespace) -> int:
     return 0
 
 
+def _zona(args: argparse.Namespace) -> int:
+    """Exporta toda la red dentro de un recuadro, para que la app la use sin backend."""
+    from .exportar_zona import Recuadro, exportar
+
+    feed = leer_feed(args.feed)
+    lat_min, lat_max, lon_min, lon_max = (float(x) for x in args.recuadro.split(","))
+    conteos = exportar(feed, Recuadro(lat_min, lat_max, lon_min, lon_max), Path(args.destino))
+    print(f"  paraderos  {conteos['paraderos']:>6}")
+    print(f"  recorridos {conteos['recorridos']:>6}")
+    print(f"  tamaño     {conteos['bytes'] / 1024:>6.0f} KB  →  {args.destino}")
+    return 0
+
+
 def _cargar(args: argparse.Namespace) -> int:
     from .load import cargar
 
@@ -261,6 +274,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--max-recorridos", type=int, default=6)
     p.add_argument("--destino", default="../movil/src/paraderos.json")
     p.set_defaults(fn=_paraderos)
+
+    p = sub.add_parser("zona", help="exporta una zona completa de la red para la app")
+    p.add_argument("feed")
+    p.add_argument("--recuadro", required=True, help="lat_min,lat_max,lon_min,lon_max")
+    p.add_argument("--destino", default="../movil/src/red.json")
+    p.set_defaults(fn=_zona)
 
     p = sub.add_parser("cargar", help="carga el feed a PostGIS")
     p.add_argument("feed")

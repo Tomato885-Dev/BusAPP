@@ -57,21 +57,23 @@ npx expo export --platform web --output-dir ../sitio
 
 | Pantalla | Estado |
 |---|---|
-| Paraderos cercanos | ✅ Funciona con datos de prueba |
-| Llegadas del paradero | ✅ Funciona, con los 4 estados del motor |
-| Mapa | ⬜ Pendiente |
+| Mapa con paraderos | ✅ 3.748 paraderos reales en sus coordenadas |
+| Llegadas del paradero | ✅ Recorridos reales, de menor a mayor tiempo |
+| Cómo llegar (viajes) | ✅ Viajes directos sobre la red real |
 | Favoritos | ⬜ Pendiente |
+| Combinaciones con transbordo | ⬜ Necesita el servidor |
 | Apple Watch | ⬜ Fase 5 |
 
-**Los datos son inventados todavía.** Navega entre los distintos paraderos para
-ver los cuatro escenarios del motor de estimación:
+**Qué es real y qué no:**
 
-| Paradero | Qué muestra |
-|---|---|
-| **PA420** | Una micro que **no va a llegar**, con alternativa concreta |
-| **PA433** | Todo normal, confianza alta |
-| **PA415** | Las dos fuentes **no coinciden** |
-| **PA425** | **Sin telemetría**: rangos anchos y la app lo admite |
+- **Reales:** paraderos, códigos, nombres, coordenadas, recorridos, secuencia de
+  paradas y los viajes que calcula el planificador. Todo sale del feed del DTPM.
+- **Simulados:** los tiempos de llegada. Para tenerlos de verdad hace falta el
+  backend con el motor de `../docs/04-motor-de-estimacion.md`.
+
+Los tiempos simulados reproducen los cuatro estados del motor —normal, sin
+telemetría, fuentes que no coinciden, y micro que no va a llegar— así que
+recorriendo el mapa se ven todos.
 
 ## Cuando el backend esté listo
 

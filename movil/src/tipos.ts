@@ -47,17 +47,7 @@ export interface Aviso {
 
 export interface RespuestaParadero {
   paraderoId: string;
-  codigo: string;
-  nombre: string;
   actualizadoHace: number;
   aviso?: Aviso;
   llegadas: Llegada[];
-}
-
-export interface Paradero {
-  id: string;
-  codigo: string;
-  nombre: string;
-  distanciaM: number;
-  recorridos: string[];
 }
