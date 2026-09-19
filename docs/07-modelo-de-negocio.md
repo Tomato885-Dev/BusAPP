@@ -285,6 +285,97 @@ vende; es el instrumento que produce el dato que sí se vende.
 - [TechCrunch — Apple proposes 15% cut on external purchases](https://techcrunch.com/2026/08/14/apple-proposes-to-take-a-15-cut-of-purchases-made-outside-the-app-store/)
 - [MonetizeMore — Ad revenue benchmarks 2026](https://www.monetizemore.com/blog/how-much-ad-revenue-can-apps-generate/)
 
+## 7.7c Plan concreto para llegar a un sueldo extra
+
+*Objetivo declarado por el autor: un ingreso complementario. Se toma como meta
+**CLP 400.000 mensuales netos (~USD 430)**. Si la meta real es otra, los números
+de abajo escalan proporcionalmente.*
+
+### Aclaración previa: las tiendas no pagan por descargas
+
+Conviene dejarlo escrito porque es un malentendido frecuente y caro.
+
+**Apple y Google no pagan nada por descargas.** Son intermediarios de cobro: se
+quedan con un porcentaje de lo que tú vendes. El Programa de Pequeñas Empresas
+no es un ingreso, es un **descuento en la comisión** —de 30% a 15%— sobre
+ventas que tú tienes que generar. Una app gratis descargada un millón de veces
+genera exactamente cero pesos.
+
+Todo ingreso sale de una de tres fuentes: **alguien paga dentro de la app,
+alguien paga por publicidad, o alguien paga por el dato.**
+
+### Las tres vías, ordenadas por cuándo pueden rendir
+
+#### Vía rápida — Estudios de accesibilidad *(desde ya, sin un solo usuario)*
+
+La menos obvia y la única que puede rendir en los próximos meses.
+
+Con el feed del DTPM ya cargado se puede responder, para cualquier dirección de
+Santiago: cuántas líneas la sirven, a qué distancia está el paradero más
+cercano, cuánto se demora hasta el centro, qué comunas quedan a menos de 45
+minutos. Eso es un **estudio de accesibilidad**, y lo compran inmobiliarias,
+corredoras y consultoras urbanas para sus proyectos.
+
+- **Ingreso estimado:** del orden de CLP 250.000 a 600.000 por estudio.
+  *(Rango a validar con clientes reales; no hay precio de lista.)*
+- **Requiere:** cero usuarios. El dato ya está.
+- **Contra:** es consultoría, no ingreso pasivo. Cada peso cuesta horas.
+- **A favor:** financia el proyecto mientras crece, y obliga a hablar con los
+  mismos compradores que después comprarán el dato de movilidad.
+
+#### Vía media — Suscripción *(mes 12 en adelante)*
+
+Cubre los costos de operación, y poco más (§7.7b).
+
+Para que aporte CLP 400.000 netos harían falta del orden de **15.000
+suscriptores**, o sea cientos de miles de usuarios activos. No es el camino.
+
+#### Vía principal — Datos agregados de movilidad *(mes 12 a 24)*
+
+**Un solo contrato anual del orden de CLP 5 millones equivale a CLP 416.000
+mensuales.** Es decir: *un* cliente alcanza la meta.
+
+Compradores por orden de facilidad:
+
+| Comprador | Por qué compra | Dificultad |
+|---|---|---|
+| Consultoras e inmobiliarias | Estudios de accesibilidad para proyectos | Baja: venta directa, sin licitación |
+| Operadores de buses | Saber dónde pierden tiempo antes de que se lo descuenten | Media: tienen incentivo económico directo |
+| Municipios | Planificación de vías y corredores | Media-alta: compra pública, lenta |
+| DTPM / MTT | Fiscalización independiente de los operadores | Alta, pero es el cliente natural |
+
+### Cronograma con cifras
+
+| Meses | Qué se hace | Ingreso mensual esperado |
+|---|---|---|
+| 0–6 | Construir. **No monetizar.** | CLP 0 |
+| 3–9 | Primeros estudios de accesibilidad | CLP 0–500.000, irregular |
+| 9–15 | Lanzar, crecer, activar suscripción | Cubre costos |
+| 12–24 | Primer contrato de datos | **CLP 400.000+, estable** |
+
+### Las tres cosas que hay que hacer ahora para que esto ocurra
+
+1. **Hablar con posibles compradores antes de tener el producto.** Un municipio
+   tarda meses en comprar. Si la conversación parte cuando el dato ya existe, se
+   suma medio año al calendario. Si parte ahora, el producto llega con clientes
+   esperando.
+2. **Probar la vía rápida con un caso real.** Un solo estudio de accesibilidad
+   vendido valida que alguien paga por esto, y eso vale más que cualquier
+   proyección de esta tabla.
+3. **Guardar el histórico desde el primer día.** El valor del dato agregado es
+   proporcional a cuántos meses se lleven acumulados. Los datos que no se
+   capturan hoy no se recuperan (`04` §4.6).
+
+### La advertencia honesta
+
+Nada de esto es ingreso pasivo en el corto plazo. Una app que rinde un sueldo
+extra con usuarios chilenos es rara, y las que lo logran tardan años. **Lo que
+puede rendir antes es vender el análisis, no la app.**
+
+Quien quiera un ingreso complementario pronto debería tratar los estudios de
+accesibilidad como el producto inmediato, y la app como la inversión que
+después convierte ese trabajo por hora en algo que escala.
+
 ## 7.8 Cronología
 
 | Momento | Ingreso | Meta |
