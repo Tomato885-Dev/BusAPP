@@ -116,15 +116,37 @@ export const radio = {
   pastilla: 999,
 } as const;
 
+/**
+ * La tipografía de Kupay: **Manrope**.
+ *
+ * Se eligió por dos razones concretas, no por gusto. Primero, sus números: esta
+ * app se lee de reojo en la calle, y casi todo lo que importa —«4 min», «0–12
+ * min»— es un número. Manrope tiene cifras abiertas y bien separadas, que no se
+ * confunden a tamaño chico ni con el teléfono en movimiento. Segundo, su forma:
+ * es geométrica sin ser fría, que es exactamente el registro de la paleta.
+ *
+ * **Cada peso es un archivo distinto.** Con tipografías propias, `fontWeight`
+ * no elige el archivo: hay que nombrarlo. Poner `fontWeight: "700"` sobre una
+ * familia cargada da una negrita falsa, que el motor dibuja engordando los
+ * trazos y se ve sucia. Por eso en toda la app se usa `fuente.*`, nunca
+ * `fontWeight`.
+ */
+export const fuente = {
+  normal: "Manrope_500Medium",
+  semi: "Manrope_600SemiBold",
+  fuerte: "Manrope_700Bold",
+  extra: "Manrope_800ExtraBold",
+} as const;
+
 /** Escala tipográfica. */
 export const tipo = {
-  gigante: { fontSize: 44, fontWeight: "800", letterSpacing: -1.4 },
-  titulo: { fontSize: 26, fontWeight: "700", letterSpacing: -0.6 },
-  subtitulo: { fontSize: 19, fontWeight: "700", letterSpacing: -0.3 },
-  cuerpo: { fontSize: 15, fontWeight: "500", letterSpacing: -0.1 },
-  cuerpoFuerte: { fontSize: 15, fontWeight: "700", letterSpacing: -0.1 },
-  menor: { fontSize: 13, fontWeight: "500" },
-  micro: { fontSize: 11, fontWeight: "700", letterSpacing: 0.3 },
+  gigante: { fontFamily: fuente.extra, fontSize: 44, letterSpacing: -1.4 },
+  titulo: { fontFamily: fuente.fuerte, fontSize: 26, letterSpacing: -0.6 },
+  subtitulo: { fontFamily: fuente.fuerte, fontSize: 19, letterSpacing: -0.3 },
+  cuerpo: { fontFamily: fuente.normal, fontSize: 15, letterSpacing: -0.1 },
+  cuerpoFuerte: { fontFamily: fuente.fuerte, fontSize: 15, letterSpacing: -0.1 },
+  menor: { fontFamily: fuente.normal, fontSize: 13 },
+  micro: { fontFamily: fuente.fuerte, fontSize: 11, letterSpacing: 0.3 },
 } as const;
 
 /** Elevación. En web se usa boxShadow porque las sombras nativas no aplican. */

@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Vacio } from "../src/componentes/Vacio";
 import { PARADERO_POR_ID } from "../src/red";
 import { NOMBRES_DIAS, horaTexto, useRutinas } from "../src/rutinas";
-import { esp, radio, tipo, useColores, type Colores } from "../src/tema";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../src/tema";
 
 /** Horas frecuentes de salida, para no obligar a ajustar minuto a minuto. */
 const HORAS_RAPIDAS = [6 * 60 + 30, 7 * 60, 7 * 60 + 30, 8 * 60, 8 * 60 + 30, 18 * 60];
@@ -163,7 +163,7 @@ const estilos = (c: Colores) =>
       padding: esp.sm,
     },
     ajuste: { width: 52, height: 52, alignItems: "center", justifyContent: "center" },
-    ajusteTexto: { fontSize: 26, fontWeight: "600", color: c.marca },
+    ajusteTexto: { fontFamily: fuente.semi, fontSize: 26, color: c.marca },
     horaGrande: { ...tipo.gigante, color: c.texto },
 
     chips: { flexDirection: "row", flexWrap: "wrap", gap: esp.sm, marginTop: esp.md },
@@ -175,7 +175,7 @@ const estilos = (c: Colores) =>
     },
     chipActivo: { backgroundColor: c.marca },
     chipTexto: { ...tipo.menor, color: c.textoSuave },
-    chipTextoActivo: { color: "#fff", fontWeight: "700" },
+    chipTextoActivo: { color: "#fff", fontFamily: fuente.fuerte },
 
     dias: { flexDirection: "row", gap: esp.sm },
     dia: {
@@ -197,7 +197,7 @@ const estilos = (c: Colores) =>
       backgroundColor: c.marcaSuave,
     },
     resumenTexto: { ...tipo.menor, color: c.marcaTexto, lineHeight: 20 },
-    resumenFuerte: { fontWeight: "800" },
+    resumenFuerte: { fontFamily: fuente.extra },
 
     boton: {
       backgroundColor: c.marca,

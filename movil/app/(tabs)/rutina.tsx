@@ -10,7 +10,7 @@ import { LIMITE_FAVORITOS, LIMITE_RUTINAS } from "../../src/limites";
 import { usePremium } from "../../src/premium";
 import { diasTexto, horaTexto, useRutinas } from "../../src/rutinas";
 import { PARADERO_POR_ID } from "../../src/red";
-import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../../src/tema";
 import { useSesion } from "../../src/useSesion";
 
 /** Las funciones del plan pagado, en el orden en que se explican. */
@@ -433,5 +433,5 @@ const estilos = (c: Colores) =>
       marginTop: esp.sm,
       lineHeight: 18,
     },
-    pruebasFuerte: { fontWeight: "700", color: c.textoSuave },
+    pruebasFuerte: { fontFamily: fuente.fuerte, color: c.textoSuave },
   });

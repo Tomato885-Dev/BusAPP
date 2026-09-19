@@ -7,7 +7,7 @@ import { distanciaM } from "../mapa/proyeccion";
 import { etaTexto, origenTexto, rangoTexto, tono } from "../formato";
 import { PARADERO_POR_ID } from "../red";
 import { horaTexto, type Rutina } from "../rutinas";
-import { elevacion, esp, radio, tipo, useColores, type Colores } from "../tema";
+import { type Colores, elevacion, esp, fuente, radio, tipo, useColores } from "../tema";
 
 /** Cuántas micros caben sin que la tarjeta tape el mapa. */
 const CUANTAS = 3;
@@ -154,7 +154,7 @@ const estilos = (c: Colores) =>
       alignSelf: "flex-start",
       overflow: "hidden",
     },
-    alerta: { ...tipo.menor, marginTop: esp.sm, fontWeight: "700" },
+    alerta: { ...tipo.menor, fontFamily: fuente.fuerte, marginTop: esp.sm },
     lista: { marginTop: esp.md, gap: esp.md },
     fila: { flexDirection: "row", alignItems: "center", gap: esp.md },
     insignia: {
@@ -166,9 +166,9 @@ const estilos = (c: Colores) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    insigniaTexto: { ...tipo.menor, fontWeight: "700", color: c.textoInverso },
+    insigniaTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.textoInverso },
     destino: { ...tipo.cuerpo, color: c.texto },
     origen: { ...tipo.menor, marginTop: 1 },
-    eta: { fontSize: 22, fontWeight: "800", letterSpacing: -0.8, lineHeight: 25 },
+    eta: { fontFamily: fuente.extra, fontSize: 22, letterSpacing: -0.8, lineHeight: 25 },
     rango: { ...tipo.menor, color: c.textoTenue },
   });

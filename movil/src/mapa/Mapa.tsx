@@ -11,7 +11,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
-import { elevacion, esp, radio, tipo, useColores, useEsOscuro, type Colores } from "../tema";
+import { type Colores, elevacion, esp, fuente, radio, tipo, useColores, useEsOscuro } from "../tema";
 import { TESELA, latAY, lonAX, xALon, yALat } from "./proyeccion";
 
 export interface Marcador {
@@ -367,7 +367,7 @@ const estilos = (c: Colores) =>
     },
     zoomBoton: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
     zoomLinea: { height: StyleSheet.hairlineWidth, backgroundColor: c.borde },
-    zoomTexto: { fontSize: 22, fontWeight: "600", color: c.texto, lineHeight: 26 },
+    zoomTexto: { fontFamily: fuente.semi, fontSize: 22, color: c.texto, lineHeight: 26 },
 
     credito: { position: "absolute", left: esp.sm, bottom: esp.xs, fontSize: 9, color: c.textoTenue },
   });

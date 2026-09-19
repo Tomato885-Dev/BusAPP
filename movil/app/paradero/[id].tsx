@@ -12,7 +12,7 @@ import { useFavoritos } from "../../src/favoritos";
 import { usePremium } from "../../src/premium";
 import { distanciaM } from "../../src/mapa/proyeccion";
 import { PARADERO_POR_ID } from "../../src/red";
-import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../../src/tema";
 import { useSesion } from "../../src/useSesion";
 
 /** Cada cuánto se vuelve a pedir la estimación. */
@@ -320,7 +320,7 @@ const estilos = (c: Colores) =>
       backgroundColor: c.marcaSuave,
     },
     accionIcono: { fontSize: 16, color: c.marcaTexto },
-    accionTexto: { ...tipo.menor, fontWeight: "700", color: c.marcaTexto },
+    accionTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.marcaTexto },
 
     seccion: {
       ...tipo.micro,

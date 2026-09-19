@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RECORRIDO_POR_ID } from "../red";
-import { elevacion, esp, radio, tipo, useColores, type Colores } from "../tema";
+import { type Colores, elevacion, esp, fuente, radio, tipo, useColores } from "../tema";
 import { paradasTexto, useViaje } from "../viaje";
 
 /**
@@ -93,5 +93,5 @@ const estilos = (c: Colores) =>
       borderRadius: radio.pastilla,
       backgroundColor: c.neutroFondo,
     },
-    terminarTexto: { ...tipo.menor, fontWeight: "700", color: c.textoSuave },
+    terminarTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.textoSuave },
   });

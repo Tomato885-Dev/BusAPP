@@ -1,3 +1,10 @@
+import {
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+  useFonts,
+} from "@expo-google-fonts/manrope";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
@@ -8,11 +15,25 @@ import { BarraViaje } from "../src/componentes/BarraViaje";
 import { ProveedorFavoritos } from "../src/favoritos";
 import { ProveedorPremium } from "../src/premium";
 import { ProveedorRutinas } from "../src/rutinas";
-import { useColores } from "../src/tema";
+import { fuente, useColores } from "../src/tema";
 import { ProveedorViaje } from "../src/viaje";
 
 export default function Layout() {
   const c = useColores();
+  const [tipografiaLista, errorTipografia] = useFonts({
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+  });
+
+  // Se espera a la tipografía para no mostrar medio segundo de la fuente del
+  // sistema y después un salto. Pero si la carga **falla** se dibuja igual: una
+  // app que no arranca por una fuente es peor que una app con otra fuente.
+  if (!tipografiaLista && !errorTipografia) {
+    return <View style={{ flex: 1, backgroundColor: c.fondo }} />;
+  }
+
   return (
     <SafeAreaProvider>
       <ProveedorPremium>
@@ -29,7 +50,7 @@ export default function Layout() {
           screenOptions={{
             headerStyle: { backgroundColor: c.superficie },
             headerTintColor: c.marca,
-            headerTitleStyle: { color: c.texto, fontWeight: "700" },
+            headerTitleStyle: { color: c.texto, fontFamily: fuente.fuerte },
             headerShadowVisible: false,
             contentStyle: { backgroundColor: c.fondo },
           }}

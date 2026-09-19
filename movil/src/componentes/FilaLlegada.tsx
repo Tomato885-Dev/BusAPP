@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { etaTexto, origenTexto, rangoTexto, tono, type Tono } from "../formato";
-import { esp, radio, tipo, useColores, type Colores } from "../tema";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../tema";
 import type { Llegada } from "../tipos";
 
 export function FilaLlegada({ llegada }: { llegada: Llegada }) {
@@ -77,6 +77,6 @@ const estilos = (c: Colores) =>
     puntoEstado: { width: 6, height: 6, borderRadius: 3 },
     origen: { ...tipo.menor, flexShrink: 1 },
     derecha: { alignItems: "flex-end", minWidth: 64 },
-    eta: { fontSize: 27, fontWeight: "800", letterSpacing: -1, lineHeight: 31 },
+    eta: { fontFamily: fuente.extra, fontSize: 27, letterSpacing: -1, lineHeight: 31 },
     rango: { ...tipo.menor, color: c.textoTenue, marginTop: 1 },
   });
