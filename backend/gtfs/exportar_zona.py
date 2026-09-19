@@ -44,6 +44,35 @@ def _es_paradero_de_calle(codigo: str) -> bool:
     )
 
 
+def _franjas_del_recorrido(
+    feed: Feed, recorrido_id: str, sentido: int | None
+) -> list[list[int]]:
+    """Franjas horarias con su intervalo, para un recorrido y sentido.
+
+    Cada viaje del feed cubre **una** franja del día, así que hay que unir las
+    de todos los viajes del recorrido para tener la jornada completa. Tomar sólo
+    el viaje representativo dejaba cada recorrido con un par de horas de
+    cobertura y el resto del día sin dato.
+
+    Si dos viajes declaran la misma franja con distinto intervalo, se conserva
+    el más corto: dentro de un mismo sentido corresponde a la variante que más
+    pasa por el tramo.
+    """
+    por_franja: dict[tuple[int, int], int] = {}
+    for viaje in feed.viajes.values():
+        if viaje.recorrido_id != recorrido_id or viaje.sentido != sentido:
+            continue
+        for f in feed.frecuencias.get(viaje.id, []):
+            clave = (f.inicio_s, f.fin_s)
+            previo = por_franja.get(clave)
+            if previo is None or f.intervalo_s < previo:
+                por_franja[clave] = f.intervalo_s
+    return [
+        [inicio, fin, intervalo]
+        for (inicio, fin), intervalo in sorted(por_franja.items())
+    ]
+
+
 def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
     """Exporta paraderos y recorridos de la zona a un JSON compacto."""
     paraderos = {
@@ -52,20 +81,23 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
         if recuadro.contiene(p.lat, p.lon) and _es_paradero_de_calle(p.codigo)
     }
 
-    # Un recorrido puede tener muchos viajes casi idénticos. Basta el que más
-    # paradas toca dentro de la zona: es el que mejor la representa.
-    mejor_viaje: dict[str, tuple[int, str]] = {}
+    # Un recorrido tiene muchos viajes casi idénticos. Se elige el que más
+    # paradas toca dentro de la zona, y a igualdad se prefiere el que trae
+    # frecuencias: sin ellas no se puede estimar una espera.
+    mejor_viaje: dict[str, tuple[int, int, str]] = {}
     for viaje in feed.viajes.values():
         dentro = [p for p in feed.pasos_por_viaje(viaje.id) if p.parada_id in paraderos]
         if len(dentro) < 2:
             continue
+        tiene_frecuencia = 1 if feed.frecuencias.get(viaje.id) else 0
+        clave = (len(dentro), tiene_frecuencia, viaje.id)
         actual = mejor_viaje.get(viaje.recorrido_id)
-        if actual is None or len(dentro) > actual[0]:
-            mejor_viaje[viaje.recorrido_id] = (len(dentro), viaje.id)
+        if actual is None or clave[:2] > actual[:2]:
+            mejor_viaje[viaje.recorrido_id] = clave
 
     recorridos = []
     usados: set[str] = set()
-    for recorrido_id, (_, viaje_id) in mejor_viaje.items():
+    for recorrido_id, (_, _, viaje_id) in mejor_viaje.items():
         recorrido = feed.recorridos.get(recorrido_id)
         viaje = feed.viajes.get(viaje_id)
         if recorrido is None or viaje is None:
@@ -74,12 +106,14 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
             p.parada_id for p in feed.pasos_por_viaje(viaje_id) if p.parada_id in paraderos
         ]
         usados.update(secuencia)
+        frecuencias = _franjas_del_recorrido(feed, recorrido_id, viaje.sentido)
         recorridos.append({
             "id": recorrido.id,
             "nombre": recorrido.nombre_corto,
             "destino": viaje.letrero,
             "tipo": recorrido.tipo,
             "paradas": secuencia,
+            "frecuencias": frecuencias,
         })
 
     # Un paradero que ningún recorrido de la zona toca no aporta nada al mapa.

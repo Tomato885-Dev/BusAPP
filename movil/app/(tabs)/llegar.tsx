@@ -13,9 +13,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Vacio } from "../../src/componentes/Vacio";
 import { duracionTexto } from "../../src/formato";
+import type { Lugar } from "../../src/geocodificador";
 import { planificar, type Viaje } from "../../src/planificador";
-import { buscarLugares, type Paradero } from "../../src/red";
 import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { useBusqueda } from "../../src/useBusqueda";
 
 type Punto = { nombre: string; lat: number; lon: number };
 
@@ -29,7 +30,7 @@ export default function PantallaLlegar() {
   const [campo, setCampo] = useState<"origen" | "destino" | null>(null);
   const [texto, setTexto] = useState("");
 
-  const sugerencias = useMemo(() => (campo ? buscarLugares(texto) : []), [campo, texto]);
+  const { resultados: sugerencias, buscando } = useBusqueda(campo ? texto : "");
 
   const viajes = useMemo(
     () => (origen && destino ? planificar(origen, destino) : []),
@@ -37,8 +38,8 @@ export default function PantallaLlegar() {
   );
 
   const elegir = useCallback(
-    (p: Paradero) => {
-      const punto = { nombre: p.nombre, lat: p.lat, lon: p.lon };
+    (l: Lugar) => {
+      const punto = { nombre: l.nombre, lat: l.lat, lon: l.lon };
       if (campo === "origen") setOrigen(punto);
       else setDestino(punto);
       setCampo(null);
@@ -112,23 +113,32 @@ export default function PantallaLlegar() {
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.lista}>
         {campo ? (
           sugerencias.length > 0 ? (
-            sugerencias.map((p) => (
-              <Pressable key={p.id} style={s.sugerencia} onPress={() => elegir(p)}>
-                <Text style={s.sugerenciaNombre} numberOfLines={1}>
-                  {p.nombre}
-                </Text>
-                <Text style={s.sugerenciaCodigo}>{p.codigo}</Text>
+            sugerencias.map((l) => (
+              <Pressable key={l.id} style={s.sugerencia} onPress={() => elegir(l)}>
+                <Text style={s.sugerenciaIcono}>{l.tipo === "direccion" ? "⌂" : "◉"}</Text>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={s.sugerenciaNombre} numberOfLines={1}>
+                    {l.nombre}
+                  </Text>
+                  {l.detalle ? (
+                    <Text style={s.sugerenciaDetalle} numberOfLines={1}>
+                      {l.detalle}
+                    </Text>
+                  ) : null}
+                </View>
               </Pressable>
             ))
-          ) : texto.length >= 2 ? (
+          ) : buscando ? (
+            <Vacio titulo="Buscando…" />
+          ) : texto.trim().length >= 3 ? (
             <Vacio
               titulo="Sin resultados"
-              detalle="Prueba con el nombre de una calle, un hito o un paradero cercano."
+              detalle="Prueba escribiendo la calle y el número, o el nombre de un lugar conocido."
             />
           ) : (
             <Vacio
-              titulo="Escribe para buscar"
-              detalle="Puedes buscar por nombre de paradero, estación de Metro o punto conocido."
+              titulo="Escribe una dirección"
+              detalle="Por ejemplo «La Capitanía 436» o «Camino Los Siervos 1280». También puedes buscar un paradero o una estación de Metro."
             />
           )
         ) : !origen || !destino ? (
@@ -319,8 +329,9 @@ const estilos = (c: Colores) =>
       paddingVertical: esp.md,
       marginBottom: esp.sm,
     },
-    sugerenciaNombre: { ...tipo.cuerpo, color: c.texto, flex: 1 },
-    sugerenciaCodigo: { ...tipo.micro, color: c.textoTenue },
+    sugerenciaIcono: { fontSize: 15, color: c.textoTenue, width: 18, textAlign: "center" },
+    sugerenciaNombre: { ...tipo.cuerpo, color: c.texto },
+    sugerenciaDetalle: { ...tipo.menor, color: c.textoTenue, marginTop: 1 },
 
     viaje: {
       backgroundColor: c.superficie,

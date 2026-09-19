@@ -20,12 +20,38 @@ export interface Paradero {
   lon: number;
 }
 
+/** `[inicio, fin, intervalo]` en segundos desde medianoche. */
+export type Franja = [number, number, number];
+
 export interface Recorrido {
   id: string;
   nombre: string;
   destino: string;
   tipo: number; // 3 = bus, 1 = metro
   paradas: string[];
+  /** Frecuencias oficiales del DTPM por franja horaria. */
+  frecuencias: Franja[];
+}
+
+/**
+ * Intervalo oficial entre buses de un recorrido a una hora dada, en segundos.
+ *
+ * La red de Santiago opera **por frecuencia**, no por horario fijo: el feed no
+ * dice «la 506 pasa a las 14:07», dice «entre las 13:00 y las 18:00 pasa cada
+ * 12 minutos». Es el dato real disponible mientras no exista el motor en vivo.
+ *
+ * Varias variantes de un mismo recorrido pueden declarar franjas que se
+ * superponen; se toma la más frecuente, que es la que domina lo que el usuario
+ * ve pasar por el paradero.
+ */
+export function intervaloOficial(recorrido: Recorrido, ahora = new Date()): number | null {
+  const segundos = segundosEnSantiago(ahora);
+  let mejor: number | null = null;
+  for (const [inicio, fin, intervalo] of recorrido.frecuencias) {
+    if (segundos < inicio || segundos >= fin) continue;
+    if (mejor === null || intervalo < mejor) mejor = intervalo;
+  }
+  return mejor;
 }
 
 const datos = crudo as { paraderos: Paradero[]; recorridos: Recorrido[] };
@@ -64,6 +90,28 @@ export function paraderosCercaDe(
     .filter((p) => p.distanciaM <= radioM)
     .sort((a, b) => a.distanciaM - b.distanciaM)
     .slice(0, limite);
+}
+
+/**
+ * Segundos transcurridos del día **en Santiago**.
+ *
+ * No se usa la hora del dispositivo: el feed declara sus horarios en
+ * `America/Santiago`, y un teléfono con otra zona horaria —alguien de viaje,
+ * un reloj mal configurado, o el navegador de un servidor— mostraría las
+ * frecuencias de una hora equivocada.
+ */
+export function segundosEnSantiago(momento = new Date()): number {
+  const partes = new Intl.DateTimeFormat("es-CL", {
+    timeZone: "America/Santiago",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(momento);
+  const valor = (tipo: string) =>
+    Number(partes.find((p) => p.type === tipo)?.value ?? 0);
+  // `es-CL` puede devolver "24" a medianoche; se normaliza a 0.
+  return (valor("hour") % 24) * 3600 + valor("minute") * 60 + valor("second");
 }
 
 /** Normaliza para buscar sin tildes ni mayúsculas. */

@@ -50,6 +50,22 @@ class Viaje:
 
 
 @dataclass(frozen=True)
+class Frecuencia:
+    """Intervalo entre buses de un viaje, dentro de una franja horaria.
+
+    La red de Santiago opera por frecuencia y no por horario fijo: el feed no
+    dice «la 506 pasa a las 14:07», dice «entre las 13:00 y las 18:00 pasa cada
+    11 minutos». Es el dato honesto para estimar una espera sin información en
+    vivo.
+    """
+
+    viaje_id: str
+    inicio_s: int   # segundos desde medianoche
+    fin_s: int
+    intervalo_s: int
+
+
+@dataclass(frozen=True)
 class PasoPorParada:
     viaje_id: str
     parada_id: str
@@ -68,6 +84,7 @@ class Feed:
     viajes: dict[str, Viaje] = field(default_factory=dict)
     trazados: dict[str, list[Punto]] = field(default_factory=dict)
     pasos: list[PasoPorParada] = field(default_factory=list)
+    frecuencias: dict[str, list[Frecuencia]] = field(default_factory=dict)
 
     # Índice perezoso de pasos por viaje. Se construye en el primer uso.
     _indice: dict[str, list[PasoPorParada]] | None = field(
@@ -133,6 +150,19 @@ class _Fuente:
     def cerrar(self) -> None:
         if self._zip is not None:
             self._zip.close()
+
+
+def _a_segundos(hora: str) -> int | None:
+    """Hora GTFS a segundos desde medianoche.
+
+    GTFS admite horas mayores a 24:00:00 para servicios que cruzan la
+    medianoche, así que no se puede usar un parser de hora del reloj.
+    """
+    try:
+        h, m, s = (int(parte) for parte in hora.split(":"))
+    except (ValueError, AttributeError):
+        return None
+    return h * 3600 + m * 60 + s
 
 
 def _limpiar_nombre(nombre: str, codigo: str) -> str:
@@ -240,6 +270,21 @@ def leer_feed(ruta: str | Path) -> Feed:
                     distancia_recorrida=_decimal(f.get("shape_dist_traveled")),
                 )
             )
+
+        filas = fuente.leer("frequencies.txt")
+        if filas:
+            for f in filas:
+                inicio = _a_segundos(f.get("start_time", ""))
+                fin = _a_segundos(f.get("end_time", ""))
+                try:
+                    intervalo = int(f.get("headway_secs") or 0)
+                except ValueError:
+                    intervalo = 0
+                if inicio is None or fin is None or intervalo <= 0:
+                    continue
+                feed.frecuencias.setdefault(f["trip_id"], []).append(
+                    Frecuencia(f["trip_id"], inicio, fin, intervalo)
+                )
 
         return feed
     finally:

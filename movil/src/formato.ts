@@ -41,7 +41,9 @@ export function origenTexto(llegada: Llegada): string {
     default:
       break;
   }
-  if (llegada.fuente === "horario") return "Estimado, sin datos en vivo";
+  // Sin datos en vivo, lo que sí se sabe es la frecuencia oficial del DTPM.
+  // Decir «cada 12 min» informa mucho más que «estimado».
+  if (llegada.fuente === "horario") return llegada.via ?? "Sin datos en vivo";
   if (llegada.personasABordo) {
     const n = llegada.personasABordo;
     return `En vivo · ${n} ${n === 1 ? "persona" : "personas"} a bordo`;
