@@ -46,9 +46,30 @@ const MAX_MARCADORES = 140;
  */
 const SOBREMUESTRA = 1;
 
-const RAIZ_TESELAS = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas";
-const PLANO_CLARO = "World_Light_Gray_Base";
-const PLANO_OSCURO = "World_Dark_Gray_Base";
+/**
+ * Proveedor de teselas.
+ *
+ * Con llave de Stadia se usa su estilo «Alidade Smooth»: limpio, de colores
+ * suaves y con pocas etiquetas, que es lo más cercano al aspecto de Mapas de
+ * Apple disponible para iPhone, Android y web a la vez.
+ *
+ * Sin llave cae a los planos Canvas de Esri, que no requieren registro. Así la
+ * app nunca se queda sin mapa por una credencial faltante.
+ */
+const LLAVE_STADIA = process.env.EXPO_PUBLIC_STADIA_API_KEY;
+
+function urlDeTesela(zoom: number, x: number, y: number, oscuro: boolean): string {
+  if (LLAVE_STADIA) {
+    const estilo = oscuro ? "alidade_smooth_dark" : "alidade_smooth";
+    return `https://tiles.stadiamaps.com/tiles/${estilo}/${zoom}/${x}/${y}@2x.png?api_key=${LLAVE_STADIA}`;
+  }
+  const plano = oscuro ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
+  return `https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/${plano}/MapServer/tile/${zoom}/${y}/${x}`;
+}
+
+const CREDITO = LLAVE_STADIA
+  ? "© Stadia Maps · OpenMapTiles · OpenStreetMap"
+  : "Esri · OpenStreetMap";
 
 /**
  * Mapa de teselas propio.
@@ -155,8 +176,6 @@ export function Mapa({
   const izquierda = listo ? lonAX(centro.lon, zoom) - ancho / 2 : 0;
   const arriba = listo ? latAY(centro.lat, zoom) - alto / 2 : 0;
 
-  const plano = oscuroActivo ? PLANO_OSCURO : PLANO_CLARO;
-
   const teselas = useMemo(() => {
     if (!listo) return [];
     const maximo = 2 ** zoom;
@@ -169,17 +188,16 @@ export function Mapa({
     for (let tx = desdeX; tx <= hastaX; tx++) {
       for (let ty = desdeY; ty <= hastaY; ty++) {
         const envuelto = ((tx % maximo) + maximo) % maximo;
-        // Ojo con el orden: ArcGIS sirve {z}/{y}/{x}, no {z}/{x}/{y}.
         salida.push({
-          clave: `${plano}/${zoom}/${envuelto}/${ty}`,
-          url: `${RAIZ_TESELAS}/${plano}/MapServer/tile/${zoom}/${ty}/${envuelto}`,
+          clave: `${oscuroActivo ? "o" : "c"}/${zoom}/${envuelto}/${ty}`,
+          url: urlDeTesela(zoom, envuelto, ty, oscuroActivo),
           x: tx * TESELA - izquierda,
           y: ty * TESELA - arriba,
         });
       }
     }
     return salida;
-  }, [listo, izquierda, arriba, ancho, alto, zoom, plano]);
+  }, [listo, izquierda, arriba, ancho, alto, zoom, oscuroActivo]);
 
   const visibles = useMemo(() => {
     if (!listo || zoom < ZOOM_MARCADORES) return [];
@@ -277,7 +295,7 @@ export function Mapa({
       </View>
 
       <Text style={s.credito} pointerEvents="none">
-        Esri · OpenStreetMap
+        {CREDITO}
       </Text>
     </View>
   );

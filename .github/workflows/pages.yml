@@ -38,6 +38,7 @@ jobs:
         env:
           URL: ${{ secrets.SUPABASE_URL }}
           LLAVE: ${{ secrets.SUPABASE_ANON_KEY }}
+          STADIA: ${{ secrets.STADIA_API_KEY }}
         run: |
           if [ -n "$URL" ]; then
             echo "SUPABASE_URL      : configurada (${#URL} caracteres)"
@@ -48,6 +49,11 @@ jobs:
             echo "SUPABASE_ANON_KEY : configurada (${#LLAVE} caracteres)"
           else
             echo "SUPABASE_ANON_KEY : FALTA"
+          fi
+          if [ -n "$STADIA" ]; then
+            echo "STADIA_API_KEY    : configurada (${#STADIA} caracteres)"
+          else
+            echo "STADIA_API_KEY    : sin configurar (se usará el plano alternativo)"
           fi
 
       - name: Compilar la app para web
@@ -60,6 +66,7 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_STADIA_API_KEY: ${{ secrets.STADIA_API_KEY }}
         run: npx expo export --platform web --output-dir ../sitio
 
       - name: Preparar el sitio
