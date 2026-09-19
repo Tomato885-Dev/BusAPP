@@ -1,0 +1,9 @@
+stop_id,stop_code,stop_name,stop_lat,stop_lon
+S1,PE001,Plaza Egaña,-33.4529,-70.5861
+S2,PA410,Av. Grecia / Ossa,-33.4541,-70.5940
+S3,PA415,Av. Grecia / Tobalaba,-33.4552,-70.6020
+S4,PA420,Parada 5 / Av. Grecia,-33.4561,-70.6090
+S5,PA425,Av. Grecia / Chile España,-33.4570,-70.6160
+S6,PA430,Av. Grecia / Macul,-33.4579,-70.6235
+N1,PA433,Irarrazaval / Pedro de Valdivia,-33.4521,-70.6110
+N2,PA436,Irarrazaval / Los Leones,-33.4501,-70.6120

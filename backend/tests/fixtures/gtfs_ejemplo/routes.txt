@@ -1,0 +1,3 @@
+route_id,route_short_name,route_long_name,route_type
+R506,506,Peñalolén - Estación Central,3
+RD09,D09,Ñuñoa - Providencia,3

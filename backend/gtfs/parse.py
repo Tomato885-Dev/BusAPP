@@ -1,0 +1,211 @@
+"""Lectura de un feed GTFS.
+
+Lee el .zip (o un directorio ya descomprimido) y entrega registros tipados. No
+toca la base de datos: eso permite probar toda la lógica sin infraestructura.
+
+Sólo se cargan los archivos que el producto necesita. GTFS define muchos más,
+pero cargar lo que no se usa sólo agrega superficie de error.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import zipfile
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from .geo import Punto
+
+
+@dataclass(frozen=True)
+class Parada:
+    id: str
+    codigo: str        # el código que el usuario ve en el paradero (ej. "PA420")
+    nombre: str
+    lat: float
+    lon: float
+
+    @property
+    def punto(self) -> Punto:
+        return (self.lat, self.lon)
+
+
+@dataclass(frozen=True)
+class Recorrido:
+    id: str
+    nombre_corto: str  # lo que la gente llama "la 506"
+    nombre_largo: str
+    tipo: int          # 3 = bus, 1 = metro (según la especificación GTFS)
+
+
+@dataclass(frozen=True)
+class Viaje:
+    id: str
+    recorrido_id: str
+    servicio_id: str
+    letrero: str       # destino que muestra el bus
+    trazado_id: str | None
+    sentido: int | None
+
+
+@dataclass(frozen=True)
+class PasoPorParada:
+    viaje_id: str
+    parada_id: str
+    orden: int
+    hora_llegada: str | None
+    hora_salida: str | None
+    distancia_recorrida: float | None  # shape_dist_traveled, si el feed la trae
+
+
+@dataclass
+class Feed:
+    """Un feed GTFS completo, en memoria."""
+
+    paradas: dict[str, Parada] = field(default_factory=dict)
+    recorridos: dict[str, Recorrido] = field(default_factory=dict)
+    viajes: dict[str, Viaje] = field(default_factory=dict)
+    trazados: dict[str, list[Punto]] = field(default_factory=dict)
+    pasos: list[PasoPorParada] = field(default_factory=list)
+
+    def pasos_por_viaje(self, viaje_id: str) -> list[PasoPorParada]:
+        """Paradas de un viaje, en orden."""
+        return sorted(
+            (p for p in self.pasos if p.viaje_id == viaje_id),
+            key=lambda p: p.orden,
+        )
+
+    def resumen(self) -> str:
+        return (
+            f"{len(self.paradas)} paradas · {len(self.recorridos)} recorridos · "
+            f"{len(self.viajes)} viajes · {len(self.trazados)} trazados · "
+            f"{len(self.pasos)} pasos por parada"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Lectura
+# --------------------------------------------------------------------------- #
+
+class _Fuente:
+    """Abstrae leer desde un .zip o desde un directorio."""
+
+    def __init__(self, ruta: Path):
+        self.ruta = ruta
+        self._zip = zipfile.ZipFile(ruta) if ruta.is_file() else None
+
+    def leer(self, nombre: str) -> list[dict[str, str]] | None:
+        """Lee un archivo del feed como lista de diccionarios, o None si falta."""
+        if self._zip is not None:
+            if nombre not in self._zip.namelist():
+                return None
+            crudo = self._zip.read(nombre).decode("utf-8-sig")
+        else:
+            archivo = self.ruta / nombre
+            if not archivo.exists():
+                return None
+            crudo = archivo.read_text(encoding="utf-8-sig")
+        return list(csv.DictReader(io.StringIO(crudo)))
+
+    def cerrar(self) -> None:
+        if self._zip is not None:
+            self._zip.close()
+
+
+def _decimal(valor: str | None) -> float | None:
+    """Convierte a float tolerando vacíos y basura, en vez de reventar."""
+    if valor is None or valor.strip() == "":
+        return None
+    try:
+        return float(valor)
+    except ValueError:
+        return None
+
+
+def leer_feed(ruta: str | Path) -> Feed:
+    """Lee un feed GTFS desde un .zip o un directorio descomprimido.
+
+    Raises:
+        FileNotFoundError: si la ruta no existe.
+        ValueError: si faltan archivos obligatorios del feed.
+    """
+    ruta = Path(ruta)
+    if not ruta.exists():
+        raise FileNotFoundError(f"No existe el feed: {ruta}")
+
+    fuente = _Fuente(ruta)
+    try:
+        feed = Feed()
+
+        filas = fuente.leer("stops.txt")
+        if filas is None:
+            raise ValueError("El feed no trae stops.txt, que es obligatorio")
+        for f in filas:
+            lat, lon = _decimal(f.get("stop_lat")), _decimal(f.get("stop_lon"))
+            if lat is None or lon is None:
+                continue  # una parada sin coordenadas no sirve para nada
+            feed.paradas[f["stop_id"]] = Parada(
+                id=f["stop_id"],
+                codigo=(f.get("stop_code") or f["stop_id"]).strip(),
+                nombre=(f.get("stop_name") or "").strip(),
+                lat=lat,
+                lon=lon,
+            )
+
+        filas = fuente.leer("routes.txt")
+        if filas is None:
+            raise ValueError("El feed no trae routes.txt, que es obligatorio")
+        for f in filas:
+            feed.recorridos[f["route_id"]] = Recorrido(
+                id=f["route_id"],
+                nombre_corto=(f.get("route_short_name") or "").strip(),
+                nombre_largo=(f.get("route_long_name") or "").strip(),
+                tipo=int(f.get("route_type") or 3),
+            )
+
+        filas = fuente.leer("trips.txt")
+        if filas is None:
+            raise ValueError("El feed no trae trips.txt, que es obligatorio")
+        for f in filas:
+            sentido = f.get("direction_id")
+            feed.viajes[f["trip_id"]] = Viaje(
+                id=f["trip_id"],
+                recorrido_id=f["route_id"],
+                servicio_id=f.get("service_id", ""),
+                letrero=(f.get("trip_headsign") or "").strip(),
+                trazado_id=(f.get("shape_id") or None),
+                sentido=int(sentido) if sentido not in (None, "") else None,
+            )
+
+        filas = fuente.leer("shapes.txt")
+        if filas:
+            puntos: dict[str, list[tuple[int, float, float]]] = {}
+            for f in filas:
+                lat, lon = _decimal(f.get("shape_pt_lat")), _decimal(f.get("shape_pt_lon"))
+                if lat is None or lon is None:
+                    continue
+                orden = int(f.get("shape_pt_sequence") or 0)
+                puntos.setdefault(f["shape_id"], []).append((orden, lat, lon))
+            for shape_id, lista in puntos.items():
+                lista.sort(key=lambda t: t[0])
+                feed.trazados[shape_id] = [(lat, lon) for _, lat, lon in lista]
+
+        filas = fuente.leer("stop_times.txt")
+        if filas is None:
+            raise ValueError("El feed no trae stop_times.txt, que es obligatorio")
+        for f in filas:
+            feed.pasos.append(
+                PasoPorParada(
+                    viaje_id=f["trip_id"],
+                    parada_id=f["stop_id"],
+                    orden=int(f.get("stop_sequence") or 0),
+                    hora_llegada=(f.get("arrival_time") or None),
+                    hora_salida=(f.get("departure_time") or None),
+                    distancia_recorrida=_decimal(f.get("shape_dist_traveled")),
+                )
+            )
+
+        return feed
+    finally:
+        fuente.cerrar()

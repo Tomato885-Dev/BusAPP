@@ -7,6 +7,11 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 > **Estado del proyecto:** fase de diseño. Este repositorio contiene, por ahora,
 > la documentación técnica y el plan de desarrollo. No hay código de producción.
 
+## Código
+
+- [`backend/`](backend/) — ingesta del GTFS y la geometría sobre recorridos de la
+  que depende el motor de estimación. 38 pruebas en verde.
+
 ## Prototipo
 
 Prototipo navegable de la interfaz en [`prototipo/`](prototipo/), publicado en
@@ -24,6 +29,7 @@ no prueba tecnología.
 | [`docs/05-roadmap.md`](docs/05-roadmap.md) | Fases de desarrollo, alcance del MVP y criterios de avance. |
 | [`docs/06-riesgos-y-decisiones.md`](docs/06-riesgos-y-decisiones.md) | Riesgos abiertos, decisiones pendientes y supuestos del diseño. |
 | [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
+| [`docs/08-lo-que-necesito-de-ti.md`](docs/08-lo-que-necesito-de-ti.md) | **Tareas, decisiones y definiciones de estilo que dependen de ti.** |
 
 ## Resumen ejecutivo de las conclusiones
 
