@@ -108,12 +108,20 @@ micro viene. Perder ese foco por agregar funcionalidades es el modo de fallar.
 
 Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 
+**Resueltas el 19 de septiembre de 2026:**
+
+| # | Decisión | Resultado |
+|---|---|---|
+| D1 | ¿Producto o aprendizaje? | ✅ **Producto para lanzar** |
+| D2 | ¿Android además de iOS? | ✅ **Ambos, desde el mismo código** |
+| D3 | Stack móvil | ✅ **React Native + Expo** (`02` §2.2c) |
+| D4 | Stack backend | ✅ **Python + FastAPI + PostGIS** (`03` §3.3) |
+| — | Presupuesto mensual | ✅ **USD 100** — la fase 1 cabe con holgura |
+
+**Pendientes:**
+
 | # | Decisión | Depende de | Documento |
 |---|---|---|---|
-| D1 | ¿Producto o proyecto de aprendizaje? | Sólo del objetivo personal | `02` §2.5 |
-| D2 | ¿Se acepta Android en fase 2? | D1 | `02` §2.1 |
-| D3 | Stack móvil: Flutter / React Native / Swift | D1, D2 | `02` §2.3 |
-| D4 | Stack backend: Python / Node | D3, experiencia previa | `03` §3.3 |
 | D5 | Nombre definitivo del producto | — | `06` R6 |
 | D6 | Fuente de datos en vivo para la fase 1 | Respuesta del DTPM | `01` §1.2 |
 | D7 | Proveedor de mapas: MapLibre / Google | Presupuesto | `02` §2.3 |
@@ -149,4 +157,4 @@ Dicho sin rodeos, porque es más útil que una lista de buenas prácticas:
   que el producto dice venir a resolver; cometerlo lo deja sin razón de ser.
 - **Postergar la solicitud al DTPM** porque no es una tarea de programación.
 - **Elegir iOS-only** y descubrir en el mes ocho que el diferenciador necesita
-  usuarios que están en Android.
+  usuarios que están en Android. *(Evitado: D2 resuelta a favor de ambas.)*

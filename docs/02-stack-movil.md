@@ -92,7 +92,64 @@ diseñar la API primero**: el reloj es simplemente otro consumidor de
 servidor y los clientes son delgados hace que sumar el reloj sea barato; una
 donde la lógica vive en la app obligaría a reimplementarla.
 
-## 2.3 Recomendación
+## 2.2c DECISIÓN TOMADA: React Native con Expo ✅
+
+*Resuelto el 19 de septiembre de 2026, con las respuestas del autor:*
+
+| Pregunta | Respuesta |
+|---|---|
+| ¿Producto o aprendizaje? | **Producto para lanzar** |
+| ¿Android además de iOS? | **Sí, ambos** |
+| ¿Sabe programar? | **No**, pero se maneja bien con tecnología |
+| Presupuesto | **USD 100 / mes** |
+
+**La recomendación cambió de Flutter a React Native + Expo.** El análisis de
+§2.3 se escribió suponiendo que quien programa también es quien decide; la
+tercera respuesta cambia el criterio decisivo.
+
+### Por qué cambió
+
+Cuando el autor del proyecto no programa, el factor que domina no es la elegancia
+del framework sino **si puede ver y probar su propia app sin intermediarios**. Y
+ahí la diferencia entre ambos es enorme:
+
+| | Expo | Flutter |
+|---|---|---|
+| Ver la app en tu teléfono | Instalar Expo Go, escanear un QR | Instalar el SDK, Xcode o Android Studio, configurar emuladores |
+| **Compilar para iPhone sin un Mac** | **Sí**, con EAS Build en la nube | **No.** Compilar para iOS exige un Mac |
+| Ver un cambio | Se actualiza solo en el teléfono | Recarga en caliente, pero con el entorno ya montado |
+
+El segundo punto es el decisivo: **con Expo se puede publicar una app en la App
+Store sin tener un Mac.** Con Flutter no. Para un proyecto que no ha confirmado
+tener un Mac de desarrollo, eso es la diferencia entre lanzar y no lanzar.
+
+### Lo que se pierde, dicho con honestidad
+
+Frente a Flutter, Expo trae algo más de dependencia de paquetes de terceros en
+funciones sensibles —sobre todo la ubicación en segundo plano de la fase 2— y una
+superficie de mantenimiento algo mayor. Es un costo real, pero menor que no poder
+compilar.
+
+La comparación de §2.3 se conserva abajo porque su razonamiento sigue siendo
+válido para otros contextos, y porque conviene poder releer en qué se basó la
+decisión.
+
+### Presupuesto
+
+Con USD 100 mensuales la fase 1 cabe con holgura:
+
+| Concepto | Mensual |
+|---|---|
+| Servidor + PostgreSQL | USD 20–30 |
+| Teselas de mapa (MapLibre) | USD 0–20 |
+| Apple Developer (USD 99/año, prorrateado) | ~USD 8 |
+| Dominio | ~USD 1 |
+| **Total** | **~USD 30–60** |
+
+Queda margen para builds en la nube de EAS si hicieran falta. *(Verificar los
+precios vigentes de EAS al contratarlo; cambian.)*
+
+## 2.3 Recomendación original *(superada por §2.2c)*
 
 ### Flutter, salvo que se cumpla una de las excepciones de §2.4.
 
