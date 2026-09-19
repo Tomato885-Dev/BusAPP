@@ -19,6 +19,8 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "output": "single",
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
     "scheme": "buschecker",
@@ -30,6 +32,9 @@
           "locationWhenInUsePermission": "Bus Checker usa tu ubicaci\u00f3n para mostrarte los paraderos que tienes cerca y cu\u00e1nto falta para que llegue tu micro."
         }
       ]
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/BusAPP"
+    }
   }
 }

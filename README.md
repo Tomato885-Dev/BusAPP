@@ -14,11 +14,12 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 - [`backend/`](backend/) — ingesta del GTFS y la geometría sobre recorridos de la
   que depende el motor de estimación. 38 pruebas en verde.
 
-## Prototipo
+## Verlo en el navegador
 
-Prototipo navegable de la interfaz en [`prototipo/`](prototipo/), publicado en
-GitHub Pages. Sirve para validar cómo se comunica la certeza y la incertidumbre;
-no prueba tecnología.
+Publicado en GitHub Pages, sin instalar nada:
+
+- **La app** → https://tomato885-dev.github.io/BusAPP/
+- **La maqueta de diseño** (con selector de escenarios) → https://tomato885-dev.github.io/BusAPP/prototipo/
 
 ## Documentación
 

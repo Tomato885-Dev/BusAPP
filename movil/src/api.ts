@@ -114,9 +114,23 @@ function llegadaSinTelemetria(
   };
 }
 
-/** Busca una alternativa real: otro paradero cercano y una línea que sí pasa. */
+/**
+ * Códigos de paradero de superficie: PA215, PD410, PI814…
+ *
+ * El feed mezcla paraderos de micro con andenes y accesos de Metro, cuyos
+ * identificadores son internos (`LM_L1_V1`, `LM:C`). Mandar a alguien a un
+ * código que no está escrito en ningún poste de la calle no sirve de nada.
+ */
+const CODIGO_DE_PARADERO = /^P[A-Z]\d+$/;
+
+/** Busca una alternativa real: otro paradero de micro cercano y una línea que pasa. */
 function alternativaReal(paraderoId: string): string | undefined {
-  const otro = CRUDOS.find((p) => p.id !== paraderoId && p.recorridos.length > 0);
+  const otro = CRUDOS.find(
+    (p) =>
+      p.id !== paraderoId &&
+      p.recorridos.length > 0 &&
+      CODIGO_DE_PARADERO.test(p.codigo),
+  );
   if (!otro) return undefined;
   const linea = otro.recorridos[0];
   return `Camina ${otro.distanciaM} m al paradero ${otro.codigo} y toma la ${linea.nombre} — va a ${linea.destino}.`;
@@ -178,7 +192,18 @@ function construir(p: ParaderoCrudo, escenario: Escenario): RespuestaParadero {
     );
   });
 
-  llegadas.sort((a, b) => (a.etaSegundos ?? Infinity) - (b.etaSegundos ?? Infinity));
+  // La línea que no va a llegar va PRIMERO, no al final.
+  //
+  // Ordenar sólo por ETA la mandaba al fondo de la lista, porque no tiene ETA.
+  // Pero es justamente la respuesta que la persona vino a buscar: está parada
+  // esperando esa micro. Enterrarla bajo cinco líneas que sí vienen es fallar en
+  // lo único que hace distinto a este producto.
+  const prioridad = (l: Llegada) => (l.estado === "no_llegara" ? 0 : 1);
+  llegadas.sort(
+    (a, b) =>
+      prioridad(a) - prioridad(b) ||
+      (a.etaSegundos ?? Infinity) - (b.etaSegundos ?? Infinity),
+  );
 
   return {
     paraderoId: p.id,

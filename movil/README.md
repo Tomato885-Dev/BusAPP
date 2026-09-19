@@ -36,6 +36,23 @@ Aparecerá un **código QR** en la pantalla. Escanéalo con la cámara del telé
 
 ---
 
+## Verla en el navegador
+
+La misma app corre en web, así que se publica en GitHub Pages y cualquiera del
+equipo puede abrirla sin instalar nada:
+
+**https://tomato885-dev.github.io/BusAPP/**
+
+Sirve para **mostrar y revisar el diseño**. No reemplaza probarla en el teléfono:
+en web no hay GPS en segundo plano, ni notificaciones, ni el comportamiento
+nativo real.
+
+Para compilarla localmente:
+
+```bash
+npx expo export --platform web --output-dir ../sitio
+```
+
 ## Qué hay hasta ahora
 
 | Pantalla | Estado |
