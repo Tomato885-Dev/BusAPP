@@ -45,8 +45,9 @@ export default function PantallaLlegar() {
     // que la advertencia no basta: hay que bajarlo de posición.
     const penalidad = (v: (typeof encontrados)[number]) => {
       if (v.fueraDeHorario) return 2;
-      const datos = llegadasDeParadero(v.subirEn.id);
-      const suyo = datos.llegadas.find((l) => l.recorrido === v.recorrido.nombre);
+      const primero = v.tramos[0];
+      const datos = llegadasDeParadero(primero.subirEn.id);
+      const suyo = datos.llegadas.find((l) => l.recorrido === primero.recorrido.nombre);
       return suyo?.estado === "no_llegara" ? 1 : 0;
     };
 
@@ -184,20 +185,21 @@ export default function PantallaLlegar() {
           />
         ) : viajes.length === 0 ? (
           <Vacio
-            titulo="No encontramos un viaje directo"
-            detalle="Por ahora sólo buscamos recorridos sin transbordo. Las combinaciones llegan cuando esté el servidor."
+            titulo="No encontramos cómo llegar"
+            detalle="Ni directo ni con una combinación. Prueba con un punto de partida algo más cercano a una avenida."
           />
         ) : (
           <>
             <Text style={s.encabezadoLista}>
-              {viajes.length} {viajes.length === 1 ? "opción" : "opciones"} sin transbordo
+              {viajes.length} {viajes.length === 1 ? "opción" : "opciones"}
+              {viajes.some((v) => v.tramos.length > 1) ? " · incluye combinaciones" : ""}
             </Text>
-            {viajes.map((v) => (
-              <TarjetaViaje key={v.recorrido.id} viaje={v} />
+            {viajes.map((v, i) => (
+              <TarjetaViaje key={v.tramos.map((t) => t.recorrido.id).join(">") + i} viaje={v} />
             ))}
             <Text style={s.nota}>
-              Tiempos estimados con la velocidad habitual del recorrido. Con el servidor
-              en pie se ajustan con la posición real de cada micro.
+              Tiempos estimados con la frecuencia oficial de cada recorrido. Con el
+              servidor en pie se ajustan con la posición real de cada micro.
             </Text>
           </>
         )}
@@ -257,38 +259,47 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
   const { esPremium } = usePremium();
   const { iniciar } = useViaje();
 
+  const primero = viaje.tramos[0];
+
   // Lo que distingue a Kupay de cualquier otro planificador: antes de mandar a
   // alguien a caminar seis cuadras, se comprueba que esa micro esté pasando.
-  const estadoEnParadero = useMemo(() => {
-    const datos = llegadasDeParadero(viaje.subirEn.id);
-    return datos.llegadas.find((l) => l.recorrido === viaje.recorrido.nombre) ?? null;
-  }, [viaje.subirEn.id, viaje.recorrido.nombre]);
+  const estadoPrimero = useMemo(() => {
+    const datos = llegadasDeParadero(primero.subirEn.id);
+    return datos.llegadas.find((l) => l.recorrido === primero.recorrido.nombre) ?? null;
+  }, [primero.subirEn.id, primero.recorrido.nombre]);
 
-  const noPasa = estadoEnParadero?.estado === "no_llegara";
-  const dudoso = estadoEnParadero?.estado === "probable_desvio" ||
-    estadoEnParadero?.estado === "discrepancia";
+  const noPasa = estadoPrimero?.estado === "no_llegara";
+  const dudoso =
+    estadoPrimero?.estado === "probable_desvio" || estadoPrimero?.estado === "discrepancia";
 
   const comenzarViaje = async () => {
-    const desde = viaje.recorrido.paradas.indexOf(viaje.subirEn.id);
-    const hasta = viaje.recorrido.paradas.indexOf(viaje.bajarEn.id, desde + 1);
+    const r = primero.recorrido;
+    const desde = r.paradas.indexOf(primero.subirEn.id);
+    const hasta = r.paradas.indexOf(primero.bajarEn.id, desde + 1);
     if (desde < 0 || hasta < 0) return;
-    await iniciar({ recorridoId: viaje.recorrido.id, desde, hasta, avisoParadas: 2 });
+    await iniciar({ recorridoId: r.id, desde, hasta, avisoParadas: 2 });
   };
 
   return (
     <View style={[s.viaje, viaje.fueraDeHorario && s.viajeApagado]}>
       <Pressable
         onPress={() =>
-          router.push({ pathname: "/paradero/[id]", params: { id: viaje.subirEn.id } })
+          router.push({ pathname: "/paradero/[id]", params: { id: primero.subirEn.id } })
         }
       >
         <View style={s.viajeCabecera}>
-          <View style={s.viajeInsignia}>
-            <Text style={s.viajeInsigniaTexto}>{viaje.recorrido.nombre}</Text>
+          <View style={s.cadena}>
+            {viaje.tramos.map((tr, i) => (
+              <View key={tr.recorrido.id + i} style={s.cadenaItem}>
+                {i > 0 ? <Text style={s.cadenaFlecha}>›</Text> : null}
+                <View style={s.viajeInsignia}>
+                  <Text style={s.viajeInsigniaTexto} numberOfLines={1}>
+                    {tr.recorrido.nombre}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </View>
-          <Text style={s.viajeDestino} numberOfLines={1}>
-            {viaje.recorrido.destino}
-          </Text>
           <Text style={s.viajeTotal}>
             {viaje.fueraDeHorario ? "—" : duracionTexto(viaje.segundosTotales)}
           </Text>
@@ -304,48 +315,59 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
           </Text>
         ) : null}
 
-        <View style={s.pasos}>
-          <Paso
-            punto="caminar"
-            principal={
+        <View style={s.linea}>
+          <Hito
+            tipo="pie"
+            titulo={
               viaje.caminataInicialM < 50
                 ? "Ya estás en el paradero"
                 : `Camina ${viaje.caminataInicialM} m`
             }
-            secundario={
-              viaje.caminataInicialM < 50
-                ? viaje.subirEn.nombre
-                : `hasta ${viaje.subirEn.nombre}`
-            }
+            detalle={primero.subirEn.nombre}
           />
-          <Paso
-            punto="esperar"
-            principal={
-              viaje.fueraDeHorario
-                ? "Fuera de horario"
-                : `Espera ~${Math.round((viaje.segundosEsperando ?? 0) / 60)} min`
+          {viaje.tramos.map((tr, i) => (
+            <View key={tr.recorrido.id + "t" + i}>
+              <Hito
+                tipo="micro"
+                titulo={`Toma la ${tr.recorrido.nombre}`}
+                detalle={
+                  tr.segundosEsperando === null
+                    ? "fuera de horario a esta hora"
+                    : `espera ~${Math.round(tr.segundosEsperando / 60)} min · pasa cada ${Math.round(
+                        (tr.intervaloS ?? 0) / 60,
+                      )} min`
+                }
+                trazo
+              />
+              <Hito
+                tipo="paradas"
+                titulo={`${tr.paradas} ${tr.paradas === 1 ? "parada" : "paradas"} · ${duracionTexto(
+                  tr.segundosEnMicro,
+                )}`}
+                detalle={`hacia ${tr.recorrido.destino}`}
+                trazo
+                tenue
+              />
+              {i < viaje.tramos.length - 1 ? (
+                <Hito
+                  tipo="cambio"
+                  titulo={`Cámbiate en ${tr.bajarEn.nombre}`}
+                  detalle={
+                    viaje.caminataTransbordoM < 50
+                      ? "en el mismo paradero"
+                      : `caminando ${viaje.caminataTransbordoM} m`
+                  }
+                />
+              ) : null}
+            </View>
+          ))}
+          <Hito
+            tipo="fin"
+            titulo={`Bájate en ${viaje.tramos[viaje.tramos.length - 1].bajarEn.nombre}`}
+            detalle={
+              viaje.caminataFinalM < 50 ? "y llegaste" : `y camina ${viaje.caminataFinalM} m`
             }
-            secundario={
-              viaje.fueraDeHorario
-                ? "este recorrido no opera a esta hora"
-                : `pasa cada ${Math.round((viaje.intervaloS ?? 0) / 60)} min`
-            }
-          />
-          <Paso
-            punto="micro"
-            principal={`Toma la ${viaje.recorrido.nombre}`}
-            secundario={`${viaje.paradasIntermedias} ${
-              viaje.paradasIntermedias === 1 ? "parada" : "paradas"
-            } · ${duracionTexto(viaje.segundosEnMicro)}`}
-          />
-          <Paso
-            punto="bajar"
-            principal={`Bájate en ${viaje.bajarEn.nombre}`}
-            secundario={
-              viaje.caminataFinalM < 50
-                ? "y llegaste"
-                : `y camina ${viaje.caminataFinalM} m`
-            }
+            ultimo
           />
         </View>
       </Pressable>
@@ -357,7 +379,9 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
           accessibilityRole="button"
         >
           <Text style={s.comenzarTexto}>
-            {esPremium ? "Ya me subí · avísame antes de bajarme" : "Avísame antes de bajarme"}
+            {esPremium
+              ? "Ya me subí · avísame antes de bajarme"
+              : "Avísame antes de bajarme"}
           </Text>
         </Pressable>
       ) : null}
@@ -365,27 +389,56 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
   );
 }
 
-function Paso({
-  punto,
-  principal,
-  secundario,
+/**
+ * Un punto del itinerario.
+ *
+ * La línea vertical que los une es lo que convierte una lista de instrucciones
+ * en un recorrido: se ve de un vistazo cuánto del viaje es caminar y cuánto es
+ * ir arriba de la micro.
+ */
+function Hito({
+  tipo,
+  titulo,
+  detalle,
+  trazo,
+  tenue,
+  ultimo,
 }: {
-  punto: "caminar" | "esperar" | "micro" | "bajar";
-  principal: string;
-  secundario: string;
+  tipo: "pie" | "micro" | "paradas" | "cambio" | "fin";
+  titulo: string;
+  detalle: string;
+  /** El tramo hasta el siguiente hito va arriba de la micro. */
+  trazo?: boolean;
+  tenue?: boolean;
+  ultimo?: boolean;
 }) {
   const c = useColores();
   const s = estilos(c);
-  const icono = { caminar: "⇣", esperar: "◷", micro: "▣", bajar: "⇡" }[punto];
+  const color = tipo === "cambio" ? c.aviso : tipo === "fin" ? c.malo : c.marca;
+
   return (
-    <View style={s.paso}>
-      <Text style={s.pasoIcono}>{icono}</Text>
-      <View style={{ flex: 1 }}>
-        <Text style={s.pasoPrincipal} numberOfLines={1}>
-          {principal}
+    <View style={s.hito}>
+      <View style={s.hitoRiel}>
+        {tipo === "paradas" ? (
+          <View style={[s.hitoPunto, s.hitoPuntoChico, { backgroundColor: color }]} />
+        ) : (
+          <View style={[s.hitoPunto, { borderColor: color }]} />
+        )}
+        {!ultimo ? (
+          <View
+            style={[
+              s.hitoTrazo,
+              trazo ? { backgroundColor: color, width: 3 } : { backgroundColor: c.borde },
+            ]}
+          />
+        ) : null}
+      </View>
+      <View style={s.hitoTexto}>
+        <Text style={[s.hitoTitulo, tenue && { color: c.textoSuave }]} numberOfLines={2}>
+          {titulo}
         </Text>
-        <Text style={s.pasoSecundario} numberOfLines={1}>
-          {secundario}
+        <Text style={s.hitoDetalle} numberOfLines={2}>
+          {detalle}
         </Text>
       </View>
     </View>
@@ -481,14 +534,27 @@ const estilos = (c: Colores) =>
       justifyContent: "center",
     },
     viajeInsigniaTexto: { ...tipo.cuerpoFuerte, color: c.textoInverso },
-    viajeDestino: { ...tipo.cuerpo, color: c.textoSuave, flex: 1 },
+    cadena: { flexDirection: "row", alignItems: "center", flexShrink: 1, flexWrap: "wrap" },
+    cadenaItem: { flexDirection: "row", alignItems: "center" },
+    cadenaFlecha: { ...tipo.subtitulo, color: c.textoTenue, marginHorizontal: 5 },
     viajeTotal: { ...tipo.subtitulo, color: c.texto },
 
-    pasos: { marginTop: esp.lg, gap: esp.md },
-    paso: { flexDirection: "row", alignItems: "flex-start", gap: esp.md },
-    pasoIcono: { fontSize: 14, color: c.marca, width: 18, textAlign: "center", lineHeight: 19 },
-    pasoPrincipal: { ...tipo.cuerpo, color: c.texto },
-    pasoSecundario: { ...tipo.menor, color: c.textoTenue, marginTop: 1 },
+    linea: { marginTop: esp.lg },
+    hito: { flexDirection: "row", gap: esp.md },
+    hitoRiel: { width: 14, alignItems: "center" },
+    hitoPunto: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      borderWidth: 2.5,
+      backgroundColor: c.superficie,
+      marginTop: 3,
+    },
+    hitoPuntoChico: { width: 6, height: 6, borderRadius: 3, borderWidth: 0, marginTop: 6 },
+    hitoTrazo: { flex: 1, width: 2, borderRadius: 2, marginVertical: 3 },
+    hitoTexto: { flex: 1, minWidth: 0, paddingBottom: esp.md },
+    hitoTitulo: { ...tipo.cuerpo, color: c.texto },
+    hitoDetalle: { ...tipo.menor, color: c.textoTenue, marginTop: 1, lineHeight: 17 },
 
     nota: {
       ...tipo.menor,
