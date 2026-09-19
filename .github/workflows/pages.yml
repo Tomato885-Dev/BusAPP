@@ -32,6 +32,24 @@ jobs:
         working-directory: movil
         run: npm ci
 
+      - name: Comprobar credenciales
+        # Informa si los secretos del repositorio llegaron, sin revelarlos.
+        # La app compila igual sin ellos: cae a los datos locales.
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          LLAVE: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$URL" ]; then
+            echo "SUPABASE_URL      : configurada (${#URL} caracteres)"
+          else
+            echo "SUPABASE_URL      : FALTA"
+          fi
+          if [ -n "$LLAVE" ]; then
+            echo "SUPABASE_ANON_KEY : configurada (${#LLAVE} caracteres)"
+          else
+            echo "SUPABASE_ANON_KEY : FALTA"
+          fi
+
       - name: Compilar la app para web
         working-directory: movil
         # La llave anónima de Supabase es pública por diseño y viaja dentro de
