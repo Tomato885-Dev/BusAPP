@@ -177,6 +177,19 @@ def _limpiar_nombre(nombre: str, codigo: str) -> str:
     return nombre[len(prefijo):].strip() if nombre.startswith(prefijo) else nombre
 
 
+def _limpiar_letrero(letrero: str) -> str:
+    """Traduce la notación del DTPM para los recorridos circulares.
+
+    El feed marca los circuitos con ``"© Lo Valledor - Lo Espejo"``. Ese símbolo
+    no es un error de codificación —viene así en 1.928 viajes— pero en pantalla
+    se lee como un signo de copyright, que no significa nada para el pasajero.
+    """
+    letrero = letrero.strip()
+    if letrero.startswith("©"):
+        return f"Circuito {letrero.lstrip('©').strip()}"
+    return letrero
+
+
 def _decimal(valor: str | None) -> float | None:
     """Convierte a float tolerando vacíos y basura, en vez de reventar."""
     if valor is None or valor.strip() == "":
@@ -238,7 +251,7 @@ def leer_feed(ruta: str | Path) -> Feed:
                 id=f["trip_id"],
                 recorrido_id=f["route_id"],
                 servicio_id=f.get("service_id", ""),
-                letrero=(f.get("trip_headsign") or "").strip(),
+                letrero=_limpiar_letrero(f.get("trip_headsign") or ""),
                 trazado_id=(f.get("shape_id") or None),
                 sentido=int(sentido) if sentido not in (None, "") else None,
             )

@@ -1,6 +1,6 @@
 import * as Location from "expo-location";
-import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -26,9 +26,23 @@ export default function PantallaMapa() {
   const { esFavorito, alternar } = useFavoritos();
   const { rutinaActiva, minutosParaSalir } = useRutinas();
   const { esPremium } = usePremium();
+  const { paraderoId } = useLocalSearchParams<{ paraderoId?: string }>();
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [irA, setIrA] = useState<{ lat: number; lon: number; zoom?: number; nonce: number } | null>(null);
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
+
+  // Al llegar desde otra pantalla ("Ver en el mapa") se abre ese paradero y se
+  // centra el mapa en él. El ref evita reabrirlo si el usuario lo cierra y el
+  // parámetro sigue en la ruta.
+  const ultimoParametro = useRef<string | null>(null);
+  useEffect(() => {
+    if (!paraderoId || paraderoId === ultimoParametro.current) return;
+    const p = PARADERO_POR_ID.get(paraderoId);
+    if (!p) return;
+    ultimoParametro.current = paraderoId;
+    setSeleccionado(paraderoId);
+    setIrA({ lat: p.lat, lon: p.lon, zoom: 17, nonce: Date.now() });
+  }, [paraderoId]);
 
   const marcadores: Marcador[] = useMemo(
     () => PARADEROS.map((p) => ({ id: p.id, lat: p.lat, lon: p.lon, etiqueta: p.codigo })),
@@ -159,7 +173,7 @@ export default function PantallaMapa() {
                 })
               }
             >
-              <Text style={s.botonRutinaIcono}>◔</Text>
+              <Text style={s.botonRutinaIcono}>◷</Text>
               <Text style={s.botonRutinaTexto}>Avisarme a una hora</Text>
             </Pressable>
 
