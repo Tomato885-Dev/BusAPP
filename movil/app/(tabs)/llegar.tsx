@@ -138,7 +138,7 @@ export default function PantallaLlegar() {
           ) : (
             <Vacio
               titulo="Escribe una dirección"
-              detalle="Por ejemplo «La Capitanía 436» o «Camino Los Siervos 1280». También puedes buscar un paradero o una estación de Metro."
+              detalle="Por ejemplo «Av. Providencia 1234» o «Alameda 340». También puedes buscar un paradero o una estación de Metro."
             />
           )
         ) : !origen || !destino ? (

@@ -3,6 +3,7 @@ import {
   Animated,
   Image,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -10,7 +11,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
-import { elevacion, esp, radio, tipo, useColores, type Colores } from "../tema";
+import { elevacion, esp, radio, tipo, useColores, useEsOscuro, type Colores } from "../tema";
 import { TESELA, latAY, lonAX, xALon, yALat } from "./proyeccion";
 
 export interface Marcador {
@@ -45,6 +46,10 @@ const MAX_MARCADORES = 140;
  */
 const SOBREMUESTRA = 1;
 
+const RAIZ_TESELAS = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas";
+const PLANO_CLARO = "World_Light_Gray_Base";
+const PLANO_OSCURO = "World_Dark_Gray_Base";
+
 /**
  * Mapa de teselas propio.
  *
@@ -52,9 +57,17 @@ const SOBREMUESTRA = 1;
  * web**, y la web es como se revisa la app. Esto corre igual en iPhone, Android
  * y navegador, sin módulos nativos ni llaves de API.
  *
- * Teselas de OpenStreetMap: gratuitas y sin registro. Su política de uso está
- * pensada para volúmenes bajos, así que antes de crecer hay que pasar a un
- * proveedor propio (`docs/02-stack-movil.md` §2.3).
+ * Las teselas son los fondos «Canvas» de Esri: planos deliberadamente sobrios,
+ * sin comercios, sin íconos y con muy pocas etiquetas. El mapa aquí es
+ * **contexto**, no el contenido: lo que tiene que resaltar son los paraderos.
+ * El fondo estándar de OpenStreetMap trae toda la información de la ciudad
+ * encima y compite con los marcadores.
+ *
+ * Vienen en variante clara y oscura, de modo que el modo oscuro es un plano
+ * pensado para eso y no una capa oscura sobre un mapa claro.
+ *
+ * Sirven para desarrollar; **antes de lanzar hay que contratar un proveedor**
+ * (`docs/02-stack-movil.md` §2.3).
  */
 export function Mapa({
   centroInicial,
@@ -66,6 +79,7 @@ export function Mapa({
   margenSuperior = esp.md,
 }: Props) {
   const c = useColores();
+  const oscuroActivo = useEsOscuro();
   const s = estilos(c);
 
   const [centro, setCentro] = useState(centroInicial);
@@ -94,7 +108,10 @@ export function Mapa({
         onStartShouldSetPanResponder: () => false,
         // Sólo toma el gesto si hay arrastre real: un toque limpio tiene que
         // llegar al marcador que está debajo.
-        onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
+        onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 2 || Math.abs(g.dy) > 2,
+        // Una vez tomado el gesto no se suelta: sin esto, cualquier vista de
+        // arriba puede arrebatarlo a mitad del arrastre y el mapa se traba.
+        onPanResponderTerminationRequest: () => false,
         onPanResponderMove: (_e, g) => {
           gesto.current = { dx: g.dx, dy: g.dy };
           desplazamiento.setValue({ x: g.dx, y: g.dy });
@@ -138,6 +155,8 @@ export function Mapa({
   const izquierda = listo ? lonAX(centro.lon, zoom) - ancho / 2 : 0;
   const arriba = listo ? latAY(centro.lat, zoom) - alto / 2 : 0;
 
+  const plano = oscuroActivo ? PLANO_OSCURO : PLANO_CLARO;
+
   const teselas = useMemo(() => {
     if (!listo) return [];
     const maximo = 2 ** zoom;
@@ -150,16 +169,17 @@ export function Mapa({
     for (let tx = desdeX; tx <= hastaX; tx++) {
       for (let ty = desdeY; ty <= hastaY; ty++) {
         const envuelto = ((tx % maximo) + maximo) % maximo;
+        // Ojo con el orden: ArcGIS sirve {z}/{y}/{x}, no {z}/{x}/{y}.
         salida.push({
-          clave: `${zoom}/${envuelto}/${ty}`,
-          url: `https://tile.openstreetmap.org/${zoom}/${envuelto}/${ty}.png`,
+          clave: `${plano}/${zoom}/${envuelto}/${ty}`,
+          url: `${RAIZ_TESELAS}/${plano}/MapServer/tile/${zoom}/${ty}/${envuelto}`,
           x: tx * TESELA - izquierda,
           y: ty * TESELA - arriba,
         });
       }
     }
     return salida;
-  }, [listo, izquierda, arriba, ancho, alto, zoom]);
+  }, [listo, izquierda, arriba, ancho, alto, zoom, plano]);
 
   const visibles = useMemo(() => {
     if (!listo || zoom < ZOOM_MARCADORES) return [];
@@ -184,7 +204,7 @@ export function Mapa({
 
   return (
     <View style={[s.contenedor, { backgroundColor: c.mapaFondo }]} onLayout={alMedir}>
-      <View style={StyleSheet.absoluteFill} {...pan.panHandlers}>
+      <View style={[StyleSheet.absoluteFill, s.lienzo]} {...pan.panHandlers}>
         <Animated.View style={[StyleSheet.absoluteFill, movimiento]}>
           {teselas.map((t) =>
             rotas.has(t.clave) ? null : (
@@ -198,13 +218,6 @@ export function Mapa({
               />
             ),
           )}
-
-          {/* Velo que baja la saturación del mapa. El plano es contexto; lo que
-              tiene que resaltar son los paraderos. */}
-          <View
-            style={[StyleSheet.absoluteFill, { backgroundColor: c.mapaVelo }]}
-            pointerEvents="none"
-          />
 
           {visibles.map((m) => {
             const activo = m.id === seleccionado;
@@ -264,7 +277,7 @@ export function Mapa({
       </View>
 
       <Text style={s.credito} pointerEvents="none">
-        © OpenStreetMap
+        Esri · OpenStreetMap
       </Text>
     </View>
   );
@@ -273,6 +286,20 @@ export function Mapa({
 const estilos = (c: Colores) =>
   StyleSheet.create({
     contenedor: { flex: 1, overflow: "hidden" },
+    /**
+     * En web el navegador maneja el toque por su cuenta —desplaza la página,
+     * hace zoom, selecciona texto— y compite con el arrastre del mapa. Ese
+     * forcejeo es lo que se siente tosco al deslizar el dedo. `touchAction`
+     * le cede el gesto por completo a la aplicación.
+     */
+    lienzo: Platform.OS === "web"
+      ? ({
+          touchAction: "none",
+          userSelect: "none",
+          WebkitTapHighlightColor: "transparent",
+          cursor: "grab",
+        } as object)
+      : {},
     tesela: { position: "absolute", width: TESELA, height: TESELA },
 
     marcador: {

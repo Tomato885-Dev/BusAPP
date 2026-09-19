@@ -5,6 +5,7 @@
     python -m gtfs.cli validar    <feed>
     python -m gtfs.cli exportar   <feed> --destino ../prototipo/datos.json
     python -m gtfs.cli paraderos  <feed> --centro -33.4451,-70.6544
+    python -m gtfs.cli subir      <feed> --dsn postgresql://...supabase...
     python -m gtfs.cli cargar     <feed> --dsn postgresql://...
 
 ``<feed>`` es un .zip o un directorio ya descomprimido.
@@ -222,6 +223,34 @@ def _zona(args: argparse.Namespace) -> int:
     return 0
 
 
+def _subir(args: argparse.Namespace) -> int:
+    """Sube la red a Supabase."""
+    from .exportar_zona import Recuadro
+    from .subir import preparar, subir
+
+    feed = leer_feed(args.feed)
+    recuadro = None
+    if args.recuadro:
+        lat_min, lat_max, lon_min, lon_max = (float(x) for x in args.recuadro.split(","))
+        recuadro = Recuadro(lat_min, lat_max, lon_min, lon_max)
+
+    if args.solo_contar:
+        datos = preparar(feed, recuadro)
+        for tabla, filas in datos.items():
+            print(f"  {tabla:12} {len(filas):>8} filas")
+        return 0
+
+    if not args.dsn:
+        print("Falta --dsn (cadena de conexión de Supabase)", file=sys.stderr)
+        return 1
+
+    print(f"Subiendo: {feed.resumen()}")
+    for tabla, n in subir(feed, args.dsn, recuadro).items():
+        print(f"  {tabla:12} {n:>8} filas")
+    print("✓ Red cargada en Supabase.")
+    return 0
+
+
 def _cargar(args: argparse.Namespace) -> int:
     from .load import cargar
 
@@ -280,6 +309,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--recuadro", required=True, help="lat_min,lat_max,lon_min,lon_max")
     p.add_argument("--destino", default="../movil/src/red.json")
     p.set_defaults(fn=_zona)
+
+    p = sub.add_parser("subir", help="sube la red a Supabase")
+    p.add_argument("feed")
+    p.add_argument("--dsn", help="cadena de conexión de Postgres de Supabase")
+    p.add_argument("--recuadro", help="lat_min,lat_max,lon_min,lon_max para acotar la zona")
+    p.add_argument("--solo-contar", action="store_true",
+                   help="muestra cuántas filas se subirían, sin conectarse")
+    p.set_defaults(fn=_subir)
 
     p = sub.add_parser("cargar", help="carga el feed a PostGIS")
     p.add_argument("feed")
