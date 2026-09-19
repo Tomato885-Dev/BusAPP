@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { llegadasDeParadero } from "../../src/api";
 import { FilaLlegada } from "../../src/componentes/FilaLlegada";
+import { useFavoritos } from "../../src/favoritos";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
 import { PARADEROS, PARADERO_POR_ID } from "../../src/red";
@@ -19,6 +20,7 @@ export default function PantallaMapa() {
   const insets = useSafeAreaInsets();
   const s = estilos(c);
 
+  const { esFavorito, alternar } = useFavoritos();
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [irA, setIrA] = useState<{ lat: number; lon: number; zoom?: number; nonce: number } | null>(null);
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
@@ -102,6 +104,20 @@ export default function PantallaMapa() {
                 {paradero.codigo} · actualizado hace {datos.actualizadoHace} s
               </Text>
             </View>
+            <Pressable
+              onPress={() => alternar(paradero.id)}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={
+                esFavorito(paradero.id) ? "Quitar de favoritos" : "Guardar en favoritos"
+              }
+            >
+              <Text
+                style={[s.estrella, esFavorito(paradero.id) && { color: c.marca }]}
+              >
+                {esFavorito(paradero.id) ? "★" : "☆"}
+              </Text>
+            </Pressable>
             <Pressable
               onPress={() => setSeleccionado(null)}
               hitSlop={12}
@@ -192,6 +208,7 @@ const estilos = (c: Colores) =>
     panelTitulos: { flex: 1, minWidth: 0 },
     panelNombre: { ...tipo.subtitulo, color: c.texto },
     panelMeta: { ...tipo.menor, color: c.textoTenue, marginTop: 2 },
+    estrella: { fontSize: 22, color: c.textoTenue, paddingHorizontal: esp.xs },
     cerrar: { fontSize: 17, color: c.textoTenue, paddingHorizontal: esp.xs },
 
     panelLista: { flex: 1, paddingHorizontal: esp.lg },

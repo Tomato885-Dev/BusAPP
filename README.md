@@ -11,6 +11,7 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 
 - [`movil/`](movil/) — la app, en React Native + Expo. **Un código para iPhone y
   Android.** Ver [cómo abrirla en tu teléfono](movil/README.md).
+- [`servidor/`](servidor/) — esquema de Supabase y pasos para dejarlo andando.
 - [`backend/`](backend/) — ingesta del GTFS y la geometría sobre recorridos de la
   que depende el motor de estimación. 38 pruebas en verde.
 

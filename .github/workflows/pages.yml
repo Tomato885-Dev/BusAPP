@@ -32,8 +32,34 @@ jobs:
         working-directory: movil
         run: npm ci
 
+      - name: Comprobar credenciales
+        # Informa si los secretos del repositorio llegaron, sin revelarlos.
+        # La app compila igual sin ellos: cae a los datos locales.
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          LLAVE: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$URL" ]; then
+            echo "SUPABASE_URL      : configurada (${#URL} caracteres)"
+          else
+            echo "SUPABASE_URL      : FALTA"
+          fi
+          if [ -n "$LLAVE" ]; then
+            echo "SUPABASE_ANON_KEY : configurada (${#LLAVE} caracteres)"
+          else
+            echo "SUPABASE_ANON_KEY : FALTA"
+          fi
+
       - name: Compilar la app para web
         working-directory: movil
+        # La llave anónima de Supabase es pública por diseño y viaja dentro de
+        # la aplicación; lo que protege los datos son las políticas de seguridad
+        # por fila. Aun así se guarda como secreto del repositorio para no
+        # dejarla escrita en el código. Si no están configuradas, la app compila
+        # igual y funciona con los datos locales.
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npx expo export --platform web --output-dir ../sitio
 
       - name: Preparar el sitio

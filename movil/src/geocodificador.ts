@@ -2,7 +2,7 @@
  * Búsqueda de direcciones.
  *
  * Nadie planifica un viaje sabiéndose el nombre del paradero: uno escribe «La
- * Capitanía 436». Esto convierte una dirección escrita en coordenadas.
+ * Providencia 1234». Esto convierte una dirección escrita en coordenadas.
  *
  * Usa Nominatim, el geocodificador de OpenStreetMap: gratuito y sin registro.
  * Su política de uso permite un pedido por segundo y volúmenes bajos, de modo
