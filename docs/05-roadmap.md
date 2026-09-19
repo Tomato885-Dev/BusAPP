@@ -172,7 +172,11 @@ Con el diferenciador funcionando, recién aquí tiene sentido monetizar.
 - [ ] **App de Apple Watch** (`02` §2.2b): paradero favorito, próximas llegadas y
       avisos. Cliente delgado en SwiftUI contra la API existente, con acceso de
       red propio. Complicación en la esfera con el ETA del paradero habitual
-- [ ] Suscripción premium: notificaciones inteligentes, Live Activity / widget,
+- [ ] **Widget de rutina** (`07` §7.4): quince minutos antes de la hora habitual,
+      las micros del paradero de siempre aparecen solas en la pantalla de inicio.
+      Es la función premium más fuerte del producto. Empezar por la rutina
+      declarada por el usuario; la inferida viene después
+- [ ] Suscripción premium: notificaciones inteligentes, Live Activity,
       alertas recurrentes, historial personal (`07` §7.4)
 - [ ] OpenTripPlanner 2 desplegado con el GTFS de Santiago (`03` §3.5)
 - [ ] `/plan` como fachada, con UI de origen/destino

@@ -90,11 +90,53 @@ Siempre.
 
 | Función premium | Por qué es legítimo cobrarla |
 |---|---|
+| **Widget de rutina** ⭐ — ver abajo | La función más vendible del producto |
 | **Notificaciones inteligentes** — "sal ahora", "tu micro se desvió, anda al otro paradero" | La información está gratis; lo que se cobra es que te busque a ti en vez de que tú la busques |
-| **Live Activity / Dynamic Island / widget** — el ETA en la pantalla bloqueada | Comodidad pura. Es además la función más vistosa y la que más convierte |
+| **Live Activity / Dynamic Island** — el ETA en la pantalla bloqueada | Comodidad pura, y muy vistosa |
 | **Alertas de viaje recurrente** — "avísame todos los días a las 7:40 cómo está la 506" | Automatización, no información |
 | **Historial personal** — cuánto esperas realmente al mes, qué línea te falla más | Dato propio, entretenido, cero impacto en quien no paga |
 | **Apple Watch / Wear OS** | Comodidad de plataforma |
+
+### ⭐ El widget de rutina
+
+*Idea del autor, 19 de septiembre de 2026. Es la función premium más fuerte que
+tiene el producto.*
+
+**Cómo funciona:** la app nota que esta persona toma la micro casi todos los
+días alrededor de las 7:00 en el mismo paradero. Sin que tenga que configurar
+nada, **quince minutos antes aparece en la pantalla de inicio del teléfono un
+widget con las micros que vienen a ese paradero**. La persona mira el celular
+mientras se toma el café y decide si sale ya o le quedan cinco minutos.
+
+**Por qué es tan buena:**
+
+1. **Invierte la relación con la app.** Todas las apps de transporte esperan a
+   que las abras. Esta te busca a ti, justo cuando sirve. Es la diferencia entre
+   una herramienta y un hábito.
+2. **Se paga sola en el momento de mayor valor.** La gente paga por lo que le
+   ahorra estrés a las 7 de la mañana, no por lo que le sirve una vez al mes.
+3. **Es visible sin abrir nada.** Un widget en la pantalla de inicio es
+   publicidad permanente y gratuita del producto, en el teléfono del usuario.
+4. **Respeta la regla de §7.4:** no entrega información que la versión gratuita
+   no tenga. Lo que se cobra es la **anticipación**: que aparezca sola, en el
+   momento justo, sin pedirla.
+5. **Sólo la puede hacer quien tenga el historial.** Aprender la rutina exige
+   saber qué hace la persona todos los días, lo que a su vez exige el servidor.
+   Es una ventaja que no se copia fácil.
+
+**Lo que hay que resolver:**
+
+- Los widgets **no se pueden escribir en React Native**. En iOS hay que hacerlos
+  en SwiftUI con WidgetKit y en Android con Kotlin, igual que la app del reloj
+  (`02` §2.2b). Son módulos nativos chicos, alimentados por la misma API.
+- **Detectar la rutina** requiere guardar patrones de uso. Eso es dato personal,
+  así que va con consentimiento explícito y bajo las reglas de `03` §3.7.
+- La rutina se puede **inferir** (sin que el usuario configure nada) o
+  **declarar** (el usuario elige paradero y hora). Conviene empezar por la
+  declarada, que es mucho más simple y ya vale, y agregar la inferencia después.
+
+**Encaja naturalmente con el reloj:** la misma información, en la muñeca, quince
+minutos antes. El mismo módulo nativo sirve para los dos.
 
 **Precio sugerido:** CLP 990–1.490 mensuales, o CLP 8.900 al año. Y considerar
 seriamente un **pago único** (CLP 4.900–6.900): en Chile la resistencia a las
