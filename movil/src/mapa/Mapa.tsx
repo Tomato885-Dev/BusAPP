@@ -36,6 +36,13 @@ interface Props {
   trazado?: Trazado | null;
   /** Dibuja los marcadores en cualquier zoom, para ver una línea completa. */
   marcadoresSiempre?: boolean;
+  /**
+   * Qué escribir encima de cada paradero, de cerca.
+   *
+   * Se llama **sólo para los que están en pantalla**, que son unas decenas.
+   * Calcularlo para los 3.748 paraderos sería tirar trabajo a la basura.
+   */
+  insignia?: (id: string) => string | null;
   seleccionado?: string | null;
   onSeleccionar?: (id: string) => void;
   irA?: { lat: number; lon: number; zoom?: number; nonce: number } | null;
@@ -45,6 +52,11 @@ interface Props {
 const ZOOM_MIN = 11;
 /** Bajo este zoom los paraderos se amontonan y el mapa deja de leerse. */
 const ZOOM_MARCADORES = 14;
+/** Desde aquí cabe escribir los minutos encima de cada paradero. */
+const ZOOM_INSIGNIAS = 16;
+/** Espacio que reserva cada insignia, para que dos no se pisen. */
+const ANCHO_INSIGNIA = 46;
+const ALTO_INSIGNIA = 28;
 const MAX_MARCADORES = 140;
 /**
  * Anillos de teselas extra fuera de la pantalla.
@@ -116,6 +128,7 @@ export function Mapa({
   marcadores,
   trazado = null,
   marcadoresSiempre = false,
+  insignia,
   seleccionado,
   onSeleccionar,
   irA,
@@ -235,16 +248,45 @@ export function Mapa({
   const visibles = useMemo(() => {
     if (!listo || (zoom < ZOOM_MARCADORES && !marcadoresSiempre)) return [];
     const margen = TESELA;
-    const salida: (Marcador & { x: number; y: number })[] = [];
+    const conInsignias = zoom >= ZOOM_INSIGNIAS && Boolean(insignia);
+
+    // Cajas ya ocupadas por una insignia. Sin esto los minutos se pisan entre
+    // ellos en cuanto hay dos paraderos juntos, que en el centro es siempre, y
+    // el mapa se vuelve ilegible justo donde más paraderos hay.
+    const ocupadas: { x: number; y: number }[] = [];
+    const chocaCon = (x: number, y: number) =>
+      ocupadas.some(
+        (o) => Math.abs(o.x - x) < ANCHO_INSIGNIA && Math.abs(o.y - y) < ALTO_INSIGNIA,
+      );
+
+    const salida: (Marcador & { x: number; y: number; insigniaTexto: string | null })[] = [];
     for (const m of marcadores) {
       const x = lonAX(m.lon, zoom) - izquierda;
       const y = latAY(m.lat, zoom) - arriba;
       if (x < -margen || x > ancho + margen || y < -margen || y > alto + margen) continue;
-      salida.push({ ...m, x, y });
+
+      let insigniaTexto: string | null = null;
+      if (conInsignias && m.id !== seleccionado && !chocaCon(x, y)) {
+        insigniaTexto = insignia!(m.id);
+        if (insigniaTexto) ocupadas.push({ x, y });
+      }
+
+      salida.push({ ...m, x, y, insigniaTexto });
       if (salida.length >= MAX_MARCADORES) break;
     }
     return salida;
-  }, [marcadores, listo, zoom, izquierda, arriba, ancho, alto, marcadoresSiempre]);
+  }, [
+    marcadores,
+    listo,
+    zoom,
+    izquierda,
+    arriba,
+    ancho,
+    alto,
+    marcadoresSiempre,
+    insignia,
+    seleccionado,
+  ]);
 
   const movimiento = {
     transform: [
@@ -316,6 +358,27 @@ export function Mapa({
                 </Pressable>
               );
             }
+            // De cerca, el paradero muestra en cuántos minutos viene la
+            // próxima micro. Es el dato que la persona vino a buscar, y verlo
+            // sin abrir nada ahorra el toque que todas las demás apps piden.
+            const minutos = m.insigniaTexto;
+            if (minutos && !activo) {
+              return (
+                <Pressable
+                  key={m.id}
+                  onPress={() => onSeleccionar?.(m.id)}
+                  style={[s.marcador, { left: m.x - 19, top: m.y - 15 }]}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Paradero ${m.etiqueta}, próxima micro en ${minutos}`}
+                >
+                  <View style={[s.pastillaMin, elevacion(c, 1)]}>
+                    <Text style={s.pastillaMinTexto}>{minutos}</Text>
+                  </View>
+                </Pressable>
+              );
+            }
+
             return (
               <Pressable
                 key={m.id}
@@ -404,6 +467,18 @@ const estilos = (c: Colores) =>
       alignItems: "center",
       justifyContent: "center",
     },
+    pastillaMin: {
+      minWidth: 30,
+      paddingHorizontal: 6,
+      height: 22,
+      borderRadius: radio.pastilla,
+      backgroundColor: c.superficie,
+      borderWidth: 1.5,
+      borderColor: c.marca,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    pastillaMinTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.marca },
     marcadorChico: {
       position: "absolute",
       width: 22,

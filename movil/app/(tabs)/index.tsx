@@ -10,10 +10,11 @@ import { TarjetaRutina } from "../../src/componentes/TarjetaRutina";
 import { useFavoritos } from "../../src/favoritos";
 import { usePremium } from "../../src/premium";
 import { useRutinas } from "../../src/rutinas";
+import { Respuesta } from "../../src/componentes/Respuesta";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
 import { PARADEROS, PARADERO_POR_ID } from "../../src/red";
-import { elevacion, esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { elevacion, esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
 
 /** La Moneda: centro de Santiago, buen punto de partida. */
 const CENTRO = { lat: -33.4429, lon: -70.6539 };
@@ -55,6 +56,19 @@ export default function PantallaMapa() {
     [seleccionado],
   );
 
+  // Los minutos que van encima de cada paradero en el mapa. El mapa sólo la
+  // llama para los que están en pantalla, así que el costo es de decenas de
+  // paraderos, no de miles.
+  const insigniaDe = useCallback((paraderoId: string) => {
+    const datos = llegadasDeParadero(paraderoId);
+    const proxima = datos.llegadas.find(
+      (l) => l.estado !== "no_llegara" && l.etaSegundos !== null,
+    );
+    if (!proxima) return null;
+    const min = Math.round(proxima.etaSegundos! / 60);
+    return min <= 0 ? "ya" : `${min}′`;
+  }, []);
+
   const irAMiUbicacion = useCallback(async () => {
     setBuscandoUbicacion(true);
     try {
@@ -82,6 +96,7 @@ export default function PantallaMapa() {
         marcadores={marcadores}
         seleccionado={seleccionado}
         onSeleccionar={setSeleccionado}
+        insignia={insigniaDe}
         irA={irA}
         margenSuperior={insets.top + esp.sm + ALTO_BUSCADOR + esp.md}
       />
@@ -131,9 +146,12 @@ export default function PantallaMapa() {
               <Text style={s.panelNombre} numberOfLines={1}>
                 {paradero.nombre}
               </Text>
-              <Text style={s.panelMeta}>
-                {paradero.codigo} · actualizado hace {datos.actualizadoHace} s
-              </Text>
+              <View style={s.panelMetaFila}>
+                <View style={s.pulso} />
+                <Text style={s.panelMeta}>
+                  {paradero.codigo} · hace {datos.actualizadoHace} s
+                </Text>
+              </View>
             </View>
             <Pressable
               onPress={() => alternar(paradero.id)}
@@ -164,20 +182,50 @@ export default function PantallaMapa() {
             contentContainerStyle={{ paddingBottom: esp.lg }}
             showsVerticalScrollIndicator={false}
           >
-            <Pressable
-              style={s.botonRutina}
-              onPress={() =>
-                router.push({
-                  pathname: "/nueva-rutina",
-                  params: { paraderoId: paradero.id },
-                })
-              }
-            >
-              <Text style={s.botonRutinaIcono}>◷</Text>
-              <Text style={s.botonRutinaTexto}>Avisarme a una hora</Text>
-            </Pressable>
+            {/* La respuesta primero. Todo lo demás es el detalle de por qué. */}
+            {datos.aviso ? (
+              <TarjetaAviso aviso={datos.aviso} />
+            ) : (
+              <Respuesta llegadas={datos.llegadas} />
+            )}
 
-            {datos.aviso ? <TarjetaAviso aviso={datos.aviso} /> : null}
+            {/* Las acciones van como pastillas y no como botones anchos: son
+                secundarias frente a la respuesta, y así no le roban el lugar. */}
+            <View style={s.acciones}>
+              <Pressable
+                style={s.accion}
+                onPress={() =>
+                  router.push({
+                    pathname: "/nueva-rutina",
+                    params: { paraderoId: paradero.id },
+                  })
+                }
+                accessibilityRole="button"
+              >
+                <Text style={s.accionTexto}>◷  Avisarme</Text>
+              </Pressable>
+              <Pressable
+                style={s.accion}
+                onPress={() =>
+                  esPremium
+                    ? router.push({ pathname: "/viaje", params: { paraderoId: paradero.id } })
+                    : router.push("/premium")
+                }
+                accessibilityRole="button"
+              >
+                <Text style={s.accionTexto}>▸  Me subí</Text>
+              </Pressable>
+              <Pressable
+                style={s.accion}
+                onPress={() =>
+                  router.push({ pathname: "/paradero/[id]", params: { id: paradero.id } })
+                }
+                accessibilityRole="button"
+              >
+                <Text style={s.accionTexto}>Ver todo</Text>
+              </Pressable>
+            </View>
+
             {datos.llegadas.map((l, i) => (
               <FilaLlegada key={`${l.recorrido}-${i}`} llegada={l} />
             ))}
@@ -251,23 +299,24 @@ const estilos = (c: Colores) =>
     },
     panelTitulos: { flex: 1, minWidth: 0 },
     panelNombre: { ...tipo.subtitulo, color: c.texto },
-    panelMeta: { ...tipo.menor, color: c.textoTenue, marginTop: 2 },
+    panelMetaFila: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 3 },
+    pulso: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.ok },
+    panelMeta: { ...tipo.menor, color: c.textoTenue },
     estrella: { fontSize: 22, color: c.textoTenue, paddingHorizontal: esp.xs },
     cerrar: { fontSize: 17, color: c.textoTenue, paddingHorizontal: esp.xs },
 
     panelLista: { flex: 1, paddingHorizontal: esp.lg },
-    botonRutina: {
-      flexDirection: "row",
+    acciones: { flexDirection: "row", gap: esp.sm, marginBottom: esp.md },
+    accion: {
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: esp.sm,
-      backgroundColor: c.marcaSuave,
-      borderRadius: radio.md,
-      paddingVertical: esp.md,
-      marginBottom: esp.md,
+      paddingVertical: esp.sm,
+      paddingHorizontal: esp.xs,
+      borderRadius: radio.pastilla,
+      backgroundColor: c.neutroFondo,
     },
-    botonRutinaIcono: { fontSize: 15, color: c.marcaTexto },
-    botonRutinaTexto: { ...tipo.cuerpoFuerte, color: c.marcaTexto },
+    accionTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.textoSuave },
     pie: {
       ...tipo.menor,
       color: c.textoTenue,
