@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { llegadasDeParadero } from "../../src/api";
 import { Vacio } from "../../src/componentes/Vacio";
+import { CUANTOS_MOSTRAR, useDestinos } from "../../src/destinos";
 import { duracionTexto } from "../../src/formato";
 import type { Lugar } from "../../src/geocodificador";
 import { planificar, type Viaje } from "../../src/planificador";
@@ -28,6 +29,7 @@ export default function PantallaLlegar() {
   const insets = useSafeAreaInsets();
   const s = estilos(c);
 
+  const { frecuentes, registrar } = useDestinos();
   const [origen, setOrigen] = useState<Punto | null>(null);
   const [destino, setDestino] = useState<Punto | null>(null);
   const [campo, setCampo] = useState<"origen" | "destino" | null>(null);
@@ -60,12 +62,18 @@ export default function PantallaLlegar() {
   const elegir = useCallback(
     (l: Lugar) => {
       const punto = { nombre: l.nombre, lat: l.lat, lon: l.lon };
-      if (campo === "origen") setOrigen(punto);
-      else setDestino(punto);
+      if (campo === "origen") {
+        setOrigen(punto);
+      } else {
+        setDestino(punto);
+        // Sólo se recuerdan destinos: a dónde va alguien se repite, desde dónde
+        // sale casi siempre es su ubicación del momento.
+        registrar(punto);
+      }
       setCampo(null);
       setTexto("");
     },
-    [campo],
+    [campo, registrar],
   );
 
   const invertir = useCallback(() => {
@@ -145,6 +153,28 @@ export default function PantallaLlegar() {
           <Text style={s.miUbicacionIcono}>⌖</Text>
           <Text style={s.miUbicacionTexto}>Usar mi ubicación</Text>
         </Pressable>
+      ) : null}
+
+      {campo === "destino" && frecuentes.length > 0 && texto.trim().length < 3 ? (
+        <View style={s.frecuentes}>
+          <Text style={s.frecuentesTitulo}>Vas seguido a</Text>
+          <View style={s.frecuentesFila}>
+            {frecuentes.slice(0, CUANTOS_MOSTRAR).map((d) => (
+              <Pressable
+                key={d.id}
+                style={s.atajo}
+                onPress={() =>
+                  elegir({ id: d.id, nombre: d.nombre, detalle: "", lat: d.lat, lon: d.lon, tipo: "direccion" })
+                }
+                accessibilityRole="button"
+              >
+                <Text style={s.atajoTexto} numberOfLines={1}>
+                  {d.nombre}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
       ) : null}
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.lista}>
@@ -489,6 +519,23 @@ const estilos = (c: Colores) =>
     },
     miUbicacionIcono: { fontSize: 17, color: c.marcaTexto },
     miUbicacionTexto: { ...tipo.cuerpoFuerte, color: c.marcaTexto },
+
+    frecuentes: { paddingHorizontal: esp.lg, marginTop: esp.md },
+    frecuentesTitulo: {
+      ...tipo.micro,
+      color: c.textoTenue,
+      textTransform: "uppercase",
+      marginBottom: esp.sm,
+    },
+    frecuentesFila: { flexDirection: "row", flexWrap: "wrap", gap: esp.sm },
+    atajo: {
+      maxWidth: "100%",
+      paddingVertical: esp.sm,
+      paddingHorizontal: esp.lg,
+      borderRadius: radio.pastilla,
+      backgroundColor: c.marcaSuave,
+    },
+    atajoTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.marcaTexto },
 
     lista: { padding: esp.lg, paddingBottom: esp.xxl },
     encabezadoLista: { ...tipo.menor, color: c.textoSuave, marginBottom: esp.md },

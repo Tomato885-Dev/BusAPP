@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { BarraViaje } from "../src/componentes/BarraViaje";
 
+import { ProveedorDestinos } from "../src/destinos";
 import { ProveedorFavoritos } from "../src/favoritos";
 import { ProveedorPremium } from "../src/premium";
 import { ProveedorRutinas } from "../src/rutinas";
@@ -40,6 +41,7 @@ export default function Layout() {
       <ProveedorRutinas>
       <ProveedorFavoritos>
       <ProveedorViaje>
+      <ProveedorDestinos>
         <StatusBar style="auto" />
         {/* La barra del viaje va sobre el navegador, no dentro de una pantalla:
             quien va arriba de la micro la necesita en todas, y las pestañas no
@@ -70,6 +72,7 @@ export default function Layout() {
           <Stack.Screen name="premium" options={{ title: "Kupay Premium" }} />
         </Stack>
         </View>
+      </ProveedorDestinos>
       </ProveedorViaje>
       </ProveedorFavoritos>
       </ProveedorRutinas>
