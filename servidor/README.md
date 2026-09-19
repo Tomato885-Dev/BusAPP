@@ -18,6 +18,20 @@ El proyecto demora un par de minutos en quedar listo.
 
 ---
 
+
+## Comprobar que quedó todo bien
+
+Después de correr `esquema.sql`, pega `comprobar.sql` completo en el **SQL
+Editor** y dale **Run**.
+
+Devuelve una fila por cada cosa que tiene que existir, con ✅ o ❌. No modifica
+nada: sólo mira. Si todo sale ✅, el servidor está listo.
+
+La última fila comprueba el **inicio de sesión anónimo**. Si dice «ninguno
+todavía», abre la app una vez y vuelve a correr la consulta: el primer usuario
+anónimo se crea recién cuando alguien entra.
+
+
 ## 2. Crear las tablas
 
 En el panel, **SQL Editor → New query**. Pega el contenido completo de
