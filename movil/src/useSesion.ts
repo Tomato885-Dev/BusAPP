@@ -13,18 +13,23 @@ import { asegurarSesion, hayServidor } from "./supabase";
  */
 export function useSesion() {
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [listo, setListo] = useState(!hayServidor);
 
   useEffect(() => {
     if (!hayServidor) return;
     let vigente = true;
     asegurarSesion()
-      .then((id) => vigente && setUsuarioId(id))
+      .then((s) => {
+        if (!vigente) return;
+        setUsuarioId(s.usuarioId);
+        setError(s.error);
+      })
       .finally(() => vigente && setListo(true));
     return () => {
       vigente = false;
     };
   }, []);
 
-  return { usuarioId, listo, conServidor: hayServidor };
+  return { usuarioId, error, listo, conServidor: hayServidor };
 }
