@@ -208,6 +208,83 @@ usuarios que le den poder de negociación.
 
 ---
 
+## 7.7b Los números reales, revisados en 2026
+
+Datos de mercado al 19 de septiembre de 2026. Conviene rehacer este cálculo
+antes de tomar cualquier decisión de inversión: cambia rápido.
+
+### Lo que se gasta
+
+| Etapa | Mensual |
+|---|---|
+| **Hoy (desarrollo)** | **USD 0** — Supabase, Stadia, GitHub y OpenStreetMap tienen plan gratuito suficiente |
+| Al publicar | ~USD 55: Apple USD 99/año, Supabase ~25, Stadia ~20, dominio ~1 |
+| Con tracción | Crece con la telemetría, que es lo que más escribe en la base |
+
+### Lo que entra, y la mala noticia
+
+**El ingreso por usuario en Latinoamérica ronda los USD 0,10**, frente a
+mercados como Estados Unidos que están en otro orden de magnitud. Es la
+restricción que manda sobre todo lo demás, y no se arregla con mejor producto.
+
+La compensación: Latinoamérica tiene **la mayor tasa de crecimiento de ingresos
+recurrentes de cualquier región** (~17% mensual mediano). Es un mercado chico
+por usuario, pero que crece rápido.
+
+Para apps de utilidad, la publicidad rinde del orden de USD 0,01 a 0,05 por
+usuario activo, y la suscripción supera a la publicidad en cuanto el producto
+resuelve un problema real: mil suscriptores rinden más que cien mil usuarios con
+avisos.
+
+### Comisión de las tiendas
+
+- **Programa de Pequeñas Empresas de Apple:** 15% mientras se facture menos de
+  USD 1 millón al año. Hay que inscribirse; no es automático.
+- **Pagos fuera de la app:** tras los fallos de Epic contra Apple, en Estados
+  Unidos hoy se puede enlazar a un pago externo **sin comisión**, y Apple
+  propuso cobrar 5% a pequeñas empresas. En Chile la situación no es la misma:
+  hay que verificarla antes de contar con ello.
+
+### La cuenta para este producto
+
+Suscripción de CLP 1.490 (~USD 1,50) con 2% de conversión, menos 15% de
+comisión:
+
+| Usuarios activos | Suscriptores | Ingreso neto mensual | ¿Cubre los ~USD 55? |
+|---|---|---|---|
+| 5.000 | ~100 | ~USD 127 | Sí, con holgura |
+| 20.000 | ~400 | ~USD 510 | Sí |
+| 50.000 | ~1.000 | ~USD 1.275 | Sí, pero no es un sueldo |
+
+**Conclusión incómoda y central:** con los ingresos de consumidores en Chile,
+este producto **cubre sus costos, no se convierte en negocio**. Llegar a 50.000
+usuarios activos —que sería un éxito rotundo para una app nueva— rinde menos que
+un sueldo.
+
+Eso no invalida el plan: **lo confirma**. Por eso el negocio está en la capa 3
+(§7.5), donde un solo contrato anual con un municipio o un operador puede
+superar todo el ingreso de consumidores del año. La app no es el producto que se
+vende; es el instrumento que produce el dato que sí se vende.
+
+### Qué hacer con esto
+
+1. **No apurarse a monetizar.** Cobrar antes de tener el diferenciador
+   funcionando sólo frena el crecimiento, que es lo único que importa ahora.
+2. **Inscribirse en el Programa de Pequeñas Empresas de Apple** apenas se tenga
+   la cuenta: es la diferencia entre 15% y 30%.
+3. **Tratar la suscripción como cobertura de costos**, no como el negocio.
+4. **Empezar a hablar con posibles compradores del dato mucho antes de tener el
+   dato.** Un municipio tarda meses en comprar; conviene que el proceso corra en
+   paralelo al desarrollo, no después.
+
+### Fuentes
+
+- [RevenueCat — State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps)
+- [AppsFlyer — The State of App Monetization 2026](https://www.appsflyer.com/resources/reports/app-marketing-monetization-report/)
+- [Apple App Store Small Business Program 2026](https://appbuilder24.com/blog/apple-small-business-program)
+- [TechCrunch — Apple proposes 15% cut on external purchases](https://techcrunch.com/2026/08/14/apple-proposes-to-take-a-15-cut-of-purchases-made-outside-the-app-store/)
+- [MonetizeMore — Ad revenue benchmarks 2026](https://www.monetizemore.com/blog/how-much-ad-revenue-can-apps-generate/)
+
 ## 7.8 Cronología
 
 | Momento | Ingreso | Meta |
