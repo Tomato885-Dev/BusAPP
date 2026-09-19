@@ -27,17 +27,29 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
    la propuesta de valor se degrada a "otra app más de horarios".
    → Ver [`docs/01`](docs/01-fuentes-de-datos.md).
 
-2. **iOS-only es incompatible con la propuesta de valor.** El diferenciador
-   depende de reportes y ubicación aportados por usuarios, y eso necesita masa
-   crítica. Android domina ampliamente el mercado chileno; lanzar sólo en iOS
-   limita la base de usuarios justo en el mecanismo que hace único al producto.
-   → Ver [`docs/02`](docs/02-stack-movil.md).
+2. **El motor es un sensor pasivo, no un sistema de reportes.** Cada usuario
+   con la app y el permiso activo aporta su ubicación sin hacer nada. De ahí
+   salen dos estimadores independientes del mismo número —el oficial y el
+   derivado de la gente a bordo— que se combinan estadísticamente. **Cuando
+   ambos se contradicen más allá de su incertidumbre, eso *es* la señal de que
+   la micro no viene.** → Ver [`docs/04`](docs/04-motor-de-estimacion.md).
 
 3. **Esto son dos proyectos, no uno:** una app móvil y un servicio backend. La
-   fusión de datos oficiales con reportes comunitarios no puede vivir sólo en el
-   teléfono. → Ver [`docs/03`](docs/03-arquitectura.md).
+   fusión de datos es colectiva por definición y no puede vivir en el teléfono.
+   → Ver [`docs/03`](docs/03-arquitectura.md).
 
-4. **El MVP debe ser una sola pantalla hecha muy bien:** llegadas en paradero.
-   El planificador de viajes y los reportes comunitarios son fases posteriores,
-   por razones que se explican en el roadmap.
+4. **Hay que lanzar concentrado en una zona, no en todo Santiago.** Basta una
+   persona a bordo para saber dónde va un bus: con ~5% de penetración entre los
+   pasajeros de un corredor se cubre más del 90% de los buses en hora punta. Esa
+   densidad es alcanzable en una comuna e impensable en toda la región.
+   → Ver [`docs/04`](docs/04-motor-de-estimacion.md) §4.7.
+
+5. **El MVP no muestra el diferenciador: lo prepara.** La fase 1 es una app útil
+   con datos oficiales que además empieza a capturar telemetría en silencio. El
+   diferenciador aparece en la fase 4, y el planificador después.
    → Ver [`docs/05`](docs/05-roadmap.md).
+
+6. **Sin publicidad, y no por gusto:** los SDK publicitarios obligan a declarar
+   rastreo en la ficha de las tiendas, lo que erosiona el permiso de ubicación
+   del que depende el motor. El negocio son los datos agregados de movilidad,
+   que el usuario nunca ve. → Ver [`docs/07`](docs/07-modelo-de-negocio.md).

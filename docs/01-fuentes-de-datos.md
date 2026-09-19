@@ -86,7 +86,7 @@ horarios programados. Eso cambia la propuesta de valor:
 | Escenario | Qué puede prometer Bus Checker |
 |---|---|
 | **A. Con acceso oficial a GPS/predictor** | La visión completa del brief: "esta micro está a 3 cuadras y viene hacia acá", detección automática de desvíos, "esta micro no va a llegar". |
-| **B. Sin acceso oficial, con base de usuarios activa** | "Horario programado + 12 personas reportaron que esta línea está desviada hace 20 min". Valioso, pero **depende de masa crítica de usuarios**. |
+| **B. Sin acceso oficial, con telemetría propia** | Posición real de los buses deducida de los usuarios a bordo. Equivalente funcional del escenario A, y **bajo control propio**. Depende de densidad local de usuarios (`04` §4.7). |
 | **C. Sin acceso oficial y sin usuarios (día 1)** | Horarios programados y mapas. Es decir: una app más, sin diferenciador. |
 
 El escenario C es el punto de partida inevitable de cualquier lanzamiento. La
@@ -99,19 +99,20 @@ hay dos caminos que conviene recorrer en paralelo:
 2. **Diseñar el producto para que sea útil incluso en el escenario C**, de modo
    que atraiga a los usuarios que después alimentan el escenario B.
 
-## 1.4 Un tercer camino: la telemetría de los propios usuarios
+## 1.4 El camino principal: la telemetría de los propios usuarios
 
-Hay una fuente que no depende de ningún permiso: **los usuarios que van arriba
-de la micro**.
+Hay una fuente que no depende de ningún permiso, y que es **el núcleo del
+producto** (`04`): **los usuarios que van arriba de la micro**.
 
 Si una persona viaja en la línea 506 con la app abierta y el sistema puede
 inferir que va a bordo de ese bus (por velocidad, por coincidencia de su
 trayectoria con el trazado del recorrido, o porque lo declaró), su GPS es, en
 la práctica, el GPS del bus.
 
-Esto reproduce el mecanismo por el cual Waze funciona sin convenios con ninguna
-autoridad vial. Tiene el mismo problema del huevo y la gallina —no sirve sin
-usuarios— pero es una vía legítima y bajo control propio hacia el escenario A.
+A diferencia de Waze, **el usuario no reporta nada**: no hay ninguna acción que
+tomar. Eso cambia por completo la aritmética de participación —aportan todos los
+que dieron el permiso, no el pequeño porcentaje que se molesta en reportar— y
+convierte esto en la vía principal hacia el escenario A, bajo control propio.
 
 Implicancias que hay que asumir desde el diseño:
 
@@ -138,11 +139,11 @@ la app nunca debe hablar directamente con una fuente externa.**
                 ┌───────────────┼───────────────┬───────────────┐
                 ▼               ▼               ▼               ▼
         ┌──────────────┐ ┌────────────┐ ┌────────────┐ ┌──────────────┐
-        │ GTFS estático│ │ GPS oficial│ │ Reportes   │ │ Telemetría   │
-        │   (DTPM)     │ │ (si se     │ │ de usuarios│ │ de usuarios  │
-        │              │ │  consigue) │ │            │ │ a bordo      │
+        │ GTFS estático│ │ GPS oficial│ │ Telemetría │ │ Reportes     │
+        │   (DTPM)     │ │ (si se     │ │ de usuarios│ │ manuales     │
+        │              │ │  consigue) │ │ a bordo ⭐ │ │ (opcional)   │
         └──────────────┘ └────────────┘ └────────────┘ └──────────────┘
-             ✅ hoy         ❌ gestionar     🔨 construir    🔨 construir
+             ✅ hoy         ❌ gestionar     🔨 el núcleo    ❔ por decidir
 ```
 
 Beneficios de esta separación:
