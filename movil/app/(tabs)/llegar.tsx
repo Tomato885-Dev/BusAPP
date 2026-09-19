@@ -11,12 +11,15 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { llegadasDeParadero } from "../../src/api";
 import { Vacio } from "../../src/componentes/Vacio";
 import { duracionTexto } from "../../src/formato";
 import type { Lugar } from "../../src/geocodificador";
 import { planificar, type Viaje } from "../../src/planificador";
-import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { usePremium } from "../../src/premium";
+import { esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
 import { useBusqueda } from "../../src/useBusqueda";
+import { useViaje } from "../../src/viaje";
 
 type Punto = { nombre: string; lat: number; lon: number };
 
@@ -32,10 +35,26 @@ export default function PantallaLlegar() {
 
   const { resultados: sugerencias, buscando } = useBusqueda(campo ? texto : "");
 
-  const viajes = useMemo(
-    () => (origen && destino ? planificar(origen, destino) : []),
-    [origen, destino],
-  );
+  const viajes = useMemo(() => {
+    if (!origen || !destino) return [];
+    const encontrados = planificar(origen, destino);
+
+    // Un recorrido que no está pasando no puede encabezar la lista, por muy
+    // rápido que sea en el papel. Mandar a alguien a caminar seis cuadras hacia
+    // una micro desviada es exactamente lo que Kupay existe para evitar, así
+    // que la advertencia no basta: hay que bajarlo de posición.
+    const penalidad = (v: (typeof encontrados)[number]) => {
+      if (v.fueraDeHorario) return 2;
+      const datos = llegadasDeParadero(v.subirEn.id);
+      const suyo = datos.llegadas.find((l) => l.recorrido === v.recorrido.nombre);
+      return suyo?.estado === "no_llegara" ? 1 : 0;
+    };
+
+    return encontrados
+      .map((v) => ({ v, p: penalidad(v) }))
+      .sort((a, b) => a.p - b.p || a.v.segundosTotales - b.v.segundosTotales)
+      .map((x) => x.v);
+  }, [origen, destino]);
 
   const elegir = useCallback(
     (l: Lugar) => {
@@ -47,6 +66,11 @@ export default function PantallaLlegar() {
     },
     [campo],
   );
+
+  const invertir = useCallback(() => {
+    setOrigen(destino);
+    setDestino(origen);
+  }, [origen, destino]);
 
   const usarMiUbicacion = useCallback(async () => {
     try {
@@ -101,6 +125,18 @@ export default function PantallaLlegar() {
             onTexto={setTexto}
           />
         </View>
+
+        {origen || destino ? (
+          <Pressable
+            onPress={invertir}
+            hitSlop={10}
+            style={s.invertir}
+            accessibilityRole="button"
+            accessibilityLabel="Invertir origen y destino"
+          >
+            <Text style={s.invertirIcono}>⇅</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {campo === "origen" ? (
@@ -218,43 +254,114 @@ function Campo({
 function TarjetaViaje({ viaje }: { viaje: Viaje }) {
   const c = useColores();
   const s = estilos(c);
-  return (
-    <Pressable
-      style={s.viaje}
-      onPress={() =>
-        router.push({ pathname: "/paradero/[id]", params: { id: viaje.subirEn.id } })
-      }
-    >
-      <View style={s.viajeCabecera}>
-        <View style={s.viajeInsignia}>
-          <Text style={s.viajeInsigniaTexto}>{viaje.recorrido.nombre}</Text>
-        </View>
-        <Text style={s.viajeDestino} numberOfLines={1}>
-          {viaje.recorrido.destino}
-        </Text>
-        <Text style={s.viajeTotal}>{duracionTexto(viaje.segundosTotales)}</Text>
-      </View>
+  const { esPremium } = usePremium();
+  const { iniciar } = useViaje();
 
-      <View style={s.pasos}>
-        <Paso
-          punto="caminar"
-          principal={`Camina ${viaje.caminataInicialM} m`}
-          secundario={`hasta ${viaje.subirEn.nombre}`}
-        />
-        <Paso
-          punto="micro"
-          principal={`Toma la ${viaje.recorrido.nombre}`}
-          secundario={`${viaje.paradasIntermedias} ${
-            viaje.paradasIntermedias === 1 ? "parada" : "paradas"
-          } · ${duracionTexto(viaje.segundosEnMicro)}`}
-        />
-        <Paso
-          punto="bajar"
-          principal={`Bájate en ${viaje.bajarEn.nombre}`}
-          secundario={`y camina ${viaje.caminataFinalM} m`}
-        />
-      </View>
-    </Pressable>
+  // Lo que distingue a Kupay de cualquier otro planificador: antes de mandar a
+  // alguien a caminar seis cuadras, se comprueba que esa micro esté pasando.
+  const estadoEnParadero = useMemo(() => {
+    const datos = llegadasDeParadero(viaje.subirEn.id);
+    return datos.llegadas.find((l) => l.recorrido === viaje.recorrido.nombre) ?? null;
+  }, [viaje.subirEn.id, viaje.recorrido.nombre]);
+
+  const noPasa = estadoEnParadero?.estado === "no_llegara";
+  const dudoso = estadoEnParadero?.estado === "probable_desvio" ||
+    estadoEnParadero?.estado === "discrepancia";
+
+  const comenzarViaje = async () => {
+    const desde = viaje.recorrido.paradas.indexOf(viaje.subirEn.id);
+    const hasta = viaje.recorrido.paradas.indexOf(viaje.bajarEn.id, desde + 1);
+    if (desde < 0 || hasta < 0) return;
+    await iniciar({ recorridoId: viaje.recorrido.id, desde, hasta, avisoParadas: 2 });
+  };
+
+  return (
+    <View style={[s.viaje, viaje.fueraDeHorario && s.viajeApagado]}>
+      <Pressable
+        onPress={() =>
+          router.push({ pathname: "/paradero/[id]", params: { id: viaje.subirEn.id } })
+        }
+      >
+        <View style={s.viajeCabecera}>
+          <View style={s.viajeInsignia}>
+            <Text style={s.viajeInsigniaTexto}>{viaje.recorrido.nombre}</Text>
+          </View>
+          <Text style={s.viajeDestino} numberOfLines={1}>
+            {viaje.recorrido.destino}
+          </Text>
+          <Text style={s.viajeTotal}>
+            {viaje.fueraDeHorario ? "—" : duracionTexto(viaje.segundosTotales)}
+          </Text>
+        </View>
+
+        {noPasa ? (
+          <Text style={[s.estado, { color: c.malo }]}>
+            ✕ Esta micro no está pasando por ese paradero
+          </Text>
+        ) : dudoso ? (
+          <Text style={[s.estado, { color: c.aviso }]}>
+            ! Podría demorar más de lo que dice el horario
+          </Text>
+        ) : null}
+
+        <View style={s.pasos}>
+          <Paso
+            punto="caminar"
+            principal={
+              viaje.caminataInicialM < 50
+                ? "Ya estás en el paradero"
+                : `Camina ${viaje.caminataInicialM} m`
+            }
+            secundario={
+              viaje.caminataInicialM < 50
+                ? viaje.subirEn.nombre
+                : `hasta ${viaje.subirEn.nombre}`
+            }
+          />
+          <Paso
+            punto="esperar"
+            principal={
+              viaje.fueraDeHorario
+                ? "Fuera de horario"
+                : `Espera ~${Math.round((viaje.segundosEsperando ?? 0) / 60)} min`
+            }
+            secundario={
+              viaje.fueraDeHorario
+                ? "este recorrido no opera a esta hora"
+                : `pasa cada ${Math.round((viaje.intervaloS ?? 0) / 60)} min`
+            }
+          />
+          <Paso
+            punto="micro"
+            principal={`Toma la ${viaje.recorrido.nombre}`}
+            secundario={`${viaje.paradasIntermedias} ${
+              viaje.paradasIntermedias === 1 ? "parada" : "paradas"
+            } · ${duracionTexto(viaje.segundosEnMicro)}`}
+          />
+          <Paso
+            punto="bajar"
+            principal={`Bájate en ${viaje.bajarEn.nombre}`}
+            secundario={
+              viaje.caminataFinalM < 50
+                ? "y llegaste"
+                : `y camina ${viaje.caminataFinalM} m`
+            }
+          />
+        </View>
+      </Pressable>
+
+      {!viaje.fueraDeHorario ? (
+        <Pressable
+          style={s.comenzar}
+          onPress={() => (esPremium ? comenzarViaje() : router.push("/rutina"))}
+          accessibilityRole="button"
+        >
+          <Text style={s.comenzarTexto}>
+            {esPremium ? "Ya me subí · avísame antes de bajarme" : "Avísame antes de bajarme"}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -263,13 +370,13 @@ function Paso({
   principal,
   secundario,
 }: {
-  punto: "caminar" | "micro" | "bajar";
+  punto: "caminar" | "esperar" | "micro" | "bajar";
   principal: string;
   secundario: string;
 }) {
   const c = useColores();
   const s = estilos(c);
-  const icono = { caminar: "⇣", micro: "▣", bajar: "⇡" }[punto];
+  const icono = { caminar: "⇣", esperar: "◷", micro: "▣", bajar: "⇡" }[punto];
   return (
     <View style={s.paso}>
       <Text style={s.pasoIcono}>{icono}</Text>
@@ -290,7 +397,21 @@ const estilos = (c: Colores) =>
     pantalla: { flex: 1, backgroundColor: c.fondo },
     tituloPantalla: { ...tipo.titulo, color: c.texto, paddingHorizontal: esp.lg, marginBottom: esp.md },
 
-    formulario: { flexDirection: "row", marginHorizontal: esp.lg, gap: esp.md },
+    formulario: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: esp.lg,
+      gap: esp.md,
+    },
+    invertir: {
+      width: 38,
+      height: 38,
+      borderRadius: radio.pastilla,
+      backgroundColor: c.superficie,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    invertirIcono: { fontSize: 18, color: c.marca },
     rieles: { alignItems: "center", paddingVertical: esp.lg },
     nodo: { width: 11, height: 11, borderRadius: 6, borderWidth: 2.5 },
     nodoDestino: { borderRadius: 2 },
@@ -339,6 +460,16 @@ const estilos = (c: Colores) =>
       padding: esp.lg,
       marginBottom: esp.md,
     },
+    viajeApagado: { opacity: 0.6 },
+    estado: { ...tipo.menor, fontFamily: fuente.fuerte, marginTop: esp.sm },
+    comenzar: {
+      marginTop: esp.md,
+      paddingVertical: esp.sm,
+      borderRadius: radio.pastilla,
+      backgroundColor: c.marcaSuave,
+      alignItems: "center",
+    },
+    comenzarTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.marcaTexto },
     viajeCabecera: { flexDirection: "row", alignItems: "center", gap: esp.md },
     viajeInsignia: {
       minWidth: 52,

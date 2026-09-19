@@ -12,7 +12,7 @@ producto.** Tres razones independientes.
 
 ### Razón 1 — Destruye el permiso que el producto necesita
 
-El motor de Bus Checker depende de que el usuario comparta su ubicación de forma
+El motor de Kupay depende de que el usuario comparta su ubicación de forma
 continua. Eso sólo es aceptable si el usuario confía en que ese dato se trata con
 cuidado.
 

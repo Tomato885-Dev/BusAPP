@@ -1,13 +1,19 @@
+import * as Location from "expo-location";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { llegadasDeParadero } from "../api";
+import { distanciaM } from "../mapa/proyeccion";
 import { etaTexto, origenTexto, rangoTexto, tono } from "../formato";
 import { PARADERO_POR_ID } from "../red";
 import { horaTexto, type Rutina } from "../rutinas";
-import { elevacion, esp, radio, tipo, useColores, type Colores } from "../tema";
+import { type Colores, elevacion, esp, fuente, radio, tipo, useColores } from "../tema";
 
 /** Cuántas micros caben sin que la tarjeta tape el mapa. */
 const CUANTAS = 3;
+
+/** Velocidad a pie, en m/s. Caminata urbana normal. */
+const VELOCIDAD_A_PIE = 1.3;
 
 /**
  * La tarjeta de rutina: lo que después será el widget de la pantalla de inicio.
@@ -27,8 +33,37 @@ export function TarjetaRutina({
 }) {
   const c = useColores();
   const s = estilos(c);
+  const [minutosCaminando, setMinutosCaminando] = useState<number | null>(null);
 
   const paradero = PARADERO_POR_ID.get(rutina.paraderoId);
+
+  // Aviso de salida: cuánto falta para **salir**, no para que llegue la micro.
+  // Se resta el tiempo de caminata al paradero. Es la diferencia entre "tu
+  // micro llega en 7 minutos" y "sal en 3": nadie quiere hacer esa resta
+  // corriendo. Sólo se calcula si el permiso de ubicación ya estaba dado.
+  useEffect(() => {
+    if (!paradero) return;
+    let vigente = true;
+    (async () => {
+      try {
+        const permiso = await Location.getForegroundPermissionsAsync();
+        if (!permiso.granted) return;
+        const pos = await Location.getCurrentPositionAsync({});
+        if (!vigente) return;
+        const metros = distanciaM(
+          { lat: pos.coords.latitude, lon: pos.coords.longitude },
+          paradero,
+        );
+        setMinutosCaminando(Math.round(metros / VELOCIDAD_A_PIE / 60));
+      } catch {
+        // Sin ubicación la tarjeta sirve igual, sólo sin el aviso de salida.
+      }
+    })();
+    return () => {
+      vigente = false;
+    };
+  }, [paradero]);
+
   if (!paradero) return null;
 
   const datos = llegadasDeParadero(paradero.id);
@@ -50,6 +85,16 @@ export function TarjetaRutina({
       <Text style={s.paradero} numberOfLines={1}>
         {paradero.nombre}
       </Text>
+
+      {minutosCaminando !== null ? (
+        <Text style={s.salida}>
+          {(() => {
+            const salir = minutosParaSalir - minutosCaminando;
+            if (salir <= 0) return `Sal ahora · ${minutosCaminando} min caminando`;
+            return `Sal en ${salir} min · ${minutosCaminando} min caminando`;
+          })()}
+        </Text>
+      ) : null}
 
       {datos.aviso ? (
         <Text style={[s.alerta, { color: datos.aviso.nivel === "critico" ? c.malo : c.aviso }]}>
@@ -98,7 +143,18 @@ const estilos = (c: Colores) =>
     etiqueta: { ...tipo.micro, color: c.marca },
     cuenta: { ...tipo.cuerpoFuerte, color: c.marca },
     paradero: { ...tipo.subtitulo, color: c.texto, marginTop: 2 },
-    alerta: { ...tipo.menor, marginTop: esp.sm, fontWeight: "700" },
+    salida: {
+      ...tipo.cuerpoFuerte,
+      color: c.marcaTexto,
+      backgroundColor: c.marcaSuave,
+      borderRadius: radio.sm,
+      paddingVertical: 5,
+      paddingHorizontal: esp.sm,
+      marginTop: esp.sm,
+      alignSelf: "flex-start",
+      overflow: "hidden",
+    },
+    alerta: { ...tipo.menor, fontFamily: fuente.fuerte, marginTop: esp.sm },
     lista: { marginTop: esp.md, gap: esp.md },
     fila: { flexDirection: "row", alignItems: "center", gap: esp.md },
     insignia: {
@@ -110,9 +166,9 @@ const estilos = (c: Colores) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    insigniaTexto: { ...tipo.menor, fontWeight: "700", color: c.textoInverso },
+    insigniaTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.textoInverso },
     destino: { ...tipo.cuerpo, color: c.texto },
     origen: { ...tipo.menor, marginTop: 1 },
-    eta: { fontSize: 22, fontWeight: "800", letterSpacing: -0.8, lineHeight: 25 },
+    eta: { fontFamily: fuente.extra, fontSize: 22, letterSpacing: -0.8, lineHeight: 25 },
     rango: { ...tipo.menor, color: c.textoTenue },
   });

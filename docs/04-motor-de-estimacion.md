@@ -1,6 +1,6 @@
 # 04 — Motor de estimación
 
-Aquí vive la diferencia entre Bus Checker y las apps que ya existen. Todo lo
+Aquí vive la diferencia entre Kupay y las apps que ya existen. Todo lo
 demás del proyecto —mapas, favoritos, planificador— es replicable; esto no.
 
 ## 4.1 La idea central

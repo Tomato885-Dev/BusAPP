@@ -1,11 +1,14 @@
-# Bus Checker
+# Kupay
+
+**Küpay** significa «viene» en mapudungun.
 
 Aplicación de transporte público para Santiago de Chile. El objetivo no es sólo
 mostrar un tiempo estimado de llegada, sino responder la pregunta que realmente
 importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 
-> **Estado del proyecto:** fase de diseño. Este repositorio contiene, por ahora,
-> la documentación técnica y el plan de desarrollo. No hay código de producción.
+> **Estado del proyecto:** prototipo funcional. Hay app, servidor e ingesta de
+> datos andando; falta la validación de terreno (`05` F0-5) y las cuentas de
+> desarrollador para publicar en las tiendas.
 
 ## Código
 
@@ -33,7 +36,8 @@ La app publicada en GitHub Pages, sin instalar nada:
 | [`docs/06-riesgos-y-decisiones.md`](docs/06-riesgos-y-decisiones.md) | Riesgos abiertos, decisiones pendientes y supuestos del diseño. |
 | [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
 | [`docs/08-plan-de-trabajo.md`](docs/08-plan-de-trabajo.md) | **El plan: qué está hecho, qué sigue, y quién hace cada cosa.** Empieza aquí. |
-| [`docs/09-nombre.md`](docs/09-nombre.md) | Alternativas al nombre, y por qué «Bus Checker» no sirve. |
+| [`docs/09-nombre.md`](docs/09-nombre.md) | Por qué la app se llama **Kupay**, qué significa y qué falta verificar. |
+| [`docs/10-prueba-de-terreno.md`](docs/10-prueba-de-terreno.md) | ⭐ Cómo grabar viajes reales en micro, y por qué de eso depende el proyecto. |
 
 ## Resumen ejecutivo de las conclusiones
 

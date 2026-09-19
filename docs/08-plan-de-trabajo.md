@@ -82,17 +82,19 @@ llegada**, explicando el uso previsto.
 
 # BLOQUE 2 — Este mes
 
-## 2.1 🧑 Decidir el nombre
+## 2.1 ✅ Decidir el nombre — **Kupay**
 
-«Bus Checker» choca con una app existente. Mi recomendación es **Viene**
-(`09-nombre.md`), pero es tu decisión.
+Hecho. *Küpay* es «viene» en mapudungun: el nombre dice literalmente lo que la
+app responde. El razonamiento completo está en `09-nombre.md`.
 
-Antes de encargar logo o difundir nada, verifica:
+Ya está aplicado en el código. Lo que falta es tuyo, y hay que hacerlo **antes**
+de encargar un logo o difundir el proyecto:
 
 - [ ] App Store (tienda chilena)  - [ ] Google Play
 - [ ] Dominio `.cl` y `.app`      - [ ] Instagram
-
-**Nombre elegido:** `______________________`
+- [ ] **INAPI** — revisar en particular la marca **Kuapay**, una empresa de
+      pagos que operó en Chile y suena casi igual
+- [ ] Confirmar la traducción con una persona hablante de mapudungun
 
 ## 2.2 🧑 Definir el estilo
 

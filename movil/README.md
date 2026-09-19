@@ -1,4 +1,4 @@
-# App móvil — Bus Checker
+# App móvil — Kupay
 
 React Native con Expo. **Un solo código para iPhone y Android.**
 

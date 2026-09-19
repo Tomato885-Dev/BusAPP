@@ -16,6 +16,7 @@ import { distanciaM } from "./mapa/proyeccion";
 import {
   PARADERO_POR_ID,
   indicePorParadero,
+  intervaloOficial,
   largoDeTramo,
   type Paradero,
   type Recorrido,
@@ -37,7 +38,13 @@ export interface Viaje {
   caminataFinalM: number;
   segundosEnMicro: number;
   segundosCaminando: number;
+  /** Espera esperada en el paradero. `null` si el recorrido no opera ahora. */
+  segundosEsperando: number | null;
+  /** Intervalo declarado entre buses, para poder mostrarlo. */
+  intervaloS: number | null;
   segundosTotales: number;
+  /** El recorrido está fuera de su horario de operación. */
+  fueraDeHorario: boolean;
 }
 
 function paraderosCerca(punto: { lat: number; lon: number }): Map<string, number> {
@@ -55,6 +62,7 @@ export function planificar(
   origen: { lat: number; lon: number },
   destino: { lat: number; lon: number },
   limite = 6,
+  ahora = new Date(),
 ): Viaje[] {
   const cercaOrigen = paraderosCerca(origen);
   const cercaDestino = paraderosCerca(destino);
@@ -75,6 +83,16 @@ export function planificar(
 
         const segundosEnMicro = largoDeTramo(recorrido, orden, i) / VELOCIDAD_MS;
         const segundosCaminando = (caminataInicialM + caminataFinalM) / CAMINATA_MS;
+
+        // La espera es parte del viaje, y omitirla era mentir. Si los buses
+        // pasan cada 12 minutos y uno llega al paradero en un momento
+        // cualquiera, la espera media es 6: la mitad del intervalo. Sin esto el
+        // planificador prometía tiempos que nadie iba a cumplir, y ordenaba mal
+        // —un recorrido rápido que pasa cada 30 minutos puede ser peor que uno
+        // lento que pasa cada 5.
+        const intervaloS = intervaloOficial(recorrido, ahora);
+        const segundosEsperando = intervaloS === null ? null : Math.round(intervaloS / 2);
+
         const viaje: Viaje = {
           recorrido,
           subirEn,
@@ -84,7 +102,12 @@ export function planificar(
           caminataFinalM: Math.round(caminataFinalM),
           segundosEnMicro: Math.round(segundosEnMicro),
           segundosCaminando: Math.round(segundosCaminando),
-          segundosTotales: Math.round(segundosEnMicro + segundosCaminando),
+          segundosEsperando,
+          intervaloS,
+          fueraDeHorario: intervaloS === null,
+          segundosTotales: Math.round(
+            segundosEnMicro + segundosCaminando + (segundosEsperando ?? 0),
+          ),
         };
 
         const previo = mejorPorRecorrido.get(recorrido.id);
@@ -95,7 +118,12 @@ export function planificar(
     }
   }
 
+  // Los recorridos que no operan ahora van al final: siguen siendo información
+  // útil —«esta micro te sirve, pero no a esta hora»— pero no son una opción.
   return [...mejorPorRecorrido.values()]
-    .sort((a, b) => a.segundosTotales - b.segundosTotales)
+    .sort((a, b) => {
+      if (a.fueraDeHorario !== b.fueraDeHorario) return a.fueraDeHorario ? 1 : -1;
+      return a.segundosTotales - b.segundosTotales;
+    })
     .slice(0, limite);
 }

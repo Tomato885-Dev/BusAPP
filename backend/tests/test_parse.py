@@ -92,3 +92,18 @@ def test_limpia_el_codigo_repetido_en_el_nombre(tmp_path):
     feed = leer_feed(tmp_path)
     assert feed.paradas["A"].nombre == "Parada 7 / (M) Macul"
     assert feed.paradas["B"].nombre == "Parada 5 / Av. Grecia", "sin prefijo, no se toca"
+
+
+def test_limpiar_letrero_traduce_los_circuitos():
+    """El feed del DTPM marca los recorridos circulares con «©».
+
+    No es basura de codificación: viene así en 1.928 viajes. Pero en pantalla se
+    lee como un signo de copyright, que al pasajero no le dice nada.
+    """
+    from gtfs.parse import _limpiar_letrero
+
+    assert _limpiar_letrero("© Lo Valledor - Lo Espejo") == "Circuito Lo Valledor - Lo Espejo"
+    assert _limpiar_letrero("©Villa El Abrazo") == "Circuito Villa El Abrazo"
+    # Un letrero normal no se toca.
+    assert _limpiar_letrero("Renca") == "Renca"
+    assert _limpiar_letrero("  Plaza Italia  ") == "Plaza Italia"

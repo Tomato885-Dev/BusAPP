@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { esp, radio, tipo, useColores, type Colores } from "../tema";
+import { type Colores, esp, fuente, radio, tipo, useColores } from "../tema";
 import type { Aviso } from "../tipos";
 
 /**
@@ -41,7 +41,7 @@ const estilos = (c: Colores) =>
       marginBottom: esp.md,
     },
     encabezado: { flexDirection: "row", alignItems: "flex-start", gap: esp.sm },
-    icono: { fontSize: 15, fontWeight: "800", lineHeight: 21 },
+    icono: { fontFamily: fuente.extra, fontSize: 15, lineHeight: 21 },
     titulo: { ...tipo.cuerpoFuerte, flex: 1, lineHeight: 21 },
     cuerpo: { ...tipo.menor, lineHeight: 19, marginTop: 4, opacity: 0.92 },
     alternativa: {

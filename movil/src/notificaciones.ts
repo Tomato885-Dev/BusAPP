@@ -82,3 +82,28 @@ export async function cancelarTodo(): Promise<void> {
   if (!HAY_NOTIFICACIONES) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
+
+/**
+ * Aviso inmediato de que se acerca la parada de bajada.
+ *
+ * A diferencia de los avisos de rutina, éste no se programa: se dispara en el
+ * momento. Por eso lleva sonido, al revés que los demás. Alguien con audífonos
+ * o dormido en la micro no va a ver un banner silencioso, y el costo de no
+ * enterarse es pasarse de largo.
+ */
+export async function avisarBajada(destino: string, paradasRestantes: number): Promise<void> {
+  if (!HAY_NOTIFICACIONES) return;
+  if (!(await pedirPermiso())) return;
+
+  const cuerpo =
+    paradasRestantes <= 0
+      ? `Llegaste a ${destino}.`
+      : paradasRestantes === 1
+        ? `${destino} es la próxima parada.`
+        : `Faltan ${paradasRestantes} paradas para ${destino}.`;
+
+  await Notifications.scheduleNotificationAsync({
+    content: { title: "Prepárate para bajarte", body: cuerpo, sound: true },
+    trigger: null,
+  });
+}

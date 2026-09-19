@@ -5,7 +5,7 @@ cuestionar ese supuesto, porque condiciona todo lo demás.
 
 ## 2.1 El argumento contra iOS-only
 
-El diferenciador de Bus Checker no es técnico, es **social**: reportes de
+El diferenciador de Kupay no es técnico, es **social**: reportes de
 usuarios, ubicación compartida, detección comunitaria de desvíos. Ese mecanismo
 tiene una propiedad incómoda: **no funciona un poco con pocos usuarios; no
 funciona en absoluto**.

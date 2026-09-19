@@ -44,7 +44,7 @@ Es la fase que se siente como pérdida de tiempo y es la que más tiempo ahorra.
 | F0-4 | Prototipo desechable: consultar llegadas de un paradero real | Verifica de punta a punta que E₁ se puede obtener |
 | F0-5 | **Prueba de terreno: grabar 10–15 viajes reales en micro con una app de registro GPS** | ⭐ Verifica el supuesto central del producto |
 | F0-6 | Decidir stack (`02` §2.5) | Cambiarlo después es carísimo |
-| F0-7 | Definir nombre propio y verificar disponibilidad en ambas tiendas | "Bus Checker" colisiona con una app existente (`06` R6) |
+| F0-7 | ~~Definir nombre propio~~ → **Kupay** (`09`). Falta verificar disponibilidad en tiendas, dominio e INAPI | Sin esto no se puede encargar identidad visual (`06` R6) |
 | F0-8 | Elegir la zona de lanzamiento | Define todo el plan de crecimiento (§5.1) |
 
 ### Sobre F0-5, que es la tarea crítica

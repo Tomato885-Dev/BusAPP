@@ -9,23 +9,29 @@ import {
   type ReactNode,
 } from "react";
 
+import { LIMITE_FAVORITOS, tope, type Tope } from "./limites";
+import { usePremium } from "./premium";
 import { supabase } from "./supabase";
 import { useSesion } from "./useSesion";
 
-const CLAVE_LOCAL = "buschecker.favoritos";
+const CLAVE_LOCAL = "kupay.favoritos";
 
 interface Contexto {
   favoritos: string[];
   esFavorito: (paraderoId: string) => boolean;
-  alternar: (paraderoId: string) => void;
+  /** Devuelve `false` cuando no se pudo agregar por el tope del plan gratis. */
+  alternar: (paraderoId: string) => boolean;
   sincronizado: boolean;
+  /** Cuántos lleva y cuántos le caben. */
+  cupo: Tope;
 }
 
 const ContextoFavoritos = createContext<Contexto>({
   favoritos: [],
   esFavorito: () => false,
-  alternar: () => {},
+  alternar: () => false,
   sincronizado: false,
+  cupo: { alcanza: true, usados: 0, tope: LIMITE_FAVORITOS },
 });
 
 /**
@@ -38,6 +44,7 @@ const ContextoFavoritos = createContext<Contexto>({
  */
 export function ProveedorFavoritos({ children }: { children: ReactNode }) {
   const { usuarioId } = useSesion();
+  const { esPremium } = usePremium();
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [sincronizado, setSincronizado] = useState(false);
 
@@ -82,8 +89,18 @@ export function ProveedorFavoritos({ children }: { children: ReactNode }) {
     };
   }, [usuarioId]);
 
+  const cupo = useMemo(
+    () => tope(favoritos.length, LIMITE_FAVORITOS, esPremium),
+    [favoritos.length, esPremium],
+  );
+
   const alternar = useCallback(
     (paraderoId: string) => {
+      // Quitar siempre se puede; el tope sólo limita agregar. Bloquear el
+      // borrado de un favorito ya guardado sería castigar por haber pagado antes.
+      const estabaYa = favoritos.includes(paraderoId);
+      if (!estabaYa && !cupo.alcanza) return false;
+
       setFavoritos((actuales) => {
         const estaba = actuales.includes(paraderoId);
         const nuevos = estaba
@@ -107,8 +124,9 @@ export function ProveedorFavoritos({ children }: { children: ReactNode }) {
 
         return nuevos;
       });
+      return true;
     },
-    [usuarioId],
+    [usuarioId, favoritos, cupo.alcanza],
   );
 
   const valor = useMemo<Contexto>(
@@ -117,8 +135,9 @@ export function ProveedorFavoritos({ children }: { children: ReactNode }) {
       esFavorito: (id: string) => favoritos.includes(id),
       alternar,
       sincronizado,
+      cupo,
     }),
-    [favoritos, alternar, sincronizado],
+    [favoritos, alternar, sincronizado, cupo],
   );
 
   return <ContextoFavoritos.Provider value={valor}>{children}</ContextoFavoritos.Provider>;

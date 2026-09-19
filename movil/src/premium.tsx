@@ -12,7 +12,7 @@ import {
 import { supabase } from "./supabase";
 import { useSesion } from "./useSesion";
 
-const CLAVE_PRUEBA = "buschecker.premium_de_prueba";
+const CLAVE_PRUEBA = "kupay.premium_de_prueba";
 
 interface Contexto {
   esPremium: boolean;

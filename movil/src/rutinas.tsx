@@ -10,10 +10,12 @@ import {
 } from "react";
 
 import { segundosEnSantiago } from "./red";
+import { LIMITE_RUTINAS, tope, type Tope } from "./limites";
+import { usePremium } from "./premium";
 import { supabase } from "./supabase";
 import { useSesion } from "./useSesion";
 
-const CLAVE_LOCAL = "buschecker.rutinas";
+const CLAVE_LOCAL = "kupay.rutinas";
 
 export interface Rutina {
   id: string;
@@ -34,6 +36,8 @@ interface Contexto {
   rutinaActiva: Rutina | null;
   /** Minutos que faltan para la hora de la rutina activa. */
   minutosParaSalir: number | null;
+  /** Cuántas rutinas lleva y cuántas le caben. */
+  cupo: Tope;
 }
 
 const ContextoRutinas = createContext<Contexto>({
@@ -42,6 +46,7 @@ const ContextoRutinas = createContext<Contexto>({
   borrar: async () => {},
   rutinaActiva: null,
   minutosParaSalir: null,
+  cupo: { alcanza: true, usados: 0, tope: LIMITE_RUTINAS },
 });
 
 /** Día de la semana en Santiago: 1 = lunes … 7 = domingo. */
@@ -75,6 +80,7 @@ export function ventanaDeRutina(rutina: Rutina, momento = new Date()): number | 
 
 export function ProveedorRutinas({ children }: { children: ReactNode }) {
   const { usuarioId } = useSesion();
+  const { esPremium } = usePremium();
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
   // Se recalcula cada minuto para que la ventana se abra sola sin tocar nada.
   const [tic, setTic] = useState(0);
@@ -121,8 +127,17 @@ export function ProveedorRutinas({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(CLAVE_LOCAL, JSON.stringify(nuevas)).catch(() => {});
   }, []);
 
+  const cupo = useMemo(
+    () => tope(rutinas.length, LIMITE_RUTINAS, esPremium),
+    [rutinas.length, esPremium],
+  );
+
   const guardar = useCallback(
     async (entrada: Omit<Rutina, "id"> & { id?: string }) => {
+      // Editar una rutina existente siempre se puede; el tope sólo limita crear
+      // nuevas. Si no, alguien que se suscribió, creó tres y canceló quedaría
+      // sin poder ni corregir la hora de las que ya tiene.
+      if (!entrada.id && !cupo.alcanza) return;
       const id = entrada.id ?? `local-${Date.now()}`;
       const rutina: Rutina = { ...entrada, id };
 
@@ -156,7 +171,7 @@ export function ProveedorRutinas({ children }: { children: ReactNode }) {
         }
       }
     },
-    [rutinas, usuarioId, persistir],
+    [rutinas, usuarioId, persistir, cupo.alcanza],
   );
 
   const borrar = useCallback(
@@ -179,8 +194,8 @@ export function ProveedorRutinas({ children }: { children: ReactNode }) {
   }, [rutinas, tic]);
 
   const valor = useMemo<Contexto>(
-    () => ({ rutinas, guardar, borrar, rutinaActiva, minutosParaSalir }),
-    [rutinas, guardar, borrar, rutinaActiva, minutosParaSalir],
+    () => ({ rutinas, guardar, borrar, rutinaActiva, minutosParaSalir, cupo }),
+    [rutinas, guardar, borrar, rutinaActiva, minutosParaSalir, cupo],
   );
 
   return <ContextoRutinas.Provider value={valor}>{children}</ContextoRutinas.Provider>;
