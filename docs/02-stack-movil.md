@@ -52,7 +52,45 @@ Lo que esta app le exige al cliente:
 | **UI idéntica entre plataformas** | N/A | Sí (se pinta a sí misma) | Cercana a nativa | No (dos UIs) |
 | **Costo de sumar Android** | Reescritura total ❌ | ~0 ✅ | ~0 ✅ | Sólo la UI ⚠️ |
 | **Curva para un dev solo** | Media | Media | Baja si ya sabes JS | Alta ❌ |
+| **App de Apple Watch** | Nativa ✅ | Módulo Swift aparte ⚠️ | Módulo Swift aparte ⚠️ | Nativa ✅ |
 | **Riesgo de dependencias** | Bajo ✅ | Medio | Medio-alto (muchos paquetes) | Bajo |
+
+## 2.2b Apple Watch (y Wear OS): lo que hay que saber antes de elegir
+
+**Requisito confirmado del producto:** la app debe funcionar en Apple Watch, con
+avisos de llegada.
+
+Esto tiene una consecuencia que conviene conocer antes de decidir el stack:
+
+> **Ni Flutter ni React Native compilan a watchOS.** La app de reloj hay que
+> escribirla en Swift/SwiftUI, sea cual sea el framework que se use para el
+> teléfono. Lo mismo ocurre en Android: Wear OS se escribe en Kotlin.
+
+A primera vista esto favorece a Swift nativo. Pero mirado de cerca, casi no
+cambia nada, por una razón:
+
+**La app de reloj es un cliente delgado.** No necesita el motor de estimación, ni
+el mapa, ni la telemetría, ni el planificador. Necesita exactamente dos cosas:
+las próximas llegadas de un paradero favorito, y recibir un aviso. Desde
+watchOS 6 las apps de reloj tienen **acceso de red propio**, así que puede
+consultar la API directamente sin pasar por el teléfono.
+
+Es decir: es una app pequeña contra un endpoint que ya existe. Del orden de una
+o dos semanas de trabajo, no una reimplementación.
+
+Comparación del trabajo total con el requisito de reloj incluido:
+
+| Stack | Teléfono | Reloj | Total |
+|---|---|---|---|
+| **Flutter / RN** | 1 código para iOS + Android | SwiftUI (+ Kotlin si se quiere Wear OS) | **2 a 3 piezas** |
+| **Swift nativo** | Swift (iOS) + Kotlin (Android) | SwiftUI (+ Kotlin Wear OS) | **3 a 4 piezas** |
+
+La recomendación de §2.3 se mantiene. Lo que cambia es que hay que **presupuestar
+un módulo nativo de reloj** en el plan, y que esto **refuerza la decisión de
+diseñar la API primero**: el reloj es simplemente otro consumidor de
+`/stops/{id}/arrivals` (`03` §3.6). Una arquitectura donde la lógica vive en el
+servidor y los clientes son delgados hace que sumar el reloj sea barato; una
+donde la lógica vive en la app obligaría a reimplementarla.
 
 ## 2.3 Recomendación
 
@@ -125,5 +163,6 @@ La recomendación se invierte si se cumple alguna de estas condiciones:
 - [ ] **¿Se acepta Android en fase 2, o se descarta definitivamente?**
 - [ ] ¿Con qué lenguaje se trabaja más cómodo: Dart, TypeScript o Swift?
 - [ ] ¿Presupuesto disponible para servicios de mapas, o se prioriza open source?
+- [ ] ¿El reloj entra sólo en Apple Watch, o también Wear OS? (ver §2.2b)
 
 Estas cuatro respuestas definen el stack. El resto es detalle de implementación.

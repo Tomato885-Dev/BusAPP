@@ -165,10 +165,13 @@ Aquí el producto hace lo que ninguna app de la competencia hace.
 la app oficial. **La primera vez que eso ocurre, el producto tiene razón de
 existir.**
 
-## 5.7 Fase 5 — Premium y planificador *(8 a 10 semanas)*
+## 5.7 Fase 5 — Reloj, premium y planificador *(10 a 12 semanas)*
 
 Con el diferenciador funcionando, recién aquí tiene sentido monetizar.
 
+- [ ] **App de Apple Watch** (`02` §2.2b): paradero favorito, próximas llegadas y
+      avisos. Cliente delgado en SwiftUI contra la API existente, con acceso de
+      red propio. Complicación en la esfera con el ETA del paradero habitual
 - [ ] Suscripción premium: notificaciones inteligentes, Live Activity / widget,
       alertas recurrentes, historial personal (`07` §7.4)
 - [ ] OpenTripPlanner 2 desplegado con el GTFS de Santiago (`03` §3.5)
@@ -199,12 +202,17 @@ Maps y Moovit en ese terreno.
 | F2 Motor de inferencia | 8–12 sem | ~7 meses | La pieza técnica difícil |
 | F3 Fusión | 4–6 sem | ~8,5 meses | ETA mejor que el oficial |
 | F4 Detección de desvíos | 4–6 sem | ~10 meses | **El diferenciador** |
-| F5 Premium + planificador | 8–10 sem | ~12 meses | Ingresos |
+| F5 Reloj + premium + planificador | 10–12 sem | ~12,5 meses | Ingresos |
 | F6 Datos agregados | — | — | El negocio |
 
 Estimaciones para **una persona a tiempo completo**. A tiempo parcial,
 multiplicar por dos o tres. Las fases 3 y 4 dependen además de alcanzar densidad
 de usuarios, que no se controla trabajando más horas.
+
+**El reloj se puede adelantar.** No depende del motor ni de la telemetría: sólo
+de que la API de llegadas sea estable, lo que ocurre al final de la fase 1. Si es
+una prioridad comercial, puede construirse en paralelo a la fase 2 sin afectar el
+camino crítico — es trabajo independiente sobre un endpoint que ya existe.
 
 **La fase 2 es la de mayor riesgo de estimación.** Es investigación aplicada: si
 el emparejamiento resulta más difícil de lo previsto, se alarga. F0-5 existe

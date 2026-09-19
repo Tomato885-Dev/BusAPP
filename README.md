@@ -7,6 +7,12 @@ importa cuando alguien está en un paradero: **¿esta micro viene o no viene?**
 > **Estado del proyecto:** fase de diseño. Este repositorio contiene, por ahora,
 > la documentación técnica y el plan de desarrollo. No hay código de producción.
 
+## Prototipo
+
+Prototipo navegable de la interfaz en [`prototipo/`](prototipo/), publicado en
+GitHub Pages. Sirve para validar cómo se comunica la certeza y la incertidumbre;
+no prueba tecnología.
+
 ## Documentación
 
 | Documento | Contenido |
