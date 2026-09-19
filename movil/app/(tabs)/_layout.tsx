@@ -64,7 +64,7 @@ export default function Pestanas() {
       <Tabs.Screen
         name="rutina"
         options={{
-          title: "Mi rutina",
+          title: "Premium",
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>◷</Text>,
         }}
       />

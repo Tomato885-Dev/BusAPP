@@ -7,10 +7,13 @@ import { llegadasDeParadero } from "../../src/api";
 import { FilaLlegada } from "../../src/componentes/FilaLlegada";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Vacio } from "../../src/componentes/Vacio";
+import { registrarConsulta } from "../../src/estadisticas";
 import { useFavoritos } from "../../src/favoritos";
+import { usePremium } from "../../src/premium";
 import { distanciaM } from "../../src/mapa/proyeccion";
 import { PARADERO_POR_ID } from "../../src/red";
 import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { useSesion } from "../../src/useSesion";
 
 /** Cada cuánto se vuelve a pedir la estimación. */
 const REFRESCO_MS = 20_000;
@@ -23,13 +26,16 @@ export default function PantallaParadero() {
   const c = useColores();
   const s = estilos(c);
 
-  const { esFavorito, alternar } = useFavoritos();
+  const { esFavorito, alternar, cupo } = useFavoritos();
+  const { esPremium } = usePremium();
+  const { usuarioId } = useSesion();
   const paradero = PARADERO_POR_ID.get(id);
 
   const [consultadoEn, setConsultadoEn] = useState(() => Date.now());
   const [refrescando, setRefrescando] = useState(false);
   const [segundos, setSegundos] = useState(0);
   const [metrosAPie, setMetrosAPie] = useState<number | null>(null);
+  const [topeAlcanzado, setTopeAlcanzado] = useState(false);
 
   // El contador de frescura avanza cada segundo; la estimación se rehace cada
   // REFRESCO_MS. Son dos ritmos distintos a propósito: el usuario tiene que ver
@@ -42,6 +48,11 @@ export default function PantallaParadero() {
   useEffect(() => {
     if (segundos > 0 && segundos % (REFRESCO_MS / 1000) === 0) setConsultadoEn(Date.now());
   }, [segundos]);
+
+  // Queda registrado que miró este paradero: es lo que alimenta «Tus números».
+  useEffect(() => {
+    if (paradero) registrarConsulta(usuarioId, paradero.id);
+  }, [paradero, usuarioId]);
 
   // Distancia a pie, sólo si el permiso **ya** estaba dado. Abrir un paradero no
   // es motivo para pedirle la ubicación a nadie.
@@ -109,7 +120,9 @@ export default function PantallaParadero() {
           title: paradero.codigo,
           headerRight: () => (
             <Pressable
-              onPress={() => alternar(paradero.id)}
+              onPress={() => {
+                if (!alternar(paradero.id)) setTopeAlcanzado(true);
+              }}
               hitSlop={14}
               accessibilityRole="button"
               accessibilityLabel={favorito ? "Quitar de favoritos" : "Guardar en favoritos"}
@@ -148,6 +161,36 @@ export default function PantallaParadero() {
           <View style={s.pulso} />
           <Text style={s.meta}>hace {frescura} s</Text>
         </View>
+
+        {topeAlcanzado ? (
+          <Pressable style={s.tope} onPress={() => router.push("/rutina")}>
+            <Text style={s.topeTexto}>
+              Llegaste a tus {cupo.tope} favoritos del plan gratis. Con Premium son
+              ilimitados.
+            </Text>
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          style={s.accionPrincipal}
+          onPress={() =>
+            esPremium
+              ? router.push({ pathname: "/viaje", params: { paraderoId: paradero.id } })
+              : router.push("/rutina")
+          }
+          accessibilityRole="button"
+          accessibilityLabel="Me subí a una micro: avisarme antes de bajarme"
+        >
+          <Text style={s.accionPrincipalIcono}>{esPremium ? "▸" : "◌"}</Text>
+          <View style={s.accionPrincipalMedio}>
+            <Text style={s.accionPrincipalTexto}>Me subí a una micro</Text>
+            <Text style={s.accionPrincipalDetalle}>
+              {esPremium
+                ? "Te avisamos antes de que tengas que bajarte"
+                : "Con Kupay Premium te avisamos antes de bajarte"}
+            </Text>
+          </View>
+        </Pressable>
 
         <View style={s.acciones}>
           <Pressable
@@ -236,7 +279,35 @@ const estilos = (c: Colores) =>
     metaPunto: { ...tipo.menor, color: c.textoTenue },
     pulso: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.ok },
 
-    acciones: { flexDirection: "row", gap: esp.sm, marginTop: esp.lg, marginBottom: esp.lg },
+    tope: {
+      backgroundColor: c.avisoFondo,
+      borderRadius: radio.md,
+      padding: esp.md,
+      marginTop: esp.md,
+    },
+    topeTexto: { ...tipo.menor, color: c.aviso, lineHeight: 19 },
+
+    accionPrincipal: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: esp.md,
+      backgroundColor: c.marca,
+      borderRadius: radio.md,
+      paddingVertical: esp.md,
+      paddingHorizontal: esp.lg,
+      marginTop: esp.lg,
+    },
+    accionPrincipalIcono: { fontSize: 20, color: c.textoInverso },
+    accionPrincipalMedio: { flex: 1, minWidth: 0 },
+    accionPrincipalTexto: { ...tipo.cuerpoFuerte, color: c.textoInverso },
+    accionPrincipalDetalle: {
+      ...tipo.menor,
+      color: c.textoInverso,
+      opacity: 0.85,
+      marginTop: 1,
+    },
+
+    acciones: { flexDirection: "row", gap: esp.sm, marginTop: esp.sm, marginBottom: esp.lg },
     accion: {
       flex: 1,
       flexDirection: "row",
