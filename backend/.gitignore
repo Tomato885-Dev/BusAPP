@@ -1,4 +1,9 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-data/
+
+# El feed se ignora por defecto (pesa decenas de MB), pero se permite subir
+# GTFS.zip a propósito para que yo pueda trabajarlo desde el repositorio.
+data/*
+!data/GTFS.zip
+!data/.gitkeep
