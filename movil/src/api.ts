@@ -1,15 +1,23 @@
 /**
  * Llegadas de micro en un paradero.
  *
- * Los paraderos y recorridos son reales (feed del DTPM). **Los tiempos son
- * simulados**: para tenerlos de verdad hace falta el backend con el motor de
- * `docs/04`, que fusiona el dato oficial con la telemetría de los usuarios.
+ * **Los intervalos entre buses son reales**: salen de `frequencies.txt` del feed
+ * del DTPM, que declara cada cuántos minutos pasa cada recorrido en cada franja
+ * horaria. La red de Santiago opera por frecuencia, no por horario fijo.
  *
- * La simulación no es relleno: reproduce los cuatro estados del motor, para
- * poder diseñar y discutir cómo se comunica cada uno antes de tener datos.
+ * Lo que **no** es real es saber cuándo viene *el próximo*. Para eso hace falta
+ * el motor de `docs/04`, que fusiona el dato oficial con la telemetría de los
+ * usuarios. Mientras tanto:
+ *
+ * - Sin telemetría, la espera se modela como lo que estadísticamente es: si
+ *   llegas al paradero en un momento cualquiera y los buses pasan cada 12
+ *   minutos, esperas entre 0 y 12, en promedio 6. El rango ancho no es un
+ *   defecto, es la verdad.
+ * - Con telemetría (hoy simulada), la estimación se estrecha. Esa diferencia
+ *   es exactamente lo que el producto viene a aportar.
  */
 
-import { recorridosDe, type Recorrido } from "./red";
+import { intervaloOficial, recorridosDe, type Recorrido } from "./red";
 import type { Aviso, Llegada, RespuestaParadero } from "./tipos";
 
 export const USAR_DATOS_SIMULADOS = true;
@@ -33,8 +41,28 @@ function semilla(texto: string): () => number {
 const entre = (azar: () => number, min: number, max: number) =>
   Math.round(min + azar() * (max - min));
 
-function conTelemetria(azar: () => number, r: Recorrido, eta: number): Llegada {
-  const holgura = Math.round(eta * 0.16) + 30;
+function minutos(segundos: number): string {
+  return `${Math.round(segundos / 60)}`;
+}
+
+/** Sin datos en vivo: sólo se sabe la frecuencia oficial. */
+function porFrecuencia(r: Recorrido, intervalo: number): Llegada {
+  return {
+    recorrido: r.nombre,
+    destino: r.destino,
+    etaSegundos: Math.round(intervalo / 2),
+    rangoSegundos: [0, intervalo],
+    confianza: "baja",
+    fuente: "horario",
+    estado: "sin_telemetria",
+    via: `Cada ${minutos(intervalo)} min · horario oficial`,
+  };
+}
+
+/** Con alguien a bordo: la estimación se estrecha sobre el intervalo real. */
+function conTelemetria(azar: () => number, r: Recorrido, intervalo: number): Llegada {
+  const eta = entre(azar, 60, Math.max(120, intervalo));
+  const holgura = Math.round(eta * 0.15) + 30;
   const aBordo = entre(azar, 1, 5);
   return {
     recorrido: r.nombre,
@@ -45,29 +73,16 @@ function conTelemetria(azar: () => number, r: Recorrido, eta: number): Llegada {
     fuente: "telemetria",
     estado: "en_ruta",
     personasABordo: aBordo,
+    via: `Cada ${minutos(intervalo)} min · horario oficial`,
   };
 }
 
-function soloHorario(azar: () => number, r: Recorrido, eta: number): Llegada {
-  // Sin telemetría el rango se ensancha mucho. Es lo honesto.
-  const holgura = Math.round(eta * 0.5);
-  return {
-    recorrido: r.nombre,
-    destino: r.destino,
-    etaSegundos: eta,
-    rangoSegundos: [Math.max(0, eta - holgura), eta + holgura],
-    confianza: "baja",
-    fuente: "horario",
-    estado: "sin_telemetria",
-  };
-}
-
-export function llegadasDeParadero(paraderoId: string): RespuestaParadero {
-  const azar = semilla(paraderoId);
+export function llegadasDeParadero(paraderoId: string, ahora = new Date()): RespuestaParadero {
+  const azar = semilla(paraderoId + ahora.getHours());
   const recorridos = recorridosDe(paraderoId);
 
-  // El escenario depende del paradero, para que se puedan ver los cuatro
-  // estados recorriendo el mapa.
+  // El escenario depende del paradero, para que recorriendo el mapa se vean
+  // los cuatro estados del motor.
   const escenario = entre(azar, 0, 9);
   const hayDesvio = escenario === 0 && recorridos.length >= 2;
   const hayDiscrepancia = escenario === 1 && recorridos.length >= 2;
@@ -76,7 +91,22 @@ export function llegadasDeParadero(paraderoId: string): RespuestaParadero {
   const llegadas: Llegada[] = [];
 
   recorridos.forEach((r, i) => {
-    const base = entre(azar, 90, 300) + i * entre(azar, 180, 420);
+    const intervalo = intervaloOficial(r, ahora);
+
+    if (intervalo === null) {
+      // Fuera del horario de operación declarado para este recorrido.
+      llegadas.push({
+        recorrido: r.nombre,
+        destino: r.destino,
+        etaSegundos: null,
+        rangoSegundos: null,
+        confianza: "sin_datos",
+        fuente: "horario",
+        estado: "sin_telemetria",
+        via: "Fuera de horario",
+      });
+      return;
+    }
 
     if (hayDesvio && i === 0) {
       llegadas.push({
@@ -98,14 +128,16 @@ export function llegadasDeParadero(paraderoId: string): RespuestaParadero {
     }
 
     if (hayDiscrepancia && i === 0) {
+      const eta = entre(azar, 120, 240);
       llegadas.push({
         recorrido: r.nombre,
         destino: r.destino,
-        etaSegundos: base,
-        rangoSegundos: [base, base * 4],
+        etaSegundos: eta,
+        rangoSegundos: [eta, intervalo],
         confianza: "baja",
         fuente: "gps_oficial",
         estado: "discrepancia",
+        via: `Cada ${minutos(intervalo)} min · horario oficial`,
       });
       aviso = {
         nivel: "advertencia",
@@ -116,11 +148,11 @@ export function llegadasDeParadero(paraderoId: string): RespuestaParadero {
     }
 
     // Las líneas de menor frecuencia suelen quedar sin nadie a bordo.
-    llegadas.push(i >= 3 ? soloHorario(azar, r, base) : conTelemetria(azar, r, base));
+    llegadas.push(i >= 3 ? porFrecuencia(r, intervalo) : conTelemetria(azar, r, intervalo));
   });
 
-  // De menor a mayor tiempo. Las que no van a llegar no tienen tiempo, así que
-  // quedan al final; el aviso de arriba es lo que impide que pasen inadvertidas.
+  // De menor a mayor tiempo. Las que no tienen tiempo quedan al final; el aviso
+  // de arriba es lo que impide que pasen inadvertidas.
   llegadas.sort((a, b) => (a.etaSegundos ?? Infinity) - (b.etaSegundos ?? Infinity));
 
   return {

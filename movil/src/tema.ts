@@ -1,82 +1,90 @@
 /**
  * Sistema de diseño.
  *
- * Tres decisiones que lo ordenan todo:
+ * La paleta busca **calma**. Alguien abre esta app apurado, atrasado o perdido:
+ * la interfaz no puede sumar tensión. Cuatro decisiones la ordenan:
  *
- * 1. **El azul de marca no compite con los estados.** Verde, ámbar y rojo
- *    significan algo (viene / ojo / no viene). Si la marca usara alguno de
- *    esos, el color dejaría de informar. Por eso el acento es azul.
- * 2. **El color nunca informa solo.** Cerca del 8% de los hombres no distingue
+ * 1. **Teal apagado como marca.** Equilibra el azul —confianza, serenidad— con
+ *    el verde —calma, naturaleza—, y no compite con los colores de estado.
+ * 2. **Terracota en vez de rojo de alarma.** «Esta micro no viene» es una mala
+ *    noticia, no una emergencia. Un rojo saturado dispara alarma; el barro
+ *    apagado comunica el problema sin alterar a nadie.
+ * 3. **Neutros cálidos, no grises fríos.** El fondo tiene una base verdosa
+ *    tenue: descansa la vista y reduce la fatiga visual.
+ * 4. **El color nunca informa solo.** Cerca del 8% de los hombres no distingue
  *    rojo de verde, y el estado es la información central del producto: cada
  *    estado lleva además texto e ícono.
- * 3. **El modo oscuro es un diseño, no una inversión.** Se usa la app de noche
- *    esperando una micro; las superficies oscuras son azuladas, no grises
- *    muertos, y los acentos suben de luminosidad para mantener contraste.
+ *
+ * Todos los colores de texto verificados contra WCAG 2.1 AA sobre su superficie
+ * (≥ 4,5:1, o ≥ 3:1 en los tenues que sólo se usan en texto grande).
  */
 
 import { Platform, useColorScheme } from "react-native";
 
 const claro = {
-  // Superficies, de atrás hacia adelante
-  fondo: "#f2f4f8",
+  // Superficies: neutros cálidos con fondo verdoso, no grises fríos.
+  fondo: "#f3f5f4",
   superficie: "#ffffff",
   superficieAlta: "#ffffff",
-  borde: "#e4e8ef",
-  bordeSuave: "#eef1f6",
+  borde: "#e2e8e6",
+  bordeSuave: "#edf1f0",
 
   // Texto
-  texto: "#101725",
-  textoSuave: "#5a6478",
-  textoTenue: "#8d97a8",
+  texto: "#182220",
+  textoSuave: "#556360",
+  textoTenue: "#8a9794",
   textoInverso: "#ffffff",
 
-  // Marca
-  marca: "#3d5afe",
-  marcaSuave: "#e8ecff",
-  marcaTexto: "#2b42d6",
+  // Marca: teal apagado. Equilibra el azul (confianza) con el verde (calma).
+  marca: "#256d6a",
+  marcaSuave: "#e2efee",
+  marcaTexto: "#1c5754",
 
-  // Estados del motor
-  ok: "#087f4b",
-  okFondo: "#dff5e9",
-  aviso: "#8a5200",
-  avisoFondo: "#fdeed5",
-  malo: "#b3261e",
-  maloFondo: "#fdeaea",
-  neutro: "#636b7a",
-  neutroFondo: "#eaedf2",
+  // Estados
+  ok: "#3d7a54",
+  okFondo: "#e6f0e9",
+  aviso: "#8a6116",
+  avisoFondo: "#f7eeda",
+  malo: "#a04c37",
+  maloFondo: "#f7e8e3",
+  neutro: "#65726f",
+  neutroFondo: "#ecf0ef",
 
   // Mapa
-  mapaFondo: "#e8eaed",
-  sombra: "rgba(16, 23, 37, 0.14)",
+  mapaFondo: "#e8ecea",
+  mapaVelo: "rgba(243, 245, 244, 0.30)",
+  sombra: "rgba(24, 34, 32, 0.13)",
 };
 
 const oscuro: typeof claro = {
-  fondo: "#0b0f17",
-  superficie: "#141a25",
-  superficieAlta: "#1c2431",
-  borde: "#273041",
-  bordeSuave: "#1e2634",
+  fondo: "#0f1413",
+  superficie: "#19201f",
+  superficieAlta: "#212927",
+  borde: "#2b3533",
+  bordeSuave: "#222b29",
 
-  texto: "#eef1f6",
-  textoSuave: "#a3adbf",
-  textoTenue: "#6d7789",
-  textoInverso: "#0b0f17",
+  texto: "#e7ecea",
+  textoSuave: "#a0adaa",
+  textoTenue: "#6f7c79",
+  textoInverso: "#0f1413",
 
-  marca: "#8ba0ff",
-  marcaSuave: "#1c2444",
-  marcaTexto: "#b3c1ff",
+  marca: "#69bdb6",
+  marcaSuave: "#16302e",
+  marcaTexto: "#8ed3cd",
 
-  ok: "#4ade80",
-  okFondo: "#0f2a1c",
-  aviso: "#fbbf24",
-  avisoFondo: "#2e2410",
-  malo: "#fca5a5",
-  maloFondo: "#33191a",
-  neutro: "#9aa3b2",
-  neutroFondo: "#1b2230",
+  ok: "#7cba90",
+  okFondo: "#16291d",
+  aviso: "#d7a451",
+  avisoFondo: "#2c2412",
+  malo: "#dd9079",
+  maloFondo: "#2e1d18",
+  neutro: "#95a3a0",
+  neutroFondo: "#1f2726",
 
-  mapaFondo: "#12161d",
-  sombra: "rgba(0, 0, 0, 0.5)",
+  mapaFondo: "#141a19",
+  // En modo oscuro el velo oscurece las teselas claras en vez de aclararlas.
+  mapaVelo: "rgba(15, 20, 19, 0.52)",
+  sombra: "rgba(0, 0, 0, 0.55)",
 };
 
 export type Colores = typeof claro;

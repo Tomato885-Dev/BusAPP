@@ -32,6 +32,7 @@ La app publicada en GitHub Pages, sin instalar nada:
 | [`docs/06-riesgos-y-decisiones.md`](docs/06-riesgos-y-decisiones.md) | Riesgos abiertos, decisiones pendientes y supuestos del diseño. |
 | [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
 | [`docs/08-lo-que-necesito-de-ti.md`](docs/08-lo-que-necesito-de-ti.md) | **Tareas, decisiones y definiciones de estilo que dependen de ti.** |
+| [`docs/09-nombre.md`](docs/09-nombre.md) | Alternativas al nombre, y por qué «Bus Checker» no sirve. |
 
 ## Resumen ejecutivo de las conclusiones
 
