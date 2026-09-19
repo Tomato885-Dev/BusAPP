@@ -55,6 +55,47 @@ por cuatro razones independientes —cada una suficiente por sí sola:
         └──────────────────────────────┘
 ```
 
+## 3.2b DECISIÓN: Supabase ✅
+
+*Resuelto el 19 de septiembre de 2026.*
+
+**Supabase es Postgres.** Eso significa que la decisión de §3.3 —PostgreSQL con
+PostGIS— no cambia: se cumple, alojada y con herramientas encima. PostGIS está
+disponible como extensión, así que «paraderos dentro de 400 m» sigue siendo una
+línea de SQL.
+
+Y resuelve de una sola vez cuatro cosas que iban por separado:
+
+| Necesidad | Cómo la cubre |
+|---|---|
+| Base de datos con geografía | Postgres + PostGIS |
+| **Identificar usuarios sin login** | Inicio de sesión anónimo (§3.7b) |
+| Posiciones en vivo entre clientes | Realtime |
+| Lógica de servidor | Edge Functions |
+
+A eso se suma lo decisivo en este proyecto: **el autor ya lo maneja.** Una
+herramienta conocida que resuelve el 80% vale más que una ideal que hay que
+aprender.
+
+### Lo que igual hay que resolver aparte
+
+- **La ingesta del GTFS no va en una Edge Function.** Son ~70 MB y un millón de
+  filas; eso se corre como tarea programada desde `backend/`, escribiendo a la
+  base de Supabase por conexión directa.
+- **La telemetría es escritura de alto volumen.** Si cada usuario a bordo envía
+  una posición cada 15 segundos, con mil usuarios activos son ~67 escrituras por
+  segundo. Hay que agregar en el cliente —enviar tandas, no puntos sueltos— y
+  vigilar el plan desde el principio.
+- **Row Level Security desde el primer día.** Con Supabase el cliente habla
+  directo con la base: sin políticas bien puestas, cualquiera lee la tabla
+  completa. Esto es especialmente serio con datos de ubicación (§3.7).
+
+### Costo
+
+Plan gratuito para empezar; el plan de pago está en el orden de USD 25
+mensuales, dentro del presupuesto de USD 100. *(Verificar precios vigentes al
+contratar.)*
+
 ## 3.3 Stack sugerido para el backend
 
 | Componente | Elección | Por qué |
@@ -194,6 +235,43 @@ Reglas que deben estar en el diseño desde el inicio:
    de forma notable la tasa de aceptación.
 6. **Funcionar sin permiso de ubicación.** Buscar paraderos por nombre debe ser
    un camino de primera clase, no un plan B degradado.
+
+## 3.7b Identidad sin inicio de sesión
+
+**Requisito del producto: la app no tiene login, pero sí reconoce al usuario y
+lleva su cuenta.**
+
+Se resuelve con el **inicio de sesión anónimo** de Supabase: al abrir la app por
+primera vez se crea una sesión que devuelve un identificador persistente, sin
+pedir correo ni contraseña ni mostrar pantalla alguna. El usuario nunca se
+entera, y desde el servidor es un usuario identificable y contable.
+
+Sirve para llevar reputación, límites de frecuencia, favoritos sincronizados y
+estadísticas de uso. Y si algún día conviene tener cuentas de verdad, una sesión
+anónima se puede convertir en una con correo sin perder el historial.
+
+### La distinción que hay que respetar
+
+> **Identificar al usuario y guardar su trayectoria son cosas distintas, y no
+> pueden compartir la misma llave.**
+
+- El **identificador anónimo** vive con los favoritos, la reputación y los
+  reportes. Es estable.
+- La **telemetría de ubicación** se guarda con un identificador de sesión
+  rotatorio, nunca con el del usuario (§3.7, regla 2).
+
+Si ambas cosas usaran la misma llave, la base de datos contendría el mapa de
+movimientos de cada persona asociado a su identidad. Es exactamente lo que §3.7
+existe para impedir, y el inicio de sesión anónimo lo hace fácil de romper por
+descuido: hay que ponerlo por escrito en el esquema.
+
+### Límite que conviene conocer
+
+Un identificador anónimo vive en el almacenamiento del dispositivo. Si el
+usuario borra los datos de la app o cambia de teléfono, es una persona nueva.
+Para favoritos es un inconveniente menor; para reputación significa que la
+reputación se puede reiniciar borrando la app, lo que hay que considerar al
+diseñar las defensas contra abuso (`04` §4.6).
 
 ## 3.8 Sobre la ubicación en segundo plano y App Store
 
