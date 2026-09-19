@@ -234,6 +234,14 @@ def _subir(args: argparse.Namespace) -> int:
         lat_min, lat_max, lon_min, lon_max = (float(x) for x in args.recuadro.split(","))
         recuadro = Recuadro(lat_min, lat_max, lon_min, lon_max)
 
+    if args.csv:
+        from .subir import escribir_csv
+
+        for nombre, n in escribir_csv(feed, Path(args.csv), recuadro).items():
+            print(f"  {nombre:20} {n:>8} filas")
+        print(f"\n✓ CSV escritos en {args.csv}. Impórtalos en Supabase en ese orden.")
+        return 0
+
     if args.solo_contar:
         datos = preparar(feed, recuadro)
         for tabla, filas in datos.items():
@@ -316,6 +324,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--recuadro", help="lat_min,lat_max,lon_min,lon_max para acotar la zona")
     p.add_argument("--solo-contar", action="store_true",
                    help="muestra cuántas filas se subirían, sin conectarse")
+    p.add_argument("--csv", metavar="CARPETA",
+                   help="escribe CSV para importar a mano, en vez de conectarse")
     p.set_defaults(fn=_subir)
 
     p = sub.add_parser("cargar", help="carga el feed a PostGIS")

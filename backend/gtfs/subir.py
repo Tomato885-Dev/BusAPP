@@ -110,6 +110,41 @@ def preparar(feed: Feed, recuadro: Recuadro | None = None) -> dict[str, list[tup
     }
 
 
+def escribir_csv(feed: Feed, carpeta: Path, recuadro: Recuadro | None = None) -> dict[str, int]:
+    """Escribe la red como tres CSV listos para importar a mano en Supabase.
+
+    Existe para no obligar a instalar Python a quien sólo quiere cargar los
+    datos una vez: el panel de Supabase importa CSV desde el navegador.
+
+    El orden de importación importa por las llaves foráneas:
+    paraderos → recorridos → pasos.
+
+    La columna `ubicacion` se escribe como texto WKT (`POINT(lon lat)`), que
+    PostGIS convierte solo al insertarlo en una columna `geography`.
+    """
+    import csv
+
+    datos = preparar(feed, recuadro)
+    carpeta.mkdir(parents=True, exist_ok=True)
+    conteos: dict[str, int] = {}
+
+    tablas = (
+        ("1-paraderos.csv", ["id", "codigo", "nombre", "ubicacion"], datos["paraderos"]),
+        ("2-recorridos.csv", ["id", "nombre", "destino", "tipo", "frecuencias"], datos["recorridos"]),
+        ("3-pasos.csv", ["recorrido_id", "paradero_id", "orden", "distancia_recorrida"], datos["pasos"]),
+    )
+
+    for nombre, columnas, filas in tablas:
+        ruta = carpeta / nombre
+        with ruta.open("w", encoding="utf-8", newline="") as f:
+            escritor = csv.writer(f)
+            escritor.writerow(columnas)
+            escritor.writerows(filas)
+        conteos[nombre] = len(filas)
+
+    return conteos
+
+
 def subir(feed: Feed, dsn: str, recuadro: Recuadro | None = None) -> dict[str, int]:
     """Reemplaza la red completa en Supabase, en una sola transacción.
 

@@ -39,28 +39,78 @@ pantalla de registro**: la app crea la sesión sola al abrirse.
 
 ## 4. Subir la red de Santiago
 
-Necesitas la cadena de conexión: **Settings → Database → Connection string →
-URI**. Reemplaza `[YOUR-PASSWORD]` por la del paso 1.
+Los datos ya están listos en [`datos/`](datos/). **No hay que instalar nada**:
+se importan desde el navegador.
+
+### El orden importa
+
+Las tablas se apuntan entre sí, así que hay que importarlas en este orden. Si se
+hace al revés, Supabase rechaza las filas.
+
+| # | Archivo | Tabla | Filas |
+|---|---|---|---|
+| 1 | `datos/1-paraderos.csv` | `paraderos` | 3.748 |
+| 2 | `datos/2-recorridos.csv` | `recorridos` | 288 |
+| 3 | `datos/3-pasos.csv` | `pasos` | 9.375 |
+
+### Cómo importar cada uno
+
+1. En Supabase, menú izquierdo → **Table Editor**
+2. Elige la tabla en la lista
+3. Arriba a la derecha, botón **Insert** → **Import data from CSV**
+4. Arrastra el archivo, revisa que las columnas calcen, y confirma
+
+Repite con los tres, en orden.
+
+### Para comprobar que quedó bien
+
+**SQL Editor → New query**, pega esto y dale **Run**:
+
+```sql
+select 'paraderos' as tabla, count(*) from paraderos
+union all select 'recorridos', count(*) from recorridos
+union all select 'pasos',      count(*) from pasos;
+```
+
+Deberían salir 3748, 288 y 9375.
+
+Y esta comprueba que las coordenadas quedaron bien guardadas — busca paraderos a
+500 m de La Moneda:
+
+```sql
+select codigo, nombre, round(distancia_m) as metros
+from paraderos_cercanos(-33.4429, -70.6539, 500, 5);
+```
+
+### Si la importación falla
+
+El caso más probable es la columna `ubicacion`, que no es texto común sino un
+punto geográfico. Si Supabase la rechaza, avísame y te paso los datos en otro
+formato.
+
+### Alternativa: hacerlo por comando
+
+Sirve para **actualizar el feed** más adelante sin repetir la importación a
+mano. Requiere Python.
 
 ```bash
 cd backend
 pip install -r requirements.txt
-
-# Primero sin conectarse, sólo para ver cuánto se va a subir
-python -m gtfs.cli subir data/GTFS.zip --recuadro=-33.52,-33.40,-70.72,-70.53 --solo-contar
-
-# Ahora sí
 python -m gtfs.cli subir data/GTFS.zip \
     --recuadro=-33.52,-33.40,-70.72,-70.53 \
-    --dsn "postgresql://postgres:TU-PASSWORD@db.TU-PROYECTO.supabase.co:5432/postgres"
+    --dsn "LA-CADENA-DE-CONEXION"
 ```
 
-Sube unos 3.700 paraderos, 288 recorridos y 9.400 pasos. Todo ocurre dentro de
-una transacción: si algo falla a medio camino, la base queda como estaba en vez
-de quedar a medio cargar.
+Para la cadena de conexión: botón verde **Connect** arriba en el panel →
+pestaña **Session pooler** → copia la URI y reemplaza `[YOUR-PASSWORD]`.
 
-> El recuadro acota la zona a Santiago centro-oriente. Para subir toda la Región
-> Metropolitana, omite `--recuadro`; son bastantes más filas.
+> **Usa la del pooler, no la directa.** La conexión directa
+> (`db.PROYECTO.supabase.co`) sólo responde por IPv6, y la mayoría de las
+> conexiones domiciliarias en Chile no lo tienen. La del pooler funciona en
+> ambos casos.
+
+Todo ocurre dentro de una transacción: si algo falla a medio camino, la base
+queda como estaba en vez de quedar a medio cargar.
 
 ---
 
