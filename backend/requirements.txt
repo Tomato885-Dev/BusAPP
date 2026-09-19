@@ -1,0 +1,8 @@
+# La lógica pura (lectura, geometría, validación) no necesita dependencias:
+# sólo biblioteca estándar. Eso la hace rápida de probar y fácil de portar.
+
+# Sólo para el comando `cargar`, que escribe a PostgreSQL + PostGIS.
+psycopg[binary]>=3.1
+
+# Desarrollo.
+pytest>=8.0

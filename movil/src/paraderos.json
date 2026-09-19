@@ -1,0 +1,148 @@
+{
+  "paraderos": [
+    {
+      "id": "PA215",
+      "codigo": "PA215",
+      "nombre": "Parada 5 / (M) La Moneda",
+      "lat": -33.44514,
+      "lon": -70.65439,
+      "distanciaM": 4,
+      "recorridos": [
+        {
+          "nombre": "210",
+          "destino": "Puente Alto"
+        },
+        {
+          "nombre": "210e",
+          "destino": "Puente Alto"
+        },
+        {
+          "nombre": "210v",
+          "destino": "Av. Mexico"
+        },
+        {
+          "nombre": "223",
+          "destino": "Lo Espejo"
+        },
+        {
+          "nombre": "229",
+          "destino": "La Pintana"
+        },
+        {
+          "nombre": "264n",
+          "destino": "Santo Tomas"
+        }
+      ]
+    },
+    {
+      "id": "LM_L1_V1",
+      "codigo": "LM_L1_V1",
+      "nombre": "La Moneda Dirección Los Domínicos",
+      "lat": -33.44487,
+      "lon": -70.65518,
+      "distanciaM": 77,
+      "recorridos": [
+        {
+          "nombre": "L1",
+          "destino": "Los Dominicos"
+        }
+      ]
+    },
+    {
+      "id": "LM_L1_V2",
+      "codigo": "LM_L1_V2",
+      "nombre": "La Moneda Dirección San Pablo",
+      "lat": -33.44487,
+      "lon": -70.65518,
+      "distanciaM": 77,
+      "recorridos": [
+        {
+          "nombre": "L1",
+          "destino": "Los Héroes"
+        }
+      ]
+    },
+    {
+      "id": "PA665",
+      "codigo": "PA665",
+      "nombre": "Parada 11 / (M) La Moneda",
+      "lat": -33.44496,
+      "lon": -70.65544,
+      "distanciaM": 98,
+      "recorridos": [
+        {
+          "nombre": "301",
+          "destino": "Juan Antonio Rios"
+        },
+        {
+          "nombre": "306",
+          "destino": "Juan Antonio Rios"
+        },
+        {
+          "nombre": "509",
+          "destino": "Mapocho"
+        }
+      ]
+    },
+    {
+      "id": "PA720",
+      "codigo": "PA720",
+      "nombre": "Parada 12 / (M) La Moneda",
+      "lat": -33.44557,
+      "lon": -70.65531,
+      "distanciaM": 99,
+      "recorridos": [
+        {
+          "nombre": "201",
+          "destino": "Mall Plaza Norte"
+        },
+        {
+          "nombre": "223",
+          "destino": "Lo Espejo"
+        },
+        {
+          "nombre": "264n",
+          "destino": "Pedro Fontova"
+        },
+        {
+          "nombre": "271",
+          "destino": "Santiago"
+        }
+      ]
+    },
+    {
+      "id": "PA184",
+      "codigo": "PA184",
+      "nombre": "Parada 4 / (M) La Moneda",
+      "lat": -33.44462,
+      "lon": -70.65538,
+      "distanciaM": 105,
+      "recorridos": [
+        {
+          "nombre": "106",
+          "destino": "Nueva San Martin"
+        },
+        {
+          "nombre": "109n",
+          "destino": "Maipu"
+        },
+        {
+          "nombre": "210",
+          "destino": "Estacion Central"
+        },
+        {
+          "nombre": "210e",
+          "destino": "Estacion Central"
+        },
+        {
+          "nombre": "210v",
+          "destino": "Estacion Central"
+        },
+        {
+          "nombre": "302n",
+          "destino": "La Pintana"
+        }
+      ]
+    }
+  ]
+}

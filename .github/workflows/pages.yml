@@ -1,0 +1,62 @@
+name: Publicar en GitHub Pages
+
+# Publica dos cosas:
+#   /            la app real (React Native corriendo en web)
+#   /prototipo/  la maqueta de diseño con el selector de escenarios
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: movil/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: movil
+        run: npm ci
+
+      - name: Compilar la app para web
+        working-directory: movil
+        run: npx expo export --platform web --output-dir ../sitio
+
+      - name: Preparar el sitio
+        run: |
+          # GitHub Pages no reescribe rutas hacia el index. Una copia como
+          # 404.html hace que los enlaces profundos y los refrescos funcionen
+          # en una aplicación de una sola página.
+          cp sitio/index.html sitio/404.html
+          cp -r prototipo sitio/prototipo
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
