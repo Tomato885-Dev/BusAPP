@@ -37,6 +37,7 @@ La app publicada en GitHub Pages, sin instalar nada:
 | [`docs/07-modelo-de-negocio.md`](docs/07-modelo-de-negocio.md) | Cómo se financia el proyecto sin invadir al usuario ni usar publicidad. |
 | [`docs/08-plan-de-trabajo.md`](docs/08-plan-de-trabajo.md) | **El plan: qué está hecho, qué sigue, y quién hace cada cosa.** Empieza aquí. |
 | [`docs/09-nombre.md`](docs/09-nombre.md) | Por qué la app se llama **Kupay**, qué significa y qué falta verificar. |
+| [`docs/10-prueba-de-terreno.md`](docs/10-prueba-de-terreno.md) | ⭐ Cómo grabar viajes reales en micro, y por qué de eso depende el proyecto. |
 
 ## Resumen ejecutivo de las conclusiones
 
