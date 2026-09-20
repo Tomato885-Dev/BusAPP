@@ -171,23 +171,30 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
     # Un recorrido tiene muchos viajes casi idénticos. Se elige el que más
     # paradas toca dentro de la zona, y a igualdad se prefiere el que trae
     # frecuencias: sin ellas no se puede estimar una espera.
-    mejor_viaje: dict[str, tuple[int, int, str]] = {}
+    #
+    # **Uno por sentido, no uno por recorrido.** Guardar un solo viaje por
+    # recorrido perdía entero el sentido contrario: la 517 pasa por PD310 sólo
+    # de vuelta, y el paradero la mostraba como si no existiera. Son 309 de los
+    # 427 recorridos del feed los que tienen dos sentidos, así que el error se
+    # llevaba cerca de la mitad de la red.
+    mejor_viaje: dict[tuple[str, int | None], tuple[int, int, str]] = {}
     for viaje in feed.viajes.values():
         dentro = [p for p in feed.pasos_por_viaje(viaje.id) if p.parada_id in paraderos]
         if len(dentro) < 2:
             continue
         tiene_frecuencia = 1 if feed.frecuencias.get(viaje.id) else 0
         clave = (len(dentro), tiene_frecuencia, viaje.id)
-        actual = mejor_viaje.get(viaje.recorrido_id)
+        llave = (viaje.recorrido_id, viaje.sentido)
+        actual = mejor_viaje.get(llave)
         if actual is None or clave[:2] > actual[:2]:
-            mejor_viaje[viaje.recorrido_id] = clave
+            mejor_viaje[llave] = clave
 
     recorridos = []
     usados: set[str] = set()
     # Una parada que sirve a un tren y a micros se muestra como estación: es lo
     # que la hace reconocible en el mapa.
     tipo_por_parada: dict[str, int] = {}
-    for recorrido_id, (_, _, viaje_id) in mejor_viaje.items():
+    for (recorrido_id, sentido), (_, _, viaje_id) in mejor_viaje.items():
         recorrido = feed.recorridos.get(recorrido_id)
         viaje = feed.viajes.get(viaje_id)
         if recorrido is None or viaje is None:
@@ -203,7 +210,9 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
         if not frecuencias:
             frecuencias = _franjas_por_horario(feed, recorrido_id, viaje.sentido)
         recorridos.append({
-            "id": recorrido.id,
+            # El identificador lleva el sentido: son dos entradas distintas, y
+            # cada una tiene su propio letrero de destino.
+            "id": f"{recorrido.id}-{sentido}" if sentido is not None else recorrido.id,
             "nombre": recorrido.nombre_corto,
             "destino": viaje.letrero,
             "tipo": recorrido.tipo,

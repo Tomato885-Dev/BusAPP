@@ -36,6 +36,10 @@ export default function PantallaLineas() {
   }, [modo, filtro]);
 
   const operando = useMemo(() => lineas.filter((r) => estaOperando(r)).length, [lineas]);
+  // Cada sentido es una entrada, pero para el pasajero «517» es una línea, no
+  // dos. El resumen cuenta nombres distintos; la lista sigue mostrando los dos
+  // sentidos, que es lo que permite elegir el correcto.
+  const cuantasLineas = useMemo(() => new Set(lineas.map((r) => r.nombre)).size, [lineas]);
 
   return (
     <>
@@ -66,9 +70,10 @@ export default function PantallaLineas() {
         />
 
         <Text style={s.resumen}>
-          {lineas.length} {lineas.length === 1 ? "línea" : "líneas"} ·{" "}
+          {cuantasLineas} {cuantasLineas === 1 ? "línea" : "líneas"} ·{" "}
+          {lineas.length} {lineas.length === 1 ? "sentido" : "sentidos"} ·{" "}
           <Text style={{ color: operando > 0 ? c.ok : c.textoTenue }}>
-            {operando} en servicio ahora
+            {operando} en servicio
           </Text>
         </Text>
 
