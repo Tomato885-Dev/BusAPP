@@ -63,10 +63,24 @@ const MAX_MARCADORES = 140;
  *
  * Durante el arrastre no se recalcula la grilla —de eso depende que el gesto
  * sea fluido—, así que hay que tener teselas ya dibujadas hacia donde el dedo
- * pueda mover el mapa. Con un anillo se cubren 256 px de desplazamiento antes
- * de que aparezca borde vacío.
+ * pueda mover el mapa. Con dos anillos se cubren 512 px, que es lo que alcanza
+ * a recorrer un envión antes de que el mapa se frene.
  */
-const SOBREMUESTRA = 1;
+const SOBREMUESTRA = 2;
+
+/**
+ * Cuánto puede alejarse el mapa de su grilla antes de rehacerla.
+ *
+ * Es el margen que dan los anillos de reserva, con holgura: pasado esto
+ * aparecería borde vacío, así que conviene fijar el centro y redibujar.
+ */
+const LIMITE_ARRASTRE = TESELA * SOBREMUESTRA * 0.9;
+
+/** Cuánto frena el envión. Más cerca de 1, más largo el deslizamiento. */
+const FRENADO = 0.994;
+
+/** Lado de la celda del índice de marcadores, en grados. Unos 300 m. */
+const CELDA = 0.003;
 
 /**
  * Proveedor de teselas.
@@ -158,6 +172,48 @@ export function Mapa({
   const zoomActual = useRef(zoom);
   zoomActual.current = zoom;
 
+  /** Traslada el centro por el desplazamiento acumulado y vuelve a cero. */
+  const fijarCentro = useCallback(
+    (dx: number, dy: number) => {
+      if (dx === 0 && dy === 0) return;
+      const z = zoomActual.current;
+      const x = lonAX(centroActual.current.lon, z) - dx;
+      const y = latAY(centroActual.current.lat, z) - dy;
+      gesto.current = { dx: 0, dy: 0 };
+      desplazamiento.setValue({ x: 0, y: 0 });
+      setCentro({ lat: yALat(y, z), lon: xALon(x, z) });
+    },
+    [desplazamiento],
+  );
+
+  // El deslizamiento mueve el lienzo sin rehacer la grilla, así que hay que
+  // cortarlo antes de que se salga de las teselas de reserva y aparezca el
+  // borde vacío. Este vigilante escucha el valor animado y fija el centro en
+  // cuanto se pasa del margen.
+  useEffect(() => {
+    const anotar = () => {
+      if (
+        Math.abs(gesto.current.dx) > LIMITE_ARRASTRE ||
+        Math.abs(gesto.current.dy) > LIMITE_ARRASTRE
+      ) {
+        desplazamiento.stopAnimation();
+        fijarCentro(gesto.current.dx, gesto.current.dy);
+      }
+    };
+    const ix = desplazamiento.x.addListener(({ value }) => {
+      gesto.current.dx = value;
+      anotar();
+    });
+    const iy = desplazamiento.y.addListener(({ value }) => {
+      gesto.current.dy = value;
+      anotar();
+    });
+    return () => {
+      desplazamiento.x.removeListener(ix);
+      desplazamiento.y.removeListener(iy);
+    };
+  }, [desplazamiento, fijarCentro]);
+
   const pan = useMemo(
     () =>
       PanResponder.create({
@@ -168,26 +224,45 @@ export function Mapa({
         // Una vez tomado el gesto no se suelta: sin esto, cualquier vista de
         // arriba puede arrebatarlo a mitad del arrastre y el mapa se traba.
         onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: () => {
+          // Un dedo nuevo corta el deslizamiento en curso: si no, el mapa sigue
+          // corriendo bajo el dedo que intenta detenerlo.
+          desplazamiento.stopAnimation();
+          desplazamiento.setValue({ x: 0, y: 0 });
+          gesto.current = { dx: 0, dy: 0 };
+        },
         onPanResponderMove: (_e, g) => {
           gesto.current = { dx: g.dx, dy: g.dy };
           desplazamiento.setValue({ x: g.dx, y: g.dy });
         },
-        onPanResponderRelease: () => {
-          const z = zoomActual.current;
+        onPanResponderRelease: (_e, g) => {
           const { dx, dy } = gesto.current;
           if (dx === 0 && dy === 0) return;
-          const x = lonAX(centroActual.current.lon, z) - dx;
-          const y = latAY(centroActual.current.lat, z) - dy;
-          gesto.current = { dx: 0, dy: 0 };
-          desplazamiento.setValue({ x: 0, y: 0 });
-          setCentro({ lat: yALat(y, z), lon: xALon(x, z) });
+
+          // Un mapa que se detiene en seco donde se levanta el dedo se siente
+          // tosco. Se deja correr el envión y recién al frenar se fija el
+          // centro: mientras tanto sólo se traslada el lienzo, sin rehacer la
+          // grilla ni los marcadores.
+          const rapido = Math.abs(g.vx) > 0.15 || Math.abs(g.vy) > 0.15;
+          if (!rapido) {
+            fijarCentro(gesto.current.dx, gesto.current.dy);
+            return;
+          }
+
+          Animated.decay(desplazamiento, {
+            velocity: { x: g.vx, y: g.vy },
+            deceleration: FRENADO,
+            useNativeDriver: false,
+          }).start(({ finished }) => {
+            if (finished) fijarCentro(gesto.current.dx, gesto.current.dy);
+          });
         },
         onPanResponderTerminate: () => {
-          gesto.current = { dx: 0, dy: 0 };
-          desplazamiento.setValue({ x: 0, y: 0 });
+          desplazamiento.stopAnimation();
+          fijarCentro(gesto.current.dx, gesto.current.dy);
         },
       }),
-    [desplazamiento],
+    [desplazamiento, fijarCentro],
   );
 
   useEffect(() => {
@@ -245,6 +320,24 @@ export function Mapa({
       .join(" ");
   }, [trazado, listo, zoom, izquierda, arriba]);
 
+  /**
+   * Los marcadores repartidos en celdas de un cuarto de grado de minuto.
+   *
+   * Sin esto, cada vez que el mapa se mueve hay que recorrer los 4.677
+   * paraderos para saber cuáles caen en pantalla. Pasa en cada arrastre, y es
+   * justo el momento en que no sobra tiempo.
+   */
+  const rejilla = useMemo(() => {
+    const celdas = new Map<string, Marcador[]>();
+    for (const m of marcadores) {
+      const k = `${Math.floor(m.lat / CELDA)}:${Math.floor(m.lon / CELDA)}`;
+      const lista = celdas.get(k);
+      if (lista) lista.push(m);
+      else celdas.set(k, [m]);
+    }
+    return celdas;
+  }, [marcadores]);
+
   const visibles = useMemo(() => {
     if (!listo || (zoom < ZOOM_MARCADORES && !marcadoresSiempre)) return [];
     const margen = TESELA;
@@ -259,8 +352,23 @@ export function Mapa({
         (o) => Math.abs(o.x - x) < ANCHO_INSIGNIA && Math.abs(o.y - y) < ALTO_INSIGNIA,
       );
 
+    // Recuadro visible, con margen, traducido a coordenadas geográficas para
+    // poder preguntarle a la rejilla en vez de recorrerlo todo.
+    const oeste = xALon(izquierda - margen, zoom);
+    const este = xALon(izquierda + ancho + margen, zoom);
+    const norte = yALat(arriba - margen, zoom);
+    const sur = yALat(arriba + alto + margen, zoom);
+
+    const candidatos: Marcador[] = [];
+    for (let f = Math.floor(sur / CELDA); f <= Math.floor(norte / CELDA); f++) {
+      for (let col = Math.floor(oeste / CELDA); col <= Math.floor(este / CELDA); col++) {
+        const lista = rejilla.get(`${f}:${col}`);
+        if (lista) candidatos.push(...lista);
+      }
+    }
+
     const salida: (Marcador & { x: number; y: number; insigniaTexto: string | null })[] = [];
-    for (const m of marcadores) {
+    for (const m of candidatos) {
       const x = lonAX(m.lon, zoom) - izquierda;
       const y = latAY(m.lat, zoom) - arriba;
       if (x < -margen || x > ancho + margen || y < -margen || y > alto + margen) continue;
@@ -276,7 +384,7 @@ export function Mapa({
     }
     return salida;
   }, [
-    marcadores,
+    rejilla,
     listo,
     zoom,
     izquierda,
