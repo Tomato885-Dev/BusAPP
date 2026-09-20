@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -77,7 +77,14 @@ const SOBREMUESTRA = 2;
 const LIMITE_ARRASTRE = TESELA * SOBREMUESTRA * 0.9;
 
 /** Cuánto frena el envión. Más cerca de 1, más largo el deslizamiento. */
-const FRENADO = 0.994;
+const FRENADO = 0.995;
+
+/*
+ * El recorrido de un envión es aproximadamente `velocidad / (1 - frenado)`.
+ * De ahí sale cuánta velocidad se puede permitir para que quepa en el margen
+ * de teselas disponible: más vale un envión algo más corto que uno que se
+ * frena de golpe al quedarse sin mapa.
+ */
 
 /** Lado de la celda del índice de marcadores, en grados. Unos 300 m. */
 const CELDA = 0.003;
@@ -172,47 +179,39 @@ export function Mapa({
   const zoomActual = useRef(zoom);
   zoomActual.current = zoom;
 
-  /** Traslada el centro por el desplazamiento acumulado y vuelve a cero. */
-  const fijarCentro = useCallback(
-    (dx: number, dy: number) => {
-      if (dx === 0 && dy === 0) return;
-      const z = zoomActual.current;
-      const x = lonAX(centroActual.current.lon, z) - dx;
-      const y = latAY(centroActual.current.lat, z) - dy;
-      gesto.current = { dx: 0, dy: 0 };
-      desplazamiento.setValue({ x: 0, y: 0 });
-      setCentro({ lat: yALat(y, z), lon: xALon(x, z) });
-    },
-    [desplazamiento],
-  );
+  /**
+   * Cuánto del gesto en curso ya se trasladó al centro del mapa.
+   *
+   * Un arrastre largo obliga a rehacer la grilla a mitad del gesto, o se acaban
+   * las teselas de reserva. El problema es que `dx` sigue contando desde donde
+   * se apoyó el dedo: si se recentra sin descontarlo, el siguiente movimiento
+   * vuelve a aplicar todo el recorrido y el mapa pega un salto. Esto guarda lo
+   * ya aplicado para restarlo.
+   */
+  const aplicado = useRef({ x: 0, y: 0 });
 
-  // El deslizamiento mueve el lienzo sin rehacer la grilla, así que hay que
-  // cortarlo antes de que se salga de las teselas de reserva y aparezca el
-  // borde vacío. Este vigilante escucha el valor animado y fija el centro en
-  // cuanto se pasa del margen.
-  useEffect(() => {
-    const anotar = () => {
-      if (
-        Math.abs(gesto.current.dx) > LIMITE_ARRASTRE ||
-        Math.abs(gesto.current.dy) > LIMITE_ARRASTRE
-      ) {
-        desplazamiento.stopAnimation();
-        fijarCentro(gesto.current.dx, gesto.current.dy);
-      }
-    };
-    const ix = desplazamiento.x.addListener(({ value }) => {
-      gesto.current.dx = value;
-      anotar();
-    });
-    const iy = desplazamiento.y.addListener(({ value }) => {
-      gesto.current.dy = value;
-      anotar();
-    });
-    return () => {
-      desplazamiento.x.removeListener(ix);
-      desplazamiento.y.removeListener(iy);
-    };
-  }, [desplazamiento, fijarCentro]);
+  /** Traslada el centro por el desplazamiento dado y vuelve el lienzo a cero. */
+  const fijarCentro = useCallback((dx: number, dy: number) => {
+    if (dx === 0 && dy === 0) return;
+    const z = zoomActual.current;
+    const x = lonAX(centroActual.current.lon, z) - dx;
+    const y = latAY(centroActual.current.lat, z) - dy;
+    gesto.current = { dx: 0, dy: 0 };
+    // El lienzo **no** se pone en cero aquí. Ponerlo ahora deja un cuadro con
+    // la grilla vieja ya sin desplazamiento —un salto de cientos de píxeles—,
+    // porque el nuevo centro recién llega en el render siguiente. Se anota y
+    // se hace justo después de ese render, antes de que la pantalla se pinte.
+    porCentrar.current = true;
+    setCentro({ lat: yALat(y, z), lon: xALon(x, z) });
+  }, []);
+
+  const porCentrar = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!porCentrar.current) return;
+    porCentrar.current = false;
+    desplazamiento.setValue({ x: 0, y: 0 });
+  }, [centro, desplazamiento]);
 
   const pan = useMemo(
     () =>
@@ -230,32 +229,48 @@ export function Mapa({
           desplazamiento.stopAnimation();
           desplazamiento.setValue({ x: 0, y: 0 });
           gesto.current = { dx: 0, dy: 0 };
+          aplicado.current = { x: 0, y: 0 };
         },
         onPanResponderMove: (_e, g) => {
-          gesto.current = { dx: g.dx, dy: g.dy };
-          desplazamiento.setValue({ x: g.dx, y: g.dy });
+          const dx = g.dx - aplicado.current.x;
+          const dy = g.dy - aplicado.current.y;
+          gesto.current = { dx, dy };
+          desplazamiento.setValue({ x: dx, y: dy });
+
+          // Arrastre largo: se recentra sin soltar el gesto, anotando lo ya
+          // aplicado. Para el dedo no pasa nada; por debajo se rehace la grilla
+          // antes de quedarse sin teselas.
+          if (Math.abs(dx) > LIMITE_ARRASTRE || Math.abs(dy) > LIMITE_ARRASTRE) {
+            aplicado.current = { x: g.dx, y: g.dy };
+            fijarCentro(dx, dy);
+          }
         },
         onPanResponderRelease: (_e, g) => {
           const { dx, dy } = gesto.current;
           if (dx === 0 && dy === 0) return;
 
           // Un mapa que se detiene en seco donde se levanta el dedo se siente
-          // tosco. Se deja correr el envión y recién al frenar se fija el
-          // centro: mientras tanto sólo se traslada el lienzo, sin rehacer la
-          // grilla ni los marcadores.
-          const rapido = Math.abs(g.vx) > 0.15 || Math.abs(g.vy) > 0.15;
+          // tosco. El envión sigue corriendo y frena solo.
+          const rapido = Math.abs(g.vx) > 0.12 || Math.abs(g.vy) > 0.12;
           if (!rapido) {
-            fijarCentro(gesto.current.dx, gesto.current.dy);
+            fijarCentro(dx, dy);
             return;
           }
 
+          // El envión arranca desde donde quedó el dedo, así que lo que queda
+          // de margen es el límite **menos lo ya desplazado**. Sin descontarlo,
+          // un arrastre largo seguido de envión se sale igual de las teselas.
+          const recortar = (v: number, yaRecorrido: number) => {
+            const margen = Math.max(0, LIMITE_ARRASTRE - Math.abs(yaRecorrido));
+            const tope = margen * (1 - FRENADO);
+            return Math.sign(v) * Math.min(Math.abs(v), tope);
+          };
+
           Animated.decay(desplazamiento, {
-            velocity: { x: g.vx, y: g.vy },
+            velocity: { x: recortar(g.vx, dx), y: recortar(g.vy, dy) },
             deceleration: FRENADO,
             useNativeDriver: false,
-          }).start(({ finished }) => {
-            if (finished) fijarCentro(gesto.current.dx, gesto.current.dy);
-          });
+          }).start(() => fijarCentro(gesto.current.dx, gesto.current.dy));
         },
         onPanResponderTerminate: () => {
           desplazamiento.stopAnimation();
@@ -264,6 +279,22 @@ export function Mapa({
       }),
     [desplazamiento, fijarCentro],
   );
+
+  // El lienzo se mueve solo durante el envión, así que hay que saber dónde
+  // quedó para poder fijar el centro al terminar.
+  useEffect(() => {
+    const ix = desplazamiento.x.addListener(({ value }) => {
+      gesto.current.dx = value;
+    });
+    const iy = desplazamiento.y.addListener(({ value }) => {
+      gesto.current.dy = value;
+    });
+    return () => {
+      desplazamiento.x.removeListener(ix);
+      desplazamiento.y.removeListener(iy);
+    };
+  }, [desplazamiento]);
+
 
   useEffect(() => {
     if (!irA) return;
