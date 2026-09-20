@@ -4,9 +4,14 @@ El único camino legítimo hacia «dónde está el bus ahora» es el DTPM. Con l
 decisión D12 (`06`) no hay alternativa comunitaria: **esta solicitud es el
 proyecto completo esperando en un trámite.**
 
-- [ ] **Enviada el:** `____ / ____ / 2026`
+- [x] **Enviada el:** `20 / 09 / 2026` ✅
 - [ ] **Acuse de recibo:** `____ / ____ / 2026`
 - [ ] **Respuesta:** `____ / ____ / 2026`
+
+> **Enviada con el formulario adjunto**, marcando los dos servicios. Si al
+> **10 de octubre** no hay respuesta ni acuse de recibo, corresponde insistir
+> por teléfono; y desde la tercera o cuarta semana, la vía de Transparencia
+> (§6).
 
 ---
 

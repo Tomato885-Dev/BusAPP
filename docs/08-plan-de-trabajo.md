@@ -36,7 +36,7 @@ termina, se marca y se pasa al siguiente.
 | 1.1 | Grabar 3 viajes en micro | Tu teléfono | 2 h repartidas |
 | 1.2 | ✅ Volver a correr `esquema.sql` | Supabase | *hecho el 20-09* |
 | 1.3 | ✅ Activar el inicio de sesión anónimo | Supabase | *hecho el 20-09* |
-| 1.4 | Mandar la solicitud al DTPM | Tu correo | 30 min |
+| 1.4 | ✅ Mandar la solicitud al DTPM | Tu correo | *enviada el 20-09* |
 | 1.5 | Guardar la clave de Stadia | GitHub | 10 min |
 
 ## 1.1 🧑 Grabar viajes en micro ⭐ LO MÁS IMPORTANTE
@@ -67,7 +67,18 @@ detallado —cuándo apretar el botón, qué anotar— está en `10-prueba-de-te
 3. Sube los archivos a `datos-terreno/` del repositorio, o mándamelos.
 
 **Tiempo:** un par de horas repartidas en unos días.
-**Cuando estén:** 🤖 los analizo y te digo si el supuesto se sostiene.
+
+**El analizador ya está escrito y probado** (`14`). No hay que esperar nada:
+apenas subas un `.gpx`, el resultado sale con una orden.
+
+```sh
+cd backend && python -m trazas.cli analizar ../datos-terreno/*.gpx --detalle
+```
+
+Sobre trazas **sintéticas** acierta el recorrido dentro de la respuesta el 93%
+de las veces. Eso es el mejor caso posible, porque las generó el mismo GTFS
+contra el que se comparan. **Lo que tus grabaciones van a decir es cuánto de
+ese 93% sobrevive a la calle**, y ésa es la cifra que decide el proyecto.
 
 ## 1.2 ✅ Volver a correr `esquema.sql` — hecho
 
@@ -98,7 +109,7 @@ guardan en el servidor.
 **Cómo saber que quedó:** en la app, pestaña Favoritos, la línea de abajo debe
 decir *«Tus favoritos se guardan en el servidor»*.
 
-## 1.4 🧑 Mandar la solicitud al DTPM ✅ redactada
+## 1.4 ✅ Solicitud al DTPM — enviada el 20 de septiembre
 
 Es el trámite más lento del proyecto — meses. **Cada semana sin enviarlo es una
 semana de retraso**, y no se recupera trabajando más. Y desde que se descartaron
@@ -117,8 +128,17 @@ Lo que falta es tuyo:
    «Contacto Técnico → Nombre».
 3. Reemplazar los `⟨ ⟩` del correo con tus datos y enviar.
 
-- [ ] Enviado el: `________`
+- [x] Enviado el: **20 de septiembre de 2026**, con el formulario adjunto y las
+      dos casillas marcadas.
 - [ ] Respuesta el: `________`
+
+**Qué esperar:** el procedimiento habla de unos diez días hábiles para las
+credenciales del ambiente de desarrollo. Si al **10 de octubre** no hay ni
+acuse de recibo, hay que insistir por teléfono; a las tres o cuatro semanas,
+Transparencia (`13` §6).
+
+**Y lo importante mientras tanto:** esto no desbloquea nada hoy. Lo único que
+avanza el diferenciador sin depender de nadie son las trazas de 1.1.
 
 ## 1.5 🧑 Guardar la clave de Stadia Maps
 

@@ -10,3 +10,13 @@ Nombre de los archivos: `AAAA-MM-DD_recorrido_referencia.gpx`
 ```
 
 Y en `viajes.md`, una línea por viaje con el recorrido real.
+
+## Qué pasa cuando subas un archivo
+
+```sh
+cd backend && python -m trazas.cli analizar ../datos-terreno/*.gpx --detalle
+```
+
+Devuelve, para cada grabación: en qué tramos ibas caminando y en cuáles a
+bordo, y con qué recorrido empareja cada tramo a bordo. El método y sus límites
+están en [`docs/14-emparejamiento.md`](../docs/14-emparejamiento.md).

@@ -28,17 +28,24 @@ usuarios; **concentrar el lanzamiento en un área acotada** para alcanzar densid
 local antes que cobertura amplia. **Es preferible ser la app dominante en Ñuñoa
 que marginal en todo Santiago.**
 
-### R2b — Que el emparejamiento de trazas no funcione 🔴 Crítico
+### R2b — Que el emparejamiento de trazas no funcione 🟠 Alto *(era crítico)*
 
-**Probabilidad:** media. **Impacto:** el producto no tiene diferenciador.
+**Probabilidad:** media. **Impacto:** sin emparejamiento no hay telemetría
+propia, y sin telemetría no hay diferenciador.
 
-Inferir en qué línea va un usuario es el problema técnico duro del proyecto
-(`04` §4.5). En corredores con muchas líneas compartidas puede resultar
-sencillamente ambiguo.
+*Medido el 20 de septiembre de 2026* (`14`): contra el feed real y trazas
+sintéticas, el recorrido correcto está en la respuesta el **93%** de las veces,
+y el sistema puede nombrar uno solo el **50%**. El resto son empates entre
+recorridos que comparten el corredor completo, donde la información
+sencillamente no está en el GPS.
 
-*Mitigación:* la prueba de terreno F0-5 del roadmap existe para detectarlo en la
-primera semana, con un registrador GPS y sin escribir la app. Es la validación
-más barata del supuesto más caro.
+Baja de crítico a alto porque el algoritmo existe, está probado y da un número.
+**No baja más porque las trazas eran sintéticas**: las generó el mismo GTFS
+contra el que se comparan, así que ése es el mejor caso posible. La medición de
+verdad sigue pendiente y depende de las trazas grabadas a mano (`10`).
+
+*Mitigación:* confirmación de un toque cuando hay empate (D11); descarte duro
+del vehículo particular; y no emparejar cuando el GPS se cortó.
 
 ### R3 — Dependencia de fuentes no oficiales 🟢 Eliminado por decisión
 
@@ -128,6 +135,7 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 | # | Decisión | Resultado |
 |---|---|---|
 | D5 | Nombre definitivo | ✅ **Kupay** (`09`) |
+| D11 | ¿Ambigüedad de línea: automática o con confirmación? | ✅ **Con confirmación de un toque, sólo cuando hay empate.** Medido: el emparejamiento automático nombra un recorrido en el 50% de los casos y acierta dentro del grupo en el 93%. Un toque convierte ese 93% en certeza y hace falta en la mitad de los viajes (`14`) |
 | D12 | ¿Fuentes comunitarias mientras llega el acceso oficial? | ❌ **No, en ningún caso.** Kupay es comercial: sin permiso de uso comercial no se construye encima. Elimina R3 y deja el dato en vivo dependiendo sólo del DTPM o de la telemetría propia |
 
 **Pendientes:**
@@ -139,7 +147,6 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 | D8 | ¿Publicidad desde el inicio o después? | Modelo de negocio | Brief §7 |
 | D9 | Zona acotada de lanzamiento: ¿cuál? | Densidad, no cobertura | `04` §4.7 |
 | D10 | ¿Los reportes manuales entran al producto? | Descartarlos simplifica mucho | `04` §4.11 |
-| D11 | ¿Cómo se resuelve la ambigüedad de línea: automático o con confirmación de un toque? | Precisión vs. fricción | `04` §4.5 |
 
 ## 6.3 Supuestos de este diseño
 
@@ -151,7 +158,9 @@ Si alguno resulta falso, hay que revisar el plan:
    no hay producto que construir encima, y hay que saberlo ahora y no en el mes
    seis. Va preguntado explícitamente en la carta al DTPM, `docs/13`.)*
 3. Las trazas GPS de usuarios permiten identificar el recorrido con precisión
-   superior al 90%. *(F0-5, R2b. Es el supuesto más importante del proyecto.)*
+   superior al 90%. *(F0-5, R2b. Es el supuesto más importante del proyecto.
+   **Parcialmente comprobado:** 93% sobre trazas sintéticas, `14`. Sobre trazas
+   reales, sin comprobar.)*
 4. El desarrollo lo realiza una persona o un equipo muy pequeño.
 5. No hay presupuesto significativo para adquisición de usuarios.
 6. El horizonte de desarrollo es de meses, no de semanas.

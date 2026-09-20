@@ -49,6 +49,7 @@ Ver `docs/12`.
 |---|---|
 | `movil/` | La app (Expo + expo-router). `src/tema.ts` es el sistema de diseño |
 | `backend/gtfs/` | Ingesta del GTFS del DTPM → `movil/src/red.json` |
+| `backend/trazas/` | Análisis de trazas GPS: en qué recorrido iba alguien (`docs/14`) |
 | `servidor/` | Esquema de Supabase (`esquema.sql`) y su verificador (`comprobar.sql`) |
 | `marca/` | La fuente única de la marca: geometría, logotipo e íconos |
 | `docs/` | Las decisiones y por qué se tomaron. `01` y `08` son los que más se usan |
@@ -57,7 +58,7 @@ Ver `docs/12`.
 
 ```sh
 cd movil && npm run typecheck     # tsc
-cd backend && python -m pytest    # 40 pruebas
+cd backend && python -m pytest tests/ -q   # 54 pruebas
 node marca/marca.mjs              # regenerar íconos y muestrario
 ```
 

@@ -26,6 +26,16 @@ feeds lo omiten. Hay que calcularlo, y eso es lo que hace `posiciones.py`.
 | `load.py` | Carga a PostGIS con swap atómico de esquema. |
 | `cli.py` | Línea de comandos. |
 
+Y en `trazas/`, el análisis de las grabaciones GPS de la prueba de terreno
+(`../docs/14-emparejamiento.md`):
+
+| Archivo | Qué hace |
+|---|---|
+| `trazas/gpx.py` | Lee los `.gpx` de las aplicaciones de registro. |
+| `trazas/segmentar.py` | Parte la traza en caminando / a bordo / detenido. |
+| `trazas/emparejar.py` | Dice en qué recorrido iba, o que no se puede saber. |
+| `trazas/simular.py` | Trazas sintéticas para probar sin salir a la calle. |
+
 ## Uso
 
 ```bash
@@ -36,6 +46,10 @@ python -m gtfs.cli resumen  data/GTFS.zip         # qué trae
 python -m gtfs.cli validar  data/GTFS.zip         # ¿sirve?
 python -m gtfs.cli exportar data/GTFS.zip --recorridos 506 D09 210
 python -m gtfs.cli cargar   data/GTFS.zip --dsn postgresql://localhost/kupay
+
+python -m trazas.cli analizar ../datos-terreno/*.gpx --detalle
+python -m trazas.cli simular  --recorrido 506 --detalle
+python -m trazas.cli medir    --muestra 60
 ```
 
 Sin argumentos de feed puedes usar el ejemplo sintético:
@@ -52,11 +66,13 @@ python -m pytest tests/ -q
 
 ## Estado
 
-- ✅ **Probado:** geometría, lectura del feed, ubicación de paradas, validación.
-  39 pruebas.
+- ✅ **Probado:** geometría, lectura del feed, ubicación de paradas, validación,
+  emparejamiento de trazas. 54 pruebas.
 - ✅ **Ejecutado contra el feed real del DTPM** (tarea F0-1 completada).
 - ⚠️ **Sin ejecutar contra una base de datos:** `load.py` y `schema.sql` están
   escritos pero nunca se han corrido contra un PostgreSQL real.
+- ⚠️ **`trazas/` nunca ha visto una traza real.** Está medido sólo contra
+  trazas sintéticas, que es el mejor caso posible.
 
 ## El feed real: qué trae y qué calidad tiene
 
