@@ -1,7 +1,15 @@
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { llegadasDeParadero } from "../../src/api";
@@ -13,6 +21,7 @@ import { useRutinas } from "../../src/rutinas";
 import { AvisoDemo } from "../../src/componentes/AvisoDemo";
 import { Respuesta } from "../../src/componentes/Respuesta";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
+import { Hoja, useHoja, type Altura } from "../../src/componentes/Hoja";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
 import { PARADEROS, PARADERO_POR_ID } from "../../src/red";
 import { elevacion, esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
@@ -23,6 +32,7 @@ const CENTRO = { lat: -33.4429, lon: -70.6539 };
 export default function PantallaMapa() {
   const c = useColores();
   const insets = useSafeAreaInsets();
+  const { height: alto } = useWindowDimensions();
   const s = estilos(c);
 
   const { esFavorito, alternar } = useFavoritos();
@@ -30,6 +40,17 @@ export default function PantallaMapa() {
   const { esPremium } = usePremium();
   const { paraderoId } = useLocalSearchParams<{ paraderoId?: string }>();
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
+  // La hoja se abre asomada: lo primero es la respuesta, y el mapa sigue a la
+  // vista para entender de qué paradero se habla.
+  const [altura, setAltura] = useState<Altura>("asomada");
+  // El contenedor de la pestaña ya excluye la barra inferior, así que la hoja
+  // se apoya en su fondo y mide sus posiciones contra ese alto y no el de la
+  // pantalla completa.
+  const hoja = useHoja({
+    altura,
+    onAltura: setAltura,
+    altoDisponible: alto - ALTO_PESTANAS - insets.bottom,
+  });
   const [irA, setIrA] = useState<{ lat: number; lon: number; zoom?: number; nonce: number } | null>(null);
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
 
@@ -43,6 +64,7 @@ export default function PantallaMapa() {
     if (!p) return;
     ultimoParametro.current = paraderoId;
     setSeleccionado(paraderoId);
+    setAltura("asomada");
     setIrA({ lat: p.lat, lon: p.lon, zoom: 17, nonce: Date.now() });
   }, [paraderoId]);
 
@@ -90,7 +112,7 @@ export default function PantallaMapa() {
   }, []);
 
   return (
-    <View style={s.pantalla}>
+    <View style={s.pantalla} {...hoja.panHandlers}>
       <Mapa
         centroInicial={CENTRO}
         zoomInicial={16}
@@ -130,7 +152,9 @@ export default function PantallaMapa() {
         style={[
           s.ubicacion,
           elevacion(c, 2),
-          { bottom: (paradero ? PANEL_ALTO : 0) + esp.lg },
+          // La hoja asomada ocupa un tercio de la pantalla; el botón se apoya
+          // justo encima para no quedar tapado.
+          { bottom: (paradero ? (alto - ALTO_PESTANAS - insets.bottom) * 0.34 : 0) + esp.lg },
         ]}
         accessibilityRole="button"
         accessibilityLabel="Ir a mi ubicación"
@@ -139,12 +163,10 @@ export default function PantallaMapa() {
       </Pressable>
 
       {paradero && datos ? (
-        <View style={[s.panel, elevacion(c, 3)]}>
-          <View style={s.agarre} />
-
+        <Hoja hoja={hoja}>
           <View style={s.panelCabecera}>
             <View style={s.panelTitulos}>
-              <Text style={s.panelNombre} numberOfLines={1}>
+              <Text style={s.panelNombre} numberOfLines={altura === "asomada" ? 1 : 2}>
                 {paradero.nombre}
               </Text>
               <View style={s.panelMetaFila}>
@@ -162,9 +184,7 @@ export default function PantallaMapa() {
                 esFavorito(paradero.id) ? "Quitar de favoritos" : "Guardar en favoritos"
               }
             >
-              <Text
-                style={[s.estrella, esFavorito(paradero.id) && { color: c.marca }]}
-              >
+              <Text style={[s.estrella, esFavorito(paradero.id) && { color: c.marca }]}>
                 {esFavorito(paradero.id) ? "★" : "☆"}
               </Text>
             </Pressable>
@@ -180,18 +200,15 @@ export default function PantallaMapa() {
 
           <ScrollView
             style={s.panelLista}
-            contentContainerStyle={{ paddingBottom: esp.lg }}
+            contentContainerStyle={{ paddingBottom: esp.xxl }}
             showsVerticalScrollIndicator={false}
           >
-            {/* La respuesta primero. Todo lo demás es el detalle de por qué. */}
             {datos.aviso ? (
               <TarjetaAviso aviso={datos.aviso} />
             ) : (
               <Respuesta llegadas={datos.llegadas} />
             )}
 
-            {/* Las acciones van como pastillas y no como botones anchos: son
-                secundarias frente a la respuesta, y así no le roban el lugar. */}
             <View style={s.acciones}>
               <Pressable
                 style={s.accion}
@@ -232,17 +249,16 @@ export default function PantallaMapa() {
             {datos.llegadas.map((l, i) => (
               <FilaLlegada key={`${l.recorrido}-${i}`} llegada={l} />
             ))}
-            <Text style={s.pie}>
-              Los rangos muestran la incertidumbre real de cada estimación.
-            </Text>
           </ScrollView>
-        </View>
+        </Hoja>
       ) : null}
     </View>
   );
 }
 
-const PANEL_ALTO = 380;
+/** Alto de la barra de pestañas, sin el área segura. Debe coincidir con el
+ *  del layout de pestañas: la hoja se apoya justo encima. */
+const ALTO_PESTANAS = 68;
 const ALTO_BUSCADOR = 48;
 
 const estilos = (c: Colores) =>
@@ -253,14 +269,17 @@ const estilos = (c: Colores) =>
     buscador: {
       flexDirection: "row",
       alignItems: "center",
-      gap: esp.sm,
-      backgroundColor: c.superficie,
+      gap: esp.md,
+      backgroundColor: c.vidrio,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.vidrioBorde,
       borderRadius: radio.pastilla,
       paddingHorizontal: esp.lg,
       height: ALTO_BUSCADOR,
+      ...(Platform.OS === "web" ? ({ backdropFilter: "blur(20px)" } as object) : null),
     },
-    lupa: { fontSize: 19, color: c.textoTenue },
-    buscadorTexto: { ...tipo.cuerpo, color: c.textoTenue },
+    lupa: { fontSize: 19, color: c.textoSuave },
+    buscadorTexto: { ...tipo.cuerpo, color: c.textoSuave },
 
     ubicacion: {
       position: "absolute",
@@ -268,24 +287,16 @@ const estilos = (c: Colores) =>
       width: 46,
       height: 46,
       borderRadius: 23,
-      backgroundColor: c.superficie,
+      backgroundColor: c.vidrio,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.vidrioBorde,
       alignItems: "center",
       justifyContent: "center",
+      ...(Platform.OS === "web" ? ({ backdropFilter: "blur(20px)" } as object) : null),
     },
     ubicacionIcono: { fontSize: 20, color: c.marca },
 
-    panel: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: PANEL_ALTO,
-      backgroundColor: c.fondo,
-      borderTopLeftRadius: radio.xl,
-      borderTopRightRadius: radio.xl,
-      paddingTop: esp.sm,
-    },
-    agarre: {
+    agarreViejo: {
       width: 38,
       height: 4,
       borderRadius: 2,

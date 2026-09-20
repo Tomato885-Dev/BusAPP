@@ -32,7 +32,10 @@ export function BarraIncertidumbre({
   const c = useColores();
   const s = estilos();
 
-  const tope = Math.max(ESCALA_S, maxS);
+  // La escala es fija a propósito. Si se estirara para que quepa cada rango,
+  // una micro cada 135 minutos dibujaría la misma barra que una cada 8 y se
+  // perdería justo lo que la barra viene a decir. Lo que se sale, se sale.
+  const tope = ESCALA_S;
   const pct = (v: number) =>
     `${Math.max(0, Math.min(100, (v / tope) * 100))}%` as `${number}%`;
 

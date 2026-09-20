@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
+import { MODO_DEMO } from "../api";
 import { aMinutos } from "../formato";
 import { esp, fuente, radio, tipo, useColores, type Colores } from "../tema";
 import type { Llegada } from "../tipos";
@@ -33,7 +34,11 @@ export function Respuesta({ llegadas }: { llegadas: Llegada[] }) {
   }
 
   const minutos = aMinutos(proxima.etaSegundos!);
-  const enVivo = proxima.fuente === "telemetria";
+  // En modo demostración no hay nada en vivo, por mucho que la fuente simulada
+  // diga telemetría. Afirmarlo aquí sería la misma mentira que se sacó de las
+  // filas de abajo.
+  const enVivo = proxima.fuente === "telemetria" && !MODO_DEMO;
+  const simulada = proxima.fuente === "telemetria" && MODO_DEMO;
   const color = enVivo ? c.ok : c.marca;
   const fondo = enVivo ? c.okFondo : c.marcaSuave;
 
@@ -47,7 +52,7 @@ export function Respuesta({ llegadas }: { llegadas: Llegada[] }) {
             {/* Con dato en vivo se afirma; con el horario oficial se estima.
                 Decir «llega en 15» cuando el rango real es de 0 a 30 sería el
                 tipo de promesa que hace desconfiar de las demás apps. */}
-            {enVivo
+            {enVivo || simulada
               ? minutos <= 0
                 ? "Está llegando"
                 : minutos === 1
@@ -62,7 +67,9 @@ export function Respuesta({ llegadas }: { llegadas: Llegada[] }) {
               ? `confirmado por ${proxima.personasABordo ?? 1} ${
                   (proxima.personasABordo ?? 1) === 1 ? "persona" : "personas"
                 } a bordo`
-              : "según el horario oficial, sin confirmar"}
+              : simulada
+                ? "simulado · así se verá con datos en vivo"
+                : "según el horario oficial, sin confirmar"}
           </Text>
         </View>
 

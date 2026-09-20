@@ -53,7 +53,11 @@ const claro = {
   // Mapa
   mapaFondo: "#e8ecea",
   mapaVelo: "rgba(243, 245, 244, 0.30)",
-  sombra: "rgba(24, 34, 32, 0.13)",
+  sombra: "rgba(24, 34, 32, 0.10)",
+  sombraCorta: "rgba(24, 34, 32, 0.06)",
+  /** Superficie translúcida sobre el mapa, para cuando no hay desenfoque. */
+  vidrio: "rgba(255, 255, 255, 0.93)",
+  vidrioBorde: "rgba(255, 255, 255, 0.6)",
 };
 
 const oscuro: typeof claro = {
@@ -84,7 +88,10 @@ const oscuro: typeof claro = {
   mapaFondo: "#141a19",
   // En modo oscuro el velo oscurece las teselas claras en vez de aclararlas.
   mapaVelo: "rgba(15, 20, 19, 0.52)",
-  sombra: "rgba(0, 0, 0, 0.55)",
+  sombra: "rgba(0, 0, 0, 0.45)",
+  sombraCorta: "rgba(0, 0, 0, 0.35)",
+  vidrio: "rgba(25, 32, 31, 0.94)",
+  vidrioBorde: "rgba(255, 255, 255, 0.08)",
 };
 
 export type Colores = typeof claro;
@@ -107,12 +114,19 @@ export const esp = {
   xxl: 32,
 } as const;
 
-/** Radios: generosos, que es lo que separa una app actual de una de 2014. */
+/**
+ * Radios.
+ *
+ * Generosos a propósito: en una pantalla donde casi todo es una tarjeta, el
+ * radio es lo que más dice de la época del diseño. Los de las superficies
+ * grandes —hojas, tarjetas— son claramente mayores que los de las piezas
+ * chicas, y ese contraste es lo que da jerarquía.
+ */
 export const radio = {
-  sm: 8,
-  md: 14,
-  lg: 20,
-  xl: 28,
+  sm: 10,
+  md: 18,
+  lg: 26,
+  xl: 34,
   pastilla: 999,
 } as const;
 
@@ -140,21 +154,32 @@ export const fuente = {
 
 /** Escala tipográfica. */
 export const tipo = {
-  gigante: { fontFamily: fuente.extra, fontSize: 44, letterSpacing: -1.4 },
-  titulo: { fontFamily: fuente.fuerte, fontSize: 26, letterSpacing: -0.6 },
-  subtitulo: { fontFamily: fuente.fuerte, fontSize: 19, letterSpacing: -0.3 },
+  gigante: { fontFamily: fuente.extra, fontSize: 52, letterSpacing: -2 },
+  titulo: { fontFamily: fuente.extra, fontSize: 28, letterSpacing: -0.9 },
+  subtitulo: { fontFamily: fuente.fuerte, fontSize: 20, letterSpacing: -0.4 },
   cuerpo: { fontFamily: fuente.normal, fontSize: 15, letterSpacing: -0.1 },
-  cuerpoFuerte: { fontFamily: fuente.fuerte, fontSize: 15, letterSpacing: -0.1 },
+  cuerpoFuerte: { fontFamily: fuente.fuerte, fontSize: 15, letterSpacing: -0.2 },
   menor: { fontFamily: fuente.normal, fontSize: 13 },
-  micro: { fontFamily: fuente.fuerte, fontSize: 11, letterSpacing: 0.3 },
+  // Las etiquetas de sección: chicas, espaciadas y en versalitas. El contraste
+  // entre éstas y los títulos es lo que ordena la pantalla sin usar líneas.
+  micro: { fontFamily: fuente.extra, fontSize: 11, letterSpacing: 0.8 },
 } as const;
 
-/** Elevación. En web se usa boxShadow porque las sombras nativas no aplican. */
+/**
+ * Elevación.
+ *
+ * En web se usan dos sombras superpuestas: una corta y cerrada que define el
+ * borde del objeto, y otra larga y difusa que lo separa del fondo. Una sola
+ * sombra o queda dura o queda sucia; dos dan la profundidad que se ve en las
+ * apps actuales. En nativo no existe esa composición, así que se aproxima.
+ */
 export function elevacion(c: Colores, nivel: 1 | 2 | 3) {
-  const alto = { 1: 2, 2: 8, 3: 18 }[nivel];
-  const radioSombra = { 1: 6, 2: 20, 3: 38 }[nivel];
+  const alto = { 1: 2, 2: 10, 3: 24 }[nivel];
+  const radioSombra = { 1: 8, 2: 28, 3: 56 }[nivel];
   if (Platform.OS === "web") {
-    return { boxShadow: `0 ${alto}px ${radioSombra}px ${c.sombra}` } as const;
+    return {
+      boxShadow: `0 1px 2px ${c.sombraCorta}, 0 ${alto}px ${radioSombra}px ${c.sombra}`,
+    } as const;
   }
   return {
     shadowColor: "#000",
