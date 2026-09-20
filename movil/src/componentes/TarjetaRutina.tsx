@@ -168,6 +168,6 @@ const estilos = (c: Colores) =>
     insigniaTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.textoInverso },
     destino: { ...tipo.cuerpo, color: c.texto },
     origen: { ...tipo.menor, marginTop: 1 },
-    eta: { fontFamily: fuente.extra, fontSize: 22, letterSpacing: -0.8, lineHeight: 25 },
+    eta: { ...tipo.datoMenor },
     rango: { ...tipo.menor, color: c.textoTenue },
   });

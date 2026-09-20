@@ -2,10 +2,10 @@ import { router } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Marca } from "../../src/componentes/Marca";
+import { Logotipo } from "../../src/componentes/Logotipo";
 import { usePremium } from "../../src/premium";
 import { RECORRIDOS } from "../../src/red";
-import { esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
+import { esp, radio, tipo, useColores, type Colores } from "../../src/tema";
 
 /**
  * Lo secundario.
@@ -49,10 +49,12 @@ export default function PantallaMas() {
         s={s}
       />
 
+      {/* La firma es el único lugar de la app donde la marca aparece entera.
+          En el mapa estorbaría: ahí lo que importa es el paradero. */}
       <View style={s.firma}>
-        <Marca tamano={56} animado />
+        <Logotipo tamano={34} />
         <Text style={s.pie}>
-          <Text style={s.pieFuerte}>Kupay</Text> · «küpay» es «viene» en mapudungun.{"\n"}
+          «küpay» es «viene» en mapudungun.{"\n"}
           Datos de la red: DTPM, Directorio de Transporte Público Metropolitano.
         </Text>
       </View>
@@ -96,7 +98,10 @@ function Opcion({
 const estilos = (c: Colores) =>
   StyleSheet.create({
     pantalla: { flex: 1, backgroundColor: c.fondo },
-    contenido: { padding: esp.lg, paddingBottom: esp.xxl },
+    // `flexGrow` + `marginTop: auto` en la firma: con dos opciones nada más, la
+    // pantalla quedaba con la marca colgando a media altura y medio teléfono en
+    // blanco debajo. Al pie se lee como firma y el vacío deja de ser un hueco.
+    contenido: { padding: esp.lg, paddingBottom: esp.xxl, flexGrow: 1 },
     titulo: { ...tipo.titulo, color: c.texto, marginBottom: esp.lg },
 
     opcion: {
@@ -117,12 +122,11 @@ const estilos = (c: Colores) =>
     opcionDetalleDestacado: { color: c.marcaTexto, opacity: 0.9 },
     flecha: { fontSize: 22, color: c.textoTenue },
 
-    firma: { alignItems: "center", marginTop: esp.xxl, gap: esp.md },
+    firma: { alignItems: "center", marginTop: "auto", paddingTop: esp.xxl, gap: esp.lg },
     pie: {
       ...tipo.menor,
       color: c.textoTenue,
       textAlign: "center",
       lineHeight: 19,
     },
-    pieFuerte: { fontFamily: fuente.fuerte, color: c.textoSuave },
   });

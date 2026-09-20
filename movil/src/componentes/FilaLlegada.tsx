@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { etaTexto, origenTexto, rangoTexto, tono, type Tono } from "../formato";
-import { esp, fuente, radio, tipo, useColores, type Colores } from "../tema";
+import { esp, radio, tipo, useColores, type Colores } from "../tema";
 import type { Llegada } from "../tipos";
 import { BarraIncertidumbre } from "./BarraIncertidumbre";
 import { Insignia } from "./Insignia";
@@ -82,7 +82,7 @@ const estilos = (c: Colores) =>
     origen: { ...tipo.menor, marginTop: 2 },
 
     derecha: { alignItems: "flex-end", minWidth: 54 },
-    eta: { fontFamily: fuente.extra, fontSize: 28, letterSpacing: -1.2, lineHeight: 30 },
+    eta: { ...tipo.dato },
     unidad: { ...tipo.micro, color: c.textoTenue, marginTop: -1 },
 
     rango: { ...tipo.menor, color: c.textoTenue, marginTop: 4 },

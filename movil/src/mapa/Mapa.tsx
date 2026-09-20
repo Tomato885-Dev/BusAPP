@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import Svg, { Polyline } from "react-native-svg";
 
-import { type Colores, elevacion, esp, fuente, radio, tipo, useColores, useEsOscuro } from "../tema";
+import { type Colores, cifras, elevacion, esp, fuente, radio, tipo, useColores, useEsOscuro } from "../tema";
 import { TESELA, latAY, lonAX, xALon, yALat } from "./proyeccion";
 
 export interface Marcador {
@@ -536,11 +536,9 @@ export function Mapa({
                   style={[
                     s.punto,
                     elevacion(c, 1),
-                    activo && { backgroundColor: c.marca, transform: [{ scale: 1.3 }] },
+                    activo && { backgroundColor: c.marca, transform: [{ scale: 1.45 }] },
                   ]}
-                >
-                  <View style={s.puntoInterior} />
-                </View>
+                />
               </Pressable>
             );
           })}
@@ -606,18 +604,28 @@ const estilos = (c: Colores) =>
       alignItems: "center",
       justifyContent: "center",
     },
+    // El borde grueso de teal convertía cada paradero en una calcomanía, y con
+    // cuarenta en pantalla eso es lo que hacía ver el mapa recargado. Ahora la
+    // pastilla se apoya en su sombra y el color vive en el número, que es lo
+    // único que hay que leer.
     pastillaMin: {
       minWidth: 32,
-      paddingHorizontal: 7,
-      height: 24,
+      paddingHorizontal: 8,
+      height: 25,
       borderRadius: radio.pastilla,
       backgroundColor: c.superficie,
-      borderWidth: 2,
-      borderColor: c.marca,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.borde,
       alignItems: "center",
       justifyContent: "center",
     },
-    pastillaMinTexto: { ...tipo.menor, fontFamily: fuente.fuerte, color: c.marca },
+    pastillaMinTexto: {
+      ...tipo.menor,
+      ...cifras,
+      fontFamily: fuente.extra,
+      color: c.marcaTexto,
+      letterSpacing: -0.3,
+    },
     marcadorChico: {
       position: "absolute",
       width: 22,
@@ -632,17 +640,17 @@ const estilos = (c: Colores) =>
       borderWidth: 2.5,
       backgroundColor: c.superficie,
     },
+    // El paradero sin hora es información de segundo orden: existe, pero no es
+    // lo que se vino a mirar. Era un punto negro con un agujero blanco al
+    // medio, que a cuarenta por pantalla se leía como suciedad sobre el mapa.
     punto: {
-      width: 16,
-      height: 16,
-      borderRadius: 8,
-      backgroundColor: c.texto,
+      width: 13,
+      height: 13,
+      borderRadius: 7,
+      backgroundColor: c.textoTenue,
       borderWidth: 2.5,
       borderColor: c.superficie,
-      alignItems: "center",
-      justifyContent: "center",
     },
-    puntoInterior: { width: 4, height: 4, borderRadius: 2, backgroundColor: c.superficie },
     globo: {
       position: "absolute",
       bottom: 24,

@@ -57,25 +57,31 @@ Este es el bloqueador.
   que usan la mayoría de las ciudades para publicar `VehiclePositions` y
   `TripUpdates`).
 
-### APIs comunitarias — existen, pero no son base para un producto ⚠️
+### APIs comunitarias — **descartadas** ❌
 
 Hay envoltorios mantenidos por la comunidad (por ejemplo `api.xor.cl/red/...`,
 `muZk/red-api`) que obtienen información de llegadas por paradero, estado del
 Metro y saldo Bip! consultando el sitio oficial de Red.
 
-Son útiles **para prototipar**, pero no para producción:
+**Kupay no los usa. Ni en producción ni para prototipar.**
+
+La razón no es técnica sino de producto: Kupay es un producto comercial
+(`CLAUDE.md`, regla 1). Una app que cobra no puede apoyarse en algo que no
+controla ni puede exigir.
 
 | Problema | Consecuencia |
 |---|---|
 | Obtienen los datos por *scraping* del sitio oficial | Un rediseño de red.cl rompe la app sin aviso |
-| Sin SLA, sin garantía de disponibilidad | Tu app se cae cuando se cae un servicio de terceros que no controlas |
-| Sin límites de uso documentados | Riesgo de bloqueo al crecer el tráfico |
-| Situación legal ambigua respecto a los términos de uso de la fuente | Riesgo al monetizar o al publicar en App Store |
+| Sin SLA, sin garantía de disponibilidad | La app se cae cuando se cae un tercero |
+| Sin límites de uso documentados | Bloqueo al crecer el tráfico, justo cuando más duele |
+| Situación legal ambigua frente a los términos de uso de la fuente | Riesgo al cobrar y al publicar en las tiendas |
 | No entregan posiciones GPS ni el modelo de predicción | Tampoco resuelven el problema central |
 
-**Conclusión:** sirven como fuente temporal para validar la idea, jamás como
-dependencia permanente. Y si se usan, debe ser detrás de una abstracción que
-permita reemplazarlas (ver §1.5).
+El argumento de «úsalo mientras tanto» se consideró y se rechazó: lo provisorio
+se queda. Construir la app contra esa forma de datos crea dependencias que
+después hay que desarmar, y mientras tanto quita urgencia a la única gestión
+que sí destraba el proyecto —la solicitud al DTPM—, que es lenta y por eso no
+admite postergación. Ver `docs/13-carta-dtpm.md`.
 
 ## 1.3 Qué significa esto para el producto
 
@@ -149,8 +155,8 @@ la app nunca debe hablar directamente con una fuente externa.**
 Beneficios de esta separación:
 
 - Se puede lanzar con la fuente que haya y **sumar fuentes sin tocar la app**.
-- Si una fuente comunitaria se cae o se reemplaza por el acceso oficial, sólo
-  cambia un adaptador en el servidor; nadie tiene que actualizar la app.
+- Cuando llegue el acceso oficial del DTPM, sólo cambia un adaptador en el
+  servidor; nadie tiene que actualizar la app.
 - Las claves de acceso y la IP fija (si el DTPM la exige) viven en el servidor,
   que es el único lugar donde pueden vivir de forma segura. **Nunca en el
   binario de la app**, donde cualquiera puede extraerlas.
@@ -167,7 +173,7 @@ Antes de escribir código de producto:
 - [ ] Enviar la solicitud formal al DTPM por acceso a posiciones y predictor. Documentar fecha de envío y respuesta.
 - [ ] Confirmar si existe hoy algún feed GTFS-Realtime del DTPM (consultar directamente en la solicitud anterior).
 - [ ] Evaluar la cobertura y calidad de los datos de Metro.
-- [ ] Revisar los términos de uso de red.cl respecto al consumo automatizado.
+- [ ] Confirmar por escrito que el GTFS admite uso **comercial** (es la condición para construir encima).
 
 ## Fuentes consultadas
 
@@ -175,7 +181,5 @@ Antes de escribir código de producto:
 - [DTPM — Datos y Servicios](https://www.dtpm.cl/index.php/homepage/sistema-de-transportes/datos-y-servicios)
 - [Portal de Datos Abiertos — Feed GTFS Santiago](https://datos.gob.cl/dataset/33245)
 - [Red Movilidad — App Red](https://www.red.cl/acerca-de-red/app-red/)
-- [xorcl/api-red — API comunitaria de Red y Metro](https://github.com/xorcl/api-red)
-- [muZk/red-api — wrapper de red.cl](https://github.com/muZk/red-api)
 - [ignacio hermosilla — "API Transantiago para todos"](https://medium.com/@ignacio_h_v/api-transantiago-para-todos-8a28b9074b0a)
 - [Especificación GTFS Realtime](https://gtfs.org/es/realtime/best-practices/)

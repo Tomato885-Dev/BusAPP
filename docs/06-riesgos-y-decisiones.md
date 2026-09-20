@@ -40,13 +40,16 @@ sencillamente ambiguo.
 primera semana, con un registrador GPS y sin escribir la app. Es la validación
 más barata del supuesto más caro.
 
-### R3 — Dependencia de fuentes no oficiales 🟠 Alto
+### R3 — Dependencia de fuentes no oficiales 🟢 Eliminado por decisión
 
-**Probabilidad:** alta si se usan APIs comunitarias. **Impacto:** caída total del
-servicio sin aviso previo.
+**Probabilidad:** era alta si se usaban APIs comunitarias. **Impacto:** caída
+total del servicio sin aviso previo.
 
-*Mitigación:* la abstracción de fuentes de `01` §1.5; degradación elegante a
-horario programado; monitoreo de disponibilidad con alertas.
+*Eliminado el 20 de septiembre de 2026 (D12):* Kupay es un producto comercial y
+no usa fuentes comunitarias, no oficiales ni por *scraping*, ni siquiera de
+forma temporal. El riesgo deja de existir porque la dependencia deja de existir.
+La contrapartida es que no hay atajo hacia el dato en vivo: sólo el DTPM
+(`docs/13`) o la telemetría propia (`04`).
 
 ### R4 — Rechazo en tiendas por ubicación en background 🟠 Alto
 
@@ -120,12 +123,18 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 | D4 | Stack backend | ✅ **Python + FastAPI + PostGIS** (`03` §3.3) |
 | — | Presupuesto mensual | ✅ **USD 100** — la fase 1 cabe con holgura |
 
+**Resueltas el 20 de septiembre de 2026:**
+
+| # | Decisión | Resultado |
+|---|---|---|
+| D5 | Nombre definitivo | ✅ **Kupay** (`09`) |
+| D12 | ¿Fuentes comunitarias mientras llega el acceso oficial? | ❌ **No, en ningún caso.** Kupay es comercial: sin permiso de uso comercial no se construye encima. Elimina R3 y deja el dato en vivo dependiendo sólo del DTPM o de la telemetría propia |
+
 **Pendientes:**
 
 | # | Decisión | Depende de | Documento |
 |---|---|---|---|
-| D5 | Nombre definitivo del producto | — | `06` R6 |
-| D6 | Fuente de datos en vivo para la fase 1 | Respuesta del DTPM | `01` §1.2 |
+| D6 | Fuente de datos en vivo para la fase 1 | Respuesta del DTPM | `13` |
 | D7 | Proveedor de mapas: MapLibre / Google | Presupuesto | `02` §2.3 |
 | D8 | ¿Publicidad desde el inicio o después? | Modelo de negocio | Brief §7 |
 | D9 | Zona acotada de lanzamiento: ¿cuál? | Densidad, no cobertura | `04` §4.7 |
@@ -137,7 +146,10 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 Si alguno resulta falso, hay que revisar el plan:
 
 1. El GTFS del DTPM se mantiene disponible y actualizado. *(Verificar en F0-1.)*
-2. Su licencia permite uso en una app comercial o con publicidad. *(F0-2.)*
+2. Su licencia permite uso en una app comercial o con publicidad. *(F0-2. Con
+   D12 este supuesto pasa a ser bloqueante: si el GTFS no admite uso comercial,
+   no hay producto que construir encima, y hay que saberlo ahora y no en el mes
+   seis. Va preguntado explícitamente en la carta al DTPM, `docs/13`.)*
 3. Las trazas GPS de usuarios permiten identificar el recorrido con precisión
    superior al 90%. *(F0-5, R2b. Es el supuesto más importante del proyecto.)*
 4. El desarrollo lo realiza una persona o un equipo muy pequeño.

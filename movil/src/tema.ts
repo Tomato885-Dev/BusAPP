@@ -19,7 +19,7 @@
  * (≥ 4,5:1, o ≥ 3:1 en los tenues que sólo se usan en texto grande).
  */
 
-import { Platform, useColorScheme } from "react-native";
+import { Platform, useColorScheme, type TextStyle } from "react-native";
 
 const claro = {
   // Superficies: neutros cálidos con fondo verdoso, no grises fríos.
@@ -39,6 +39,8 @@ const claro = {
   marca: "#256d6a",
   marcaSuave: "#e2efee",
   marcaTexto: "#1c5754",
+  /** El extremo profundo del degradado del ícono. Fondo de la pantalla de inicio. */
+  marcaHonda: "#1c5754",
 
   // Estados
   ok: "#3d7a54",
@@ -75,6 +77,9 @@ const oscuro: typeof claro = {
   marca: "#69bdb6",
   marcaSuave: "#16302e",
   marcaTexto: "#8ed3cd",
+  // En oscuro la pantalla de inicio no se aclara: arrancar con un destello de
+  // color a las siete de la mañana es exactamente lo que la paleta evita.
+  marcaHonda: "#10302e",
 
   ok: "#7cba90",
   okFondo: "#16291d",
@@ -152,17 +157,99 @@ export const fuente = {
   extra: "Manrope_800ExtraBold",
 } as const;
 
-/** Escala tipográfica. */
+/**
+ * Cifras de ancho fijo.
+ *
+ * Va en todo número que **cambia solo**: la cuenta regresiva del paradero, los
+ * minutos de un viaje, los contadores. Con cifras proporcionales, pasar de
+ * «11 min» a «9 min» mueve el texto de lugar, y en una pantalla que se mira de
+ * reojo ese salto se nota más que el propio número.
+ */
+export const cifras: { fontVariant: TextStyle["fontVariant"] } = {
+  fontVariant: ["tabular-nums"],
+};
+
+/**
+ * Escala tipográfica.
+ *
+ * Dos cosas que antes no estaban y que son la diferencia entre «tiene tipografía»
+ * y «está tipografiada»:
+ *
+ * **Interlineado explícito en todos los niveles.** Sin él, cada plataforma
+ * inventa el suyo —iOS y Android no coinciden— y un párrafo de dos líneas se ve
+ * distinto en cada teléfono. Los títulos van apretados (1,0 a 1,15) porque una
+ * línea suelta en cuerpo grande se desarma; el texto corrido va a 1,4, que es
+ * donde se lee cómodo.
+ *
+ * **Interletrado negativo que crece con el cuerpo.** Manrope viene espaciada
+ * para leer párrafos. A 52 px ese mismo espaciado deja los números flotando
+ * sueltos, así que se cierra progresivamente: −4% en el número gigante, −0,7%
+ * en el texto chico, y positivo sólo en las versalitas, donde el espacio es
+ * justamente lo que las hace legibles.
+ */
 export const tipo = {
-  gigante: { fontFamily: fuente.extra, fontSize: 52, letterSpacing: -2 },
-  titulo: { fontFamily: fuente.extra, fontSize: 28, letterSpacing: -0.9 },
-  subtitulo: { fontFamily: fuente.fuerte, fontSize: 20, letterSpacing: -0.4 },
-  cuerpo: { fontFamily: fuente.normal, fontSize: 15, letterSpacing: -0.1 },
-  cuerpoFuerte: { fontFamily: fuente.fuerte, fontSize: 15, letterSpacing: -0.2 },
-  menor: { fontFamily: fuente.normal, fontSize: 13 },
+  /** La respuesta. Es el único número que la app grita. */
+  gigante: {
+    fontFamily: fuente.extra,
+    fontSize: 52,
+    lineHeight: 52,
+    letterSpacing: -2,
+    ...cifras,
+  },
+  titulo: {
+    fontFamily: fuente.extra,
+    fontSize: 28,
+    lineHeight: 32,
+    letterSpacing: -0.9,
+  },
+  subtitulo: {
+    fontFamily: fuente.fuerte,
+    fontSize: 20,
+    lineHeight: 25,
+    letterSpacing: -0.4,
+  },
+  /** El número de una fila: el «4 min» de cada llegada. */
+  dato: {
+    fontFamily: fuente.extra,
+    fontSize: 28,
+    lineHeight: 30,
+    letterSpacing: -1.2,
+    ...cifras,
+  },
+  /** El mismo número, en una tarjeta secundaria. */
+  datoMenor: {
+    fontFamily: fuente.extra,
+    fontSize: 22,
+    lineHeight: 25,
+    letterSpacing: -0.8,
+    ...cifras,
+  },
+  cuerpo: {
+    fontFamily: fuente.normal,
+    fontSize: 15,
+    lineHeight: 21,
+    letterSpacing: -0.1,
+  },
+  cuerpoFuerte: {
+    fontFamily: fuente.fuerte,
+    fontSize: 15,
+    lineHeight: 21,
+    letterSpacing: -0.2,
+  },
+  menor: {
+    fontFamily: fuente.normal,
+    fontSize: 13,
+    lineHeight: 18,
+    letterSpacing: -0.1,
+  },
   // Las etiquetas de sección: chicas, espaciadas y en versalitas. El contraste
   // entre éstas y los títulos es lo que ordena la pantalla sin usar líneas.
-  micro: { fontFamily: fuente.extra, fontSize: 11, letterSpacing: 0.8 },
+  micro: {
+    fontFamily: fuente.extra,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.8,
+  },
 } as const;
 
 /**
