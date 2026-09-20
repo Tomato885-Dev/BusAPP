@@ -11,6 +11,7 @@ import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { BarraViaje } from "../src/componentes/BarraViaje";
+import { Cargando } from "../src/componentes/Cargando";
 
 import { ProveedorDestinos } from "../src/destinos";
 import { ProveedorFavoritos } from "../src/favoritos";
@@ -32,7 +33,7 @@ export default function Layout() {
   // sistema y después un salto. Pero si la carga **falla** se dibuja igual: una
   // app que no arranca por una fuente es peor que una app con otra fuente.
   if (!tipografiaLista && !errorTipografia) {
-    return <View style={{ flex: 1, backgroundColor: c.fondo }} />;
+    return <Cargando />;
   }
 
   return (

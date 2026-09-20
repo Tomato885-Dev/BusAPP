@@ -89,6 +89,9 @@ export default function PantallaMapa() {
     );
     if (!proxima) return null;
     const min = Math.round(proxima.etaSegundos! / 60);
+    // Más allá de esto el número deja de ser útil y sólo ensucia el mapa: a una
+    // hora de espera lo que corresponde es abrir el paradero, no leer al paso.
+    if (min > MAXIMO_EN_MAPA) return null;
     return min <= 0 ? "ya" : `${min}′`;
   }, []);
 
@@ -259,6 +262,9 @@ export default function PantallaMapa() {
 /** Alto de la barra de pestañas, sin el área segura. Debe coincidir con el
  *  del layout de pestañas: la hoja se apoya justo encima. */
 const ALTO_PESTANAS = 68;
+
+/** Hasta cuántos minutos se escriben encima del paradero en el mapa. */
+const MAXIMO_EN_MAPA = 45;
 const ALTO_BUSCADOR = 48;
 
 const estilos = (c: Colores) =>

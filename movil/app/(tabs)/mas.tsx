@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Marca } from "../../src/componentes/Marca";
 import { usePremium } from "../../src/premium";
 import { RECORRIDOS } from "../../src/red";
 import { esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
@@ -48,10 +49,13 @@ export default function PantallaMas() {
         s={s}
       />
 
-      <Text style={s.pie}>
-        Kupay · «küpay» es «viene» en mapudungun.{"\n"}
-        Datos de la red: DTPM, Directorio de Transporte Público Metropolitano.
-      </Text>
+      <View style={s.firma}>
+        <Marca tamano={56} animado />
+        <Text style={s.pie}>
+          <Text style={s.pieFuerte}>Kupay</Text> · «küpay» es «viene» en mapudungun.{"\n"}
+          Datos de la red: DTPM, Directorio de Transporte Público Metropolitano.
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -113,11 +117,12 @@ const estilos = (c: Colores) =>
     opcionDetalleDestacado: { color: c.marcaTexto, opacity: 0.9 },
     flecha: { fontSize: 22, color: c.textoTenue },
 
+    firma: { alignItems: "center", marginTop: esp.xxl, gap: esp.md },
     pie: {
       ...tipo.menor,
       color: c.textoTenue,
       textAlign: "center",
-      marginTop: esp.xl,
       lineHeight: 19,
     },
+    pieFuerte: { fontFamily: fuente.fuerte, color: c.textoSuave },
   });
