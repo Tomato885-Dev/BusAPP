@@ -1,43 +1,58 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { etaTexto, origenTexto, rangoTexto, tono, type Tono } from "../formato";
-import { type Colores, esp, fuente, radio, tipo, useColores } from "../tema";
+import { esp, fuente, radio, tipo, useColores, type Colores } from "../tema";
 import type { Llegada } from "../tipos";
+import { BarraIncertidumbre } from "./BarraIncertidumbre";
+import { Insignia } from "./Insignia";
 
 export function FilaLlegada({ llegada }: { llegada: Llegada }) {
   const c = useColores();
   const s = estilos(c);
   const t = tono(llegada.estado, llegada.confianza);
   const color = colorDe(c, t);
-  const apagada = llegada.estado === "no_llegara";
+  const apagada = llegada.estado === "no_llegara" || llegada.etaSegundos === null;
 
   return (
     <View style={[s.fila, apagada && s.filaApagada]}>
-      <View style={[s.insignia, apagada && { opacity: 0.55 }]}>
-        <Text style={s.insigniaTexto} numberOfLines={1}>
-          {llegada.recorrido}
-        </Text>
-      </View>
+      {/* Una franja del color del recorrido al canto: identifica la línea
+          incluso antes de leer el número. */}
+      <View style={[s.canto, { backgroundColor: apagada ? c.neutro : color }]} />
 
-      <View style={s.medio}>
-        <Text style={[s.destino, apagada && s.tachado]} numberOfLines={1}>
-          {llegada.destino || "—"}
-        </Text>
-        <View style={s.origenFila}>
-          <View style={[s.puntoEstado, { backgroundColor: color }]} />
-          <Text style={[s.origen, { color }]} numberOfLines={1}>
-            {origenTexto(llegada)}
-          </Text>
+      <View style={s.contenido}>
+        <View style={s.arriba}>
+          <Insignia nombre={llegada.recorrido} apagada={apagada} />
+
+          <View style={s.medio}>
+            <Text style={[s.destino, apagada && s.tachado]} numberOfLines={1}>
+              {llegada.destino || "—"}
+            </Text>
+            <Text style={[s.origen, { color: apagada ? c.textoTenue : color }]} numberOfLines={1}>
+              {origenTexto(llegada)}
+            </Text>
+          </View>
+
+          <View style={s.derecha}>
+            <Text style={[s.eta, { color: apagada ? c.textoTenue : color }]} numberOfLines={1}>
+              {etaTexto(llegada)}
+            </Text>
+            {!apagada ? <Text style={s.unidad}>min</Text> : null}
+          </View>
         </View>
-      </View>
 
-      <View style={s.derecha}>
-        <Text style={[s.eta, { color }]} numberOfLines={1}>
-          {etaTexto(llegada)}
-        </Text>
-        <Text style={s.rango} numberOfLines={1}>
-          {rangoTexto(llegada)}
-        </Text>
+        {/* La incertidumbre dibujada. Es lo que Kupay promete y ninguna otra
+            app muestra: hasta dónde llega lo que sabe. */}
+        {llegada.rangoSegundos && llegada.etaSegundos !== null ? (
+          <>
+            <BarraIncertidumbre
+              minS={llegada.rangoSegundos[0]}
+              maxS={llegada.rangoSegundos[1]}
+              etaS={llegada.etaSegundos}
+              color={color}
+            />
+            <Text style={s.rango}>{rangoTexto(llegada)}</Text>
+          </>
+        ) : null}
       </View>
     </View>
   );
@@ -51,32 +66,24 @@ const estilos = (c: Colores) =>
   StyleSheet.create({
     fila: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: esp.md,
-      paddingVertical: esp.md,
-      paddingHorizontal: esp.lg,
       borderRadius: radio.md,
       backgroundColor: c.superficie,
       marginBottom: esp.sm,
+      overflow: "hidden",
     },
     filaApagada: { backgroundColor: c.maloFondo },
-    insignia: {
-      minWidth: 54,
-      paddingHorizontal: esp.sm,
-      height: 34,
-      borderRadius: radio.sm,
-      backgroundColor: c.texto,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    insigniaTexto: { ...tipo.cuerpoFuerte, color: c.textoInverso },
+    canto: { width: 4 },
+    contenido: { flex: 1, minWidth: 0, paddingVertical: esp.md, paddingHorizontal: esp.lg },
+
+    arriba: { flexDirection: "row", alignItems: "center", gap: esp.md },
     medio: { flex: 1, minWidth: 0 },
     destino: { ...tipo.cuerpoFuerte, color: c.texto },
     tachado: { textDecorationLine: "line-through", color: c.textoSuave },
-    origenFila: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 3 },
-    puntoEstado: { width: 6, height: 6, borderRadius: 3 },
-    origen: { ...tipo.menor, flexShrink: 1 },
-    derecha: { alignItems: "flex-end", minWidth: 64 },
-    eta: { fontFamily: fuente.extra, fontSize: 27, letterSpacing: -1, lineHeight: 31 },
-    rango: { ...tipo.menor, color: c.textoTenue, marginTop: 1 },
+    origen: { ...tipo.menor, marginTop: 2 },
+
+    derecha: { alignItems: "flex-end", minWidth: 54 },
+    eta: { fontFamily: fuente.extra, fontSize: 28, letterSpacing: -1.2, lineHeight: 30 },
+    unidad: { ...tipo.micro, color: c.textoTenue, marginTop: -1 },
+
+    rango: { ...tipo.menor, color: c.textoTenue, marginTop: 4 },
   });

@@ -216,6 +216,10 @@ def exportar(feed: Feed, recuadro: Recuadro, destino: Path) -> dict[str, int]:
             "nombre": recorrido.nombre_corto,
             "destino": viaje.letrero,
             "tipo": recorrido.tipo,
+            # Sin color declarado se usa el gris de la red: mejor un tono
+            # neutro que una insignia invisible.
+            "color": f"#{recorrido.color}" if recorrido.color else "#4a5553",
+            "colorTexto": f"#{recorrido.color_texto}" if recorrido.color_texto else "#ffffff",
             "paradas": secuencia,
             "frecuencias": frecuencias,
         })

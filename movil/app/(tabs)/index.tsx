@@ -10,6 +10,7 @@ import { TarjetaRutina } from "../../src/componentes/TarjetaRutina";
 import { useFavoritos } from "../../src/favoritos";
 import { usePremium } from "../../src/premium";
 import { useRutinas } from "../../src/rutinas";
+import { AvisoDemo } from "../../src/componentes/AvisoDemo";
 import { Respuesta } from "../../src/componentes/Respuesta";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
@@ -225,6 +226,8 @@ export default function PantallaMapa() {
                 <Text style={s.accionTexto}>Ver todo</Text>
               </Pressable>
             </View>
+
+            <AvisoDemo compacto />
 
             {datos.llegadas.map((l, i) => (
               <FilaLlegada key={`${l.recorrido}-${i}`} llegada={l} />

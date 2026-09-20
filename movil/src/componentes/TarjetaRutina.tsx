@@ -8,6 +8,7 @@ import { etaTexto, origenTexto, rangoTexto, tono } from "../formato";
 import { PARADERO_POR_ID } from "../red";
 import { horaTexto, type Rutina } from "../rutinas";
 import { type Colores, elevacion, esp, fuente, radio, tipo, useColores } from "../tema";
+import { Insignia } from "./Insignia";
 
 /** Cuántas micros caben sin que la tarjeta tape el mapa. */
 const CUANTAS = 3;
@@ -109,9 +110,7 @@ export function TarjetaRutina({
           }[tono(l.estado, l.confianza)];
           return (
             <View key={`${l.recorrido}-${i}`} style={s.fila}>
-              <View style={s.insignia}>
-                <Text style={s.insigniaTexto}>{l.recorrido}</Text>
-              </View>
+              <Insignia nombre={l.recorrido} tamano="chica" />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={s.destino} numberOfLines={1}>{l.destino}</Text>
                 <Text style={[s.origen, { color }]} numberOfLines={1}>

@@ -37,6 +37,11 @@ class Recorrido:
     nombre_corto: str  # lo que la gente llama "la 506"
     nombre_largo: str
     tipo: int          # 3 = bus, 1 = metro (según la especificación GTFS)
+    # Colores oficiales del recorrido, en hexadecimal y sin almohadilla. El
+    # feed los trae para toda la red: los del Metro y los de cada zona de
+    # micros, que son los mismos con que están pintados los buses.
+    color: str
+    color_texto: str
 
 
 @dataclass(frozen=True)
@@ -240,6 +245,8 @@ def leer_feed(ruta: str | Path) -> Feed:
                 nombre_corto=(f.get("route_short_name") or "").strip(),
                 nombre_largo=(f.get("route_long_name") or "").strip(),
                 tipo=int(f.get("route_type") or 3),
+                color=(f.get("route_color") or "").strip(),
+                color_texto=(f.get("route_text_color") or "").strip(),
             )
 
         filas = fuente.leer("trips.txt")

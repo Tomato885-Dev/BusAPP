@@ -1,6 +1,7 @@
 /** Presentación de tiempos y estados. */
 
 import type { Confianza, Estado, Fuente, Llegada } from "./tipos";
+import { MODO_DEMO } from "./api";
 
 /** Minutos redondeados hacia abajo: «llega en 4» es mejor que «en 4,7». */
 export function aMinutos(segundos: number): number {
@@ -44,6 +45,12 @@ export function origenTexto(llegada: Llegada): string {
   // Sin datos en vivo, lo que sí se sabe es la frecuencia oficial del DTPM.
   // Decir «cada 12 min» informa mucho más que «estimado».
   if (llegada.fuente === "horario") return llegada.via ?? "Sin datos en vivo";
+
+  // Mientras no exista la capa en vivo, estas filas son una simulación de cómo
+  // se verá. Decir «En vivo» sería mentir, y el producto se vende justamente
+  // por no hacerlo.
+  if (MODO_DEMO) return "Simulado · así se verá en vivo";
+
   if (llegada.personasABordo) {
     const n = llegada.personasABordo;
     return `En vivo · ${n} ${n === 1 ? "persona" : "personas"} a bordo`;

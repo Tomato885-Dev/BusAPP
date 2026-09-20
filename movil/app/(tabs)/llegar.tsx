@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { llegadasDeParadero } from "../../src/api";
+import { Insignia } from "../../src/componentes/Insignia";
 import { Vacio } from "../../src/componentes/Vacio";
 import { CUANTOS_MOSTRAR, useDestinos } from "../../src/destinos";
 import { duracionTexto } from "../../src/formato";
@@ -322,11 +323,7 @@ function TarjetaViaje({ viaje }: { viaje: Viaje }) {
             {viaje.tramos.map((tr, i) => (
               <View key={tr.recorrido.id + i} style={s.cadenaItem}>
                 {i > 0 ? <Text style={s.cadenaFlecha}>›</Text> : null}
-                <View style={s.viajeInsignia}>
-                  <Text style={s.viajeInsigniaTexto} numberOfLines={1}>
-                    {tr.recorrido.nombre}
-                  </Text>
-                </View>
+                <Insignia nombre={tr.recorrido.nombre} />
               </View>
             ))}
           </View>

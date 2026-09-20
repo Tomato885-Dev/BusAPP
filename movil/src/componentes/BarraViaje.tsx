@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RECORRIDO_POR_ID } from "../red";
 import { type Colores, elevacion, esp, fuente, radio, tipo, useColores } from "../tema";
 import { paradasTexto, useViaje } from "../viaje";
+import { Insignia } from "./Insignia";
 
 /**
  * Barra del viaje en curso.
@@ -30,11 +31,7 @@ export function BarraViaje() {
 
   return (
     <View style={[s.barra, { marginTop: insets.top + esp.sm }, cerca && s.barraCerca, elevacion(c, 2)]}>
-      <View style={s.insignia}>
-        <Text style={s.insigniaTexto} numberOfLines={1}>
-          {recorrido?.nombre ?? "—"}
-        </Text>
-      </View>
+      <Insignia nombre={recorrido?.nombre ?? "—"} tamano="chica" />
 
       <View style={s.medio}>
         <Text style={s.cuenta} numberOfLines={1}>

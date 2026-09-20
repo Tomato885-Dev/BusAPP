@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { aMinutos } from "../formato";
 import { esp, fuente, radio, tipo, useColores, type Colores } from "../tema";
 import type { Llegada } from "../tipos";
+import { Insignia } from "./Insignia";
 
 /**
  * La respuesta, arriba de todo.
@@ -39,15 +40,22 @@ export function Respuesta({ llegadas }: { llegadas: Llegada[] }) {
   return (
     <View style={[s.caja, { backgroundColor: fondo }]}>
       <View style={s.fila}>
-        <View style={[s.insignia, { backgroundColor: color }]}>
-          <Text style={s.insigniaTexto} numberOfLines={1}>
-            {proxima.recorrido}
-          </Text>
-        </View>
+        <Insignia nombre={proxima.recorrido} tamano="grande" />
 
         <View style={s.medio}>
           <Text style={[s.titular, { color }]} numberOfLines={1}>
-            {minutos <= 0 ? "Está llegando" : minutos === 1 ? "Llega en 1 minuto" : `Llega en ${minutos} minutos`}
+            {/* Con dato en vivo se afirma; con el horario oficial se estima.
+                Decir «llega en 15» cuando el rango real es de 0 a 30 sería el
+                tipo de promesa que hace desconfiar de las demás apps. */}
+            {enVivo
+              ? minutos <= 0
+                ? "Está llegando"
+                : minutos === 1
+                  ? "Llega en 1 minuto"
+                  : `Llega en ${minutos} minutos`
+              : minutos <= 1
+                ? "Debería estar pasando"
+                : `Debería pasar en unos ${minutos} min`}
           </Text>
           <Text style={[s.pie, { color }]} numberOfLines={1}>
             {enVivo

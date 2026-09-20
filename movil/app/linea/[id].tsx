@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { Insignia } from "../../src/componentes/Insignia";
 import { Vacio } from "../../src/componentes/Vacio";
 import { Mapa, type Marcador, type Trazado } from "../../src/mapa/Mapa";
 import {
@@ -9,8 +10,10 @@ import {
   intervaloOficial,
   NOMBRE_DE_TIPO,
   PARADERO_POR_ID,
+  proximaApertura,
   RECORRIDO_POR_ID,
 } from "../../src/red";
+import { horaTexto } from "../../src/rutinas";
 import { esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
 
 /** Cuántas paradas se listan antes de cortar. */
@@ -50,9 +53,14 @@ export default function PantallaLinea() {
   const trazado = useMemo<Trazado | null>(
     () =>
       paradas.length >= 2
-        ? { puntos: paradas.map((p) => ({ lat: p.lat, lon: p.lon })), color: c.marca }
+        ? {
+            puntos: paradas.map((p) => ({ lat: p.lat, lon: p.lon })),
+            // El trazado va del color oficial de la línea: sobre el mapa es lo
+            // que la hace reconocible sin leer nada.
+            color: recorrido?.color ?? c.marca,
+          }
         : null,
-    [paradas, c.marca],
+    [paradas, recorrido, c.marca],
   );
 
   // El mapa se encuadra para que el recorrido quepa entero y llene la vista.
@@ -108,9 +116,7 @@ export default function PantallaLinea() {
       <Stack.Screen options={{ title: `${NOMBRE_DE_TIPO[recorrido.tipo]} ${recorrido.nombre}` }} />
       <ScrollView style={s.pantalla} contentContainerStyle={{ paddingBottom: esp.xxl }}>
         <View style={s.cabecera}>
-          <View style={[s.insignia, !activa && { backgroundColor: c.neutro }]}>
-            <Text style={s.insigniaTexto}>{recorrido.nombre}</Text>
-          </View>
+          <Insignia nombre={recorrido.nombre} tamano="grande" apagada={!activa} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={s.destino} numberOfLines={2}>
               {recorrido.destino}
@@ -120,7 +126,12 @@ export default function PantallaLinea() {
               <Text style={[s.estado, { color: activa ? c.ok : c.textoTenue }]}>
                 {activa && intervalo !== null
                   ? `En servicio · pasa cada ${Math.round(intervalo / 60)} min`
-                  : "Fuera de servicio a esta hora"}
+                  : (() => {
+                      const abre = proximaApertura(recorrido);
+                      return abre === null
+                        ? "Detenida"
+                        : `Vuelve a las ${horaTexto(Math.round(abre / 60))}`;
+                    })()}
               </Text>
             </View>
           </View>

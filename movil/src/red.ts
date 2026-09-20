@@ -32,6 +32,9 @@ export interface Recorrido {
   nombre: string;
   destino: string;
   tipo: TipoParada;
+  /** Color oficial del recorrido, tal como viene del DTPM. */
+  color: string;
+  colorTexto: string;
   paradas: string[];
   /** Frecuencias oficiales del DTPM por franja horaria. */
   frecuencias: Franja[];
@@ -189,6 +192,27 @@ export function recorridosDeTipo(tipo: TipoParada): Recorrido[] {
   return RECORRIDOS.filter((r) => r.tipo === tipo).sort((a, b) =>
     a.nombre.localeCompare(b.nombre, "es", { numeric: true }),
   );
+}
+
+/**
+ * A qué hora vuelve a operar un recorrido que ahora está detenido.
+ *
+ * Devuelve los segundos desde medianoche del próximo inicio de franja, o `null`
+ * si está operando. «Abre a las 6:00» le sirve a alguien; «fuera de servicio»
+ * lo deja igual de perdido que antes.
+ */
+export function proximaApertura(recorrido: Recorrido, ahora = new Date()): number | null {
+  if (intervaloOficial(recorrido, ahora) !== null) return null;
+  const s = segundosEnSantiago(ahora);
+  const inicios = recorrido.frecuencias.map(([i]) => i).sort((a, b) => a - b);
+  // La próxima de hoy; si ya pasaron todas, la primera de mañana.
+  return inicios.find((i) => i > s) ?? inicios[0] ?? null;
+}
+
+/** Los colores oficiales de un recorrido, buscándolo por su nombre. */
+export function coloresDe(nombre: string): { fondo: string; texto: string } {
+  const r = RECORRIDOS.find((x) => x.nombre === nombre);
+  return { fondo: r?.color ?? "#4a5553", texto: r?.colorTexto ?? "#ffffff" };
 }
 
 export { indicePorParadero };

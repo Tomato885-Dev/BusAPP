@@ -21,6 +21,21 @@ import { intervaloOficial, recorridosDe, type Recorrido } from "./red";
 import type { Aviso, Llegada, RespuestaParadero } from "./tipos";
 
 export const USAR_DATOS_SIMULADOS = true;
+
+/**
+ * Si los tiempos que se muestran son una demostración.
+ *
+ * **Lo que es real:** cada cuántos minutos pasa cada recorrido, que sale de
+ * `frequencies.txt` del DTPM, y los horarios de operación.
+ *
+ * **Lo que no:** cuándo viene *el próximo* bus. Para eso hace falta la posición
+ * en vivo, que hoy no existe: ni el acceso al GPS oficial ni la telemetría de
+ * usuarios. Mientras tanto la app simula esa capa para poder diseñarla y
+ * mostrarla, y lo dice en pantalla donde aparecen los números. Un tiempo
+ * inventado presentado como real es exactamente lo que Kupay existe para
+ * corregir.
+ */
+export const MODO_DEMO = USAR_DATOS_SIMULADOS;
 export const URL_BASE = "http://localhost:8000/v1";
 
 /** Generador determinista: un paradero muestra siempre lo mismo. */

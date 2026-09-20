@@ -5,6 +5,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "r
 
 import { llegadasDeParadero } from "../../src/api";
 import { FilaLlegada } from "../../src/componentes/FilaLlegada";
+import { AvisoDemo } from "../../src/componentes/AvisoDemo";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Vacio } from "../../src/componentes/Vacio";
 import { registrarConsulta } from "../../src/estadisticas";
@@ -172,7 +173,7 @@ export default function PantallaParadero() {
         ) : null}
 
         <Pressable
-          style={s.accionPrincipal}
+          style={[s.accionPrincipal, !esPremium && s.accionPrincipalSuave]}
           onPress={() =>
             esPremium
               ? router.push({ pathname: "/viaje", params: { paraderoId: paradero.id } })
@@ -181,10 +182,14 @@ export default function PantallaParadero() {
           accessibilityRole="button"
           accessibilityLabel="Me subí a una micro: avisarme antes de bajarme"
         >
-          <Text style={s.accionPrincipalIcono}>{esPremium ? "▸" : "◌"}</Text>
+          <Text style={[s.accionPrincipalIcono, !esPremium && s.textoSuave]}>
+            {esPremium ? "▸" : "◌"}
+          </Text>
           <View style={s.accionPrincipalMedio}>
-            <Text style={s.accionPrincipalTexto}>Me subí a una micro</Text>
-            <Text style={s.accionPrincipalDetalle}>
+            <Text style={[s.accionPrincipalTexto, !esPremium && s.textoSuave]}>
+              Me subí a una micro
+            </Text>
+            <Text style={[s.accionPrincipalDetalle, !esPremium && s.textoSuave]}>
               {esPremium
                 ? "Te avisamos antes de que tengas que bajarte"
                 : "Con Kupay Premium te avisamos antes de bajarte"}
@@ -214,6 +219,8 @@ export default function PantallaParadero() {
         </View>
 
         {datos.aviso ? <TarjetaAviso aviso={datos.aviso} /> : null}
+
+        <AvisoDemo />
 
         {vienen.length > 0 ? (
           <>
@@ -297,6 +304,10 @@ const estilos = (c: Colores) =>
       paddingHorizontal: esp.lg,
       marginTop: esp.lg,
     },
+    // Sin suscripción esto es un ofrecimiento, no una acción: no puede ser lo
+    // más llamativo de una pantalla que existe para decir si viene la micro.
+    accionPrincipalSuave: { backgroundColor: c.marcaSuave },
+    textoSuave: { color: c.marcaTexto },
     accionPrincipalIcono: { fontSize: 20, color: c.textoInverso },
     accionPrincipalMedio: { flex: 1, minWidth: 0 },
     accionPrincipalTexto: { ...tipo.cuerpoFuerte, color: c.textoInverso },

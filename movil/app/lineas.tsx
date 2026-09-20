@@ -5,10 +5,13 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import {
   estaOperando,
   NOMBRE_DE_TIPO,
+  proximaApertura,
   recorridosDeTipo,
   type Recorrido,
   type TipoParada,
 } from "../src/red";
+import { horaTexto } from "../src/rutinas";
+import { Insignia } from "../src/componentes/Insignia";
 import { esp, fuente, radio, tipo, useColores, type Colores } from "../src/tema";
 
 /** Los tres modos, en el orden en que la gente los usa en Santiago. */
@@ -105,11 +108,7 @@ function FilaLinea({ recorrido }: { recorrido: Recorrido }) {
       onPress={() => router.push({ pathname: "/linea/[id]", params: { id: recorrido.id } })}
       accessibilityRole="button"
     >
-      <View style={[s.insignia, !activa && { backgroundColor: c.neutro }]}>
-        <Text style={s.insigniaTexto} numberOfLines={1}>
-          {recorrido.nombre}
-        </Text>
-      </View>
+      <Insignia nombre={recorrido.nombre} apagada={!activa} />
       <View style={s.medio}>
         <Text style={s.destino} numberOfLines={1}>
           {recorrido.destino}
@@ -117,13 +116,19 @@ function FilaLinea({ recorrido }: { recorrido: Recorrido }) {
         <View style={s.estadoFila}>
           <View style={[s.punto, { backgroundColor: activa ? c.ok : c.neutro }]} />
           <Text style={[s.estado, { color: activa ? c.ok : c.textoTenue }]}>
-            {activa ? "En servicio" : "Fuera de servicio a esta hora"}
+            {activa ? "En servicio" : textoDetenido(recorrido)}
           </Text>
         </View>
       </View>
       <Text style={s.flecha}>›</Text>
     </Pressable>
   );
+}
+
+/** «Vuelve a las 6:00», que es lo que alguien necesita saber a medianoche. */
+function textoDetenido(recorrido: Recorrido): string {
+  const abre = proximaApertura(recorrido);
+  return abre === null ? "Detenida" : `Vuelve a las ${horaTexto(Math.round(abre / 60))}`;
 }
 
 const estilos = (c: Colores) =>
