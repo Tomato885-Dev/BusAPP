@@ -176,6 +176,33 @@ app que no arranca por una fuente es peor que una app con otra fuente.
 
 ---
 
+## Los íconos
+
+Eran **caracteres de texto**: `≡`, `◷`, `★`, `⌕`, `⌖`, `▸`, `▤`. Funciona para
+salir del paso y se nota, porque cada glifo viene de un tipógrafo distinto: otro
+grosor, otro tamaño óptico, otro centrado. Una fila de íconos así no se ve
+pareja nunca, y era lo que más hacía ver la interfaz vieja.
+
+Ahora están dibujados, con **una sola regla**: el mismo grosor de trazo que el
+símbolo de la marca. El logotipo usa 9 de 100; a 24 px eso da 2,16, y ése es el
+grosor de todos. Un ícono de pestaña y el símbolo de la app pertenecen
+visiblemente al mismo dibujo.
+
+Todos comparten además caja de 24 × 24 con dos de margen, remates y uniones
+redondos —como la marca—, y trazo sin relleno. La única excepción es la estrella
+de favoritos, que se rellena cuando está activa.
+
+Son dieciséis: `mapa`, `estrella`, `ruta`, `menu`, `buscar`, `ubicacion`, `mas`,
+`menos`, `lineas`, `reloj`, `campana`, `salida`, `desvio`, `grafico`, `flecha`,
+`cerrar`.
+
+Dos se rehicieron después de verlos al tamaño real: **desvío** llevaba además un
+signo de exclamación que a 20 px se leía como un borrón —el desvío ya es la
+alerta—, y **líneas** tenía un conector vertical que lo confundía con el ícono
+de menú, con el que convive en la misma barra.
+
+---
+
 ## La paleta
 
 Sigue siendo la de `src/tema.ts`, verificada en contraste WCAG AA. Lo que la

@@ -34,9 +34,9 @@ termina, se marca y se pasa al siguiente.
 | | Qué | Dónde | Cuánto toma |
 |---|---|---|---|
 | 1.1 | Grabar 3 viajes en micro | Tu teléfono | 2 h repartidas |
-| 1.2 | Volver a correr `esquema.sql` | Supabase | 2 min |
-| 1.3 | Activar el inicio de sesión anónimo | Supabase | 1 min |
-| 1.4 | Mandar la carta al DTPM | Tu correo | 15 min |
+| 1.2 | ✅ Volver a correr `esquema.sql` | Supabase | *hecho el 20-09* |
+| 1.3 | ✅ Activar el inicio de sesión anónimo | Supabase | *hecho el 20-09* |
+| 1.4 | Mandar la solicitud al DTPM | Tu correo | 30 min |
 | 1.5 | Guardar la clave de Stadia | GitHub | 10 min |
 
 ## 1.1 🧑 Grabar viajes en micro ⭐ LO MÁS IMPORTANTE
@@ -69,7 +69,7 @@ detallado —cuándo apretar el botón, qué anotar— está en `10-prueba-de-te
 **Tiempo:** un par de horas repartidas en unos días.
 **Cuando estén:** 🤖 los analizo y te digo si el supuesto se sostiene.
 
-## 1.2 🧑 Volver a correr `esquema.sql` *(quedó a medias)*
+## 1.2 ✅ Volver a correr `esquema.sql` — hecho
 
 La vez pasada se pegó en Supabase una **copia antigua** del archivo: entró todo
 hasta la sección «5. Funciones premium» y de ahí en adelante nada. Por eso el
@@ -87,7 +87,7 @@ verificador marcó `FALTA` en `rutinas`, `consultas`, `suscripciones` y
 Está escrito para poder correrse dos veces sin romper nada (`create table if
 not exists`), así que no hay riesgo en repetirlo.
 
-## 1.3 🧑 Activar el inicio de sesión anónimo
+## 1.3 ✅ Activar el inicio de sesión anónimo — hecho
 
 Supabase → **Authentication** → **Sign In / Providers** → **Anonymous Sign-ins**
 → **activar el interruptor**.
@@ -98,20 +98,24 @@ guardan en el servidor.
 **Cómo saber que quedó:** en la app, pestaña Favoritos, la línea de abajo debe
 decir *«Tus favoritos se guardan en el servidor»*.
 
-## 1.4 🧑 Mandar la carta al DTPM ✅ redactada
+## 1.4 🧑 Mandar la solicitud al DTPM ✅ redactada
 
 Es el trámite más lento del proyecto — meses. **Cada semana sin enviarlo es una
 semana de retraso**, y no se recupera trabajando más. Y desde que se descartaron
 las fuentes comunitarias (`06` D12), es además el **único** camino oficial hacia
 el dato en vivo.
 
-**La carta está escrita y lista en `13-carta-dtpm.md`.** Lo que falta es tuyo:
+Son **dos cosas en un mismo correo**: el formulario oficial lleno y adjunto, y
+un correo de presentación. Los dos están resueltos en `13-carta-dtpm.md`, que
+incluye además qué escribir en cada campo del formulario.
 
-1. Abrir la página «Datos y Servicios» del DTPM y **copiar de ahí la dirección
-   de correo** (desde acá no puedo abrir ese sitio). Si hay un formulario para
-   descargar, llenarlo y adjuntarlo.
-2. Reemplazar los `⟨ ⟩` de la carta con tus datos.
-3. Enviar.
+Lo que falta es tuyo:
+
+1. Copiar la dirección de correo desde la página «Datos y Servicios» del DTPM
+   (desde acá no puedo abrir ese sitio).
+2. Llenar el formulario — ojo, el archivo descargado trae texto de prueba en
+   «Contacto Técnico → Nombre».
+3. Reemplazar los `⟨ ⟩` del correo con tus datos y enviar.
 
 - [ ] Enviado el: `________`
 - [ ] Respuesta el: `________`
@@ -155,18 +159,30 @@ de encargar un logo o difundir el proyecto:
 
 Lo que más me sirve, y toma dos minutos:
 
-**Nombra 2 o 3 apps que te gusten estéticamente** (de cualquier rubro) y qué te
-gusta de ellas.
+**Respondido el 20-09: Instagram y SoSafe.**
 
-1. `______________` porque `______________`
-2. `______________` porque `______________`
+Las dos referencias coinciden en algo, y no es el color:
+
+**Instagram** no tiene interfaz visible. El contenido ocupa la pantalla entera y
+los controles son íconos de línea monocromos, del mismo grosor, sin relleno y
+sin color salvo donde hay una acción. El color aparece en un solo lugar y por
+eso significa algo.
+
+**SoSafe** es mapa a pantalla completa con una hoja abajo y **una** acción
+principal evidente. Es exactamente la forma que Kupay ya tiene, lo que confirma
+que la estructura está bien y el problema era el acabado.
+
+**Qué se tomó de ahí, concretamente:** el juego de íconos. Eran caracteres de
+texto —`≡`, `◷`, `★`, `⌕`—, cada uno de un tipógrafo distinto, con otro grosor y
+otro centrado, así que ninguna fila se veía pareja. Era lo que más hacía ver la
+interfaz vieja. Ahora están dibujados, todos con **el mismo grosor de trazo que
+el símbolo de la marca** (`12`).
+
+Queda pendiente de esta línea: reducir el color a donde hay acción, que es la
+otra lección de Instagram.
 
 Y el color de marca: hoy es teal apagado, elegido por la investigación de
 calma. ¿Lo dejamos o prefieres otro? `______________`
-
-> Mientras no llegue esa respuesta, la marca avanza igual: el símbolo, el
-> logotipo y la tipografía están hechos y documentados en `12-identidad.md`.
-> Lo que tú digas aquí ajusta el color, no hay que rehacer nada.
 
 ## 2.3 🧑 Borrar tus direcciones del historial *(privacidad)*
 

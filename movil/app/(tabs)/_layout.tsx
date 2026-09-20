@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Icono } from "../../src/componentes/Icono";
 import { tipo, useColores } from "../../src/tema";
 
 /**
@@ -51,28 +51,30 @@ export default function Pestanas() {
         name="index"
         options={{
           title: "Mapa",
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>◉</Text>,
+          tabBarIcon: ({ color }) => <Icono nombre="mapa" tamano={23} color={color} />,
         }}
       />
       <Tabs.Screen
         name="favoritos"
         options={{
           title: "Favoritos",
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>★</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <Icono nombre="estrella" tamano={23} color={color} lleno={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="llegar"
         options={{
           title: "Cómo llegar",
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>⇄</Text>,
+          tabBarIcon: ({ color }) => <Icono nombre="ruta" tamano={23} color={color} />,
         }}
       />
       <Tabs.Screen
         name="mas"
         options={{
           title: "Más",
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>≡</Text>,
+          tabBarIcon: ({ color }) => <Icono nombre="menu" tamano={23} color={color} />,
         }}
       />
     </Tabs>

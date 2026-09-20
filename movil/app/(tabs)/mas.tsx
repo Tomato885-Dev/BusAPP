@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Icono, type NombreIcono } from "../../src/componentes/Icono";
 import { Logotipo } from "../../src/componentes/Logotipo";
 import { usePremium } from "../../src/premium";
 import { RECORRIDOS } from "../../src/red";
@@ -29,7 +30,7 @@ export default function PantallaMas() {
       <Text style={s.titulo}>Más</Text>
 
       <Opcion
-        icono="≡"
+        icono="lineas"
         titulo="Líneas"
         detalle={`Las ${RECORRIDOS.length} líneas de micro, Metro y tren, con su estado y su recorrido`}
         onPress={() => router.push("/lineas")}
@@ -37,7 +38,7 @@ export default function PantallaMas() {
       />
 
       <Opcion
-        icono="◷"
+        icono="reloj"
         titulo={esPremium ? "Kupay Premium" : "Hazte Premium"}
         detalle={
           esPremium
@@ -70,27 +71,30 @@ function Opcion({
   destacado,
   s,
 }: {
-  icono: string;
+  icono: NombreIcono;
   titulo: string;
   detalle: string;
   onPress: () => void;
   destacado?: boolean;
   s: ReturnType<typeof estilos>;
 }) {
+  const c = useColores();
   return (
     <Pressable
       style={[s.opcion, destacado && s.opcionDestacada]}
       onPress={onPress}
       accessibilityRole="button"
     >
-      <Text style={[s.opcionIcono, destacado && s.opcionIconoDestacado]}>{icono}</Text>
+      <View style={s.opcionIcono}>
+        <Icono nombre={icono} tamano={21} color={destacado ? c.marcaTexto : c.textoTenue} />
+      </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={[s.opcionTitulo, destacado && s.opcionTituloDestacado]}>{titulo}</Text>
         <Text style={[s.opcionDetalle, destacado && s.opcionDetalleDestacado]}>
           {detalle}
         </Text>
       </View>
-      <Text style={[s.flecha, destacado && s.opcionIconoDestacado]}>›</Text>
+      <Icono nombre="flecha" tamano={17} color={destacado ? c.marcaTexto : c.textoTenue} />
     </Pressable>
   );
 }
@@ -114,13 +118,11 @@ const estilos = (c: Colores) =>
       marginBottom: esp.sm,
     },
     opcionDestacada: { backgroundColor: c.marcaSuave },
-    opcionIcono: { fontSize: 18, color: c.textoTenue, width: 22, textAlign: "center" },
-    opcionIconoDestacado: { color: c.marcaTexto },
+    opcionIcono: { width: 22, alignItems: "center" },
     opcionTitulo: { ...tipo.cuerpoFuerte, color: c.texto },
     opcionTituloDestacado: { color: c.marcaTexto },
     opcionDetalle: { ...tipo.menor, color: c.textoTenue, marginTop: 2, lineHeight: 18 },
     opcionDetalleDestacado: { color: c.marcaTexto, opacity: 0.9 },
-    flecha: { fontSize: 22, color: c.textoTenue },
 
     firma: { alignItems: "center", marginTop: "auto", paddingTop: esp.xxl, gap: esp.lg },
     pie: {

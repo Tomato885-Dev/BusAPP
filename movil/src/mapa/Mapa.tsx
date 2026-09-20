@@ -13,6 +13,7 @@ import {
 import Svg, { Polyline } from "react-native-svg";
 
 import { type Colores, cifras, elevacion, esp, fuente, radio, tipo, useColores, useEsOscuro } from "../tema";
+import { Icono } from "../componentes/Icono";
 import { TESELA, latAY, lonAX, xALon, yALat } from "./proyeccion";
 
 export interface Marcador {
@@ -558,7 +559,7 @@ export function Mapa({
           accessibilityRole="button"
           accessibilityLabel="Acercar"
         >
-          <Text style={s.zoomTexto}>+</Text>
+          <Icono nombre="mas" tamano={20} color={c.texto} />
         </Pressable>
         <View style={s.zoomLinea} />
         <Pressable
@@ -567,7 +568,7 @@ export function Mapa({
           accessibilityRole="button"
           accessibilityLabel="Alejar"
         >
-          <Text style={s.zoomTexto}>−</Text>
+          <Icono nombre="menos" tamano={20} color={c.texto} />
         </Pressable>
       </View>
 
@@ -683,7 +684,6 @@ const estilos = (c: Colores) =>
     },
     zoomBoton: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
     zoomLinea: { height: StyleSheet.hairlineWidth, backgroundColor: c.borde },
-    zoomTexto: { fontFamily: fuente.semi, fontSize: 22, color: c.texto, lineHeight: 26 },
 
     credito: { position: "absolute", left: esp.sm, bottom: esp.xs, fontSize: 9, color: c.textoTenue },
   });

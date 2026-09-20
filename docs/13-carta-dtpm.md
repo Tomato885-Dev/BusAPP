@@ -1,10 +1,8 @@
 # 13 — La solicitud al DTPM
 
 El único camino legítimo hacia «dónde está el bus ahora» es el DTPM. Con la
-decisión D12 (`06`) no hay alternativa comunitaria: **esta carta es el proyecto
-completo esperando en un trámite.**
-
-Por eso hay una sola métrica que importa en este documento: la fecha de envío.
+decisión D12 (`06`) no hay alternativa comunitaria: **esta solicitud es el
+proyecto completo esperando en un trámite.**
 
 - [ ] **Enviada el:** `____ / ____ / 2026`
 - [ ] **Acuse de recibo:** `____ / ____ / 2026`
@@ -12,118 +10,175 @@ Por eso hay una sola métrica que importa en este documento: la fecha de envío.
 
 ---
 
-## 1. A quién se manda
+## 1. Qué se manda
 
-El DTPM publica el procedimiento en su página **«Datos y Servicios»**:
+Son **dos cosas en un solo correo**:
 
-> https://www.dtpm.cl/index.php/homepage/sistema-de-transportes/datos-y-servicios
+1. El **«Formulario de registro para uso de datos y/o servicios»** del DTPM,
+   lleno y adjunto.
+2. Un **correo de presentación** que explique quién eres y para qué. El
+   formulario no tiene espacio para eso, y es lo que hace que una solicitud se
+   lea en vez de archivarse.
 
-Lo que ahí se describe es: **completar un formulario indicando el uso que se
-dará a la información y enviarlo por correo**. Entregan las credenciales del
-ambiente de desarrollo por correo dentro de unos diez días hábiles, válidas por
-dos meses, junto con la documentación técnica. Para el ambiente de producción
-piden **registrar la IP pública** desde donde se consumirá el servicio.
-
-> ⚠️ **La dirección de correo exacta hay que sacarla de esa página.** Está
-> publicada ahí, pero el sitio la ofusca contra el *spam*, y desde acá no puedo
-> abrir `dtpm.cl` (la red de este entorno lo bloquea). **No la inventes ni la
-> adivines**: ábrela en el navegador, cópiala, y si además hay un formulario
-> para descargar, descárgalo y adjúntalo lleno.
->
-> Si la página cambió o no aparece, el respaldo es el teléfono:
-> **+56 2 2421 3000, anexo 8511** — Agustinas 1382, Santiago. Una llamada de dos
-> minutos preguntando «¿a qué correo mando una solicitud de acceso a los
-> servicios de posicionamiento y predicción?» resuelve esto.
-
-### Si no responden: la vía formal
-
-Existe un segundo canal, y **tiene plazo legal**: la Ley 20.285 de Transparencia.
-
-> https://www.portaltransparencia.cl → *Solicitud de acceso a la información* →
-> organismo: **Ministerio de Transportes y Telecomunicaciones**
-
-El organismo está obligado a responder por escrito en **20 días hábiles**.
-
-Diferencia importante, para no ilusionarse: Transparencia obliga a entregar
-**información**, no necesariamente a abrir un **servicio**. Pueden responder
-con los datos en un archivo y no con credenciales de API. Aun así sirve para
-tres cosas: obliga a una respuesta escrita, deja constancia de la fecha, y si
-la respuesta es negativa, esa negativa se puede reclamar ante el Consejo para
-la Transparencia.
-
-**El orden correcto es: primero el correo normal; Transparencia sólo si pasan
-tres o cuatro semanas sin respuesta.** Empezar por la vía formal con un
-organismo que atiende bien por correo es una forma innecesaria de empezar mal.
+El destinatario es la dirección que el DTPM publica en su página «Datos y
+Servicios». *(Desde el entorno de desarrollo no puedo abrir `dtpm.cl`, así que
+esa dirección la copia él de la página, no la invento acá.)*
 
 ---
 
-## 2. La carta
+## 2. Lo que el formulario revela, y que cambia la solicitud
 
-Copiar de aquí hacia abajo. Lo que va entre `⟨ ⟩` hay que reemplazarlo.
+**El formulario ofrece sólo dos servicios**, con una casilla cada uno:
+
+| Servicio | Qué entrega |
+|---|---|
+| **Web Service de Posicionamiento** | Posición de **todos** los buses en circulación, con o sin servicio asignado |
+| **Web Service de Alertas** | Alertas generadas por las flotas |
+
+**No hay servicio de predicción de llegada en la lista.** Es un hallazgo
+importante y hay que asumirlo: el DTPM entrega la **posición cruda**, y el
+«¿en cuántos minutos llega?» hay que calcularlo. Esto no es una mala noticia:
+
+- La posición cruda es **mejor** que la predicción ajena para lo que hace
+  Kupay, porque el producto no promete un minuto exacto sino responder *si
+  viene*. Con posiciones se puede decir «hay un 506 a tres cuadras y avanzando»,
+  que es la respuesta real.
+- El motor de estimación ya está diseñado para trabajar así (`04`).
+- Y significa que el ETA es **nuestro**, no una cifra prestada que hay que
+  repetir aunque esté mal.
+
+Se marcan **las dos casillas**. Las alertas de flota son exactamente lo que
+permite decir «esta micro no viene» con fundamento, que es la frase que da
+origen al producto.
+
+La predicción se pregunta en el correo, como pregunta y no como supuesto.
+
+### Dos campos que hay que resolver antes de mandarlo
+
+**«IP Origen».** El servicio se consume desde un servidor, nunca desde la app
+(`01` §1.5: las credenciales en el binario de la app las extrae cualquiera).
+Ese servidor todavía no existe. Se pone **«Por definir; se registrará antes del
+paso a producción»** y se explica en el correo. Para producción habrá que
+arrendar una máquina con IP fija — unos USD 5 al mes, que caben de sobra en el
+presupuesto (`06`).
+
+**«N° estimado de consultas diarias».** La respuesta correcta es la que
+demuestra que no se les va a golpear el servicio: **una consulta cada 30
+segundos desde un único servidor, ≈ 2.900 al día, independiente de cuántos
+usuarios tenga la app.** Ese número no crece con los usuarios, y decirlo así
+responde por adelantado la pregunta que cualquiera se haría al leer «modelo de
+negocio: suscripción».
 
 ---
 
-**Asunto:** Solicitud de acceso a servicios de posicionamiento y predicción de
-llegada — aplicación de información a pasajeros
+## 3. Cómo se llena el formulario
+
+> ⚠️ El archivo descargado trae texto de prueba en **Contacto Técnico →
+> Nombre** (`hasdbajs`). Borrarlo antes de mandarlo.
+
+### Información Solicitante
+
+| Campo | Qué poner |
+|---|---|
+| Nombre o Razón social | Tu nombre completo *(ver §5 sobre la edad)* |
+| RUT | El tuyo |
+| Teléfono | El tuyo |
+| Correo electrónico | El mismo desde el que mandas el correo |
+| Dirección | Tu domicilio |
+
+### Contacto Administrativo y Contacto Técnico
+
+Los dos eres tú. En **Cargo**: `Responsable del proyecto` en el
+administrativo, `Desarrollador` en el técnico.
+
+### Datos Aplicación
+
+| Campo | Qué poner |
+|---|---|
+| Nombre | `Kupay` |
+| IP Origen | `Por definir; se registrará antes del paso a producción` |
+| Sitio Web | `https://tomato885-dev.github.io/BusAPP` |
+| Descripción | `Aplicación de información a pasajeros para la Región Metropolitana. Muestra los paraderos cercanos y el tiempo de llegada de los servicios, y permite planificar viajes con combinación. Hoy funciona con el GTFS estático publicado por el DTPM.` |
+| Plataforma | `iOS y Android (aplicación nativa), con versión web` |
+| Público objetivo | `Usuarios del transporte público de la Región Metropolitana` |
+| N° de usuarios actuales | `0 — aplicación en desarrollo, con una versión de prueba pública sin usuarios registrados` |
+| Crecimiento estimado de usuarios | `Lanzamiento acotado a una zona de la ciudad. Del orden de cientos de usuarios en los primeros seis meses.` |
+| N° estimado de consultas diarias | `≈ 2.900 (una consulta cada 30 segundos desde un único servidor). No aumenta con el número de usuarios: la aplicación no consume el servicio directamente.` |
+| N° de visitas diarias | `Proyectadas del orden de 300 a seis meses del lanzamiento.` |
+| Tiempo medio de la visita | `Menos de un minuto. La aplicación está diseñada para responder sin que haya que navegar por ella.` |
+| Modelo de negocio (breve) | `Aplicación gratuita. Consultar el tiempo de llegada en un paradero es, y seguirá siendo, gratuito. Se cobra una suscripción opcional por funciones de conveniencia (avisos automáticos y rutinas guardadas). No se contempla la reventa ni la cesión a terceros de los datos del Sistema.` |
+
+### Servicios y/o Datos
+
+☑ Web Service de Posicionamiento  ☑ Web Service de Alertas
+
+---
+
+## 4. El correo
+
+**Asunto:** Solicitud de acceso a Web Service de Posicionamiento y Alertas — aplicación de información a pasajeros
 
 Estimados señores del Directorio de Transporte Público Metropolitano:
 
-Junto con saludar, escribo para solicitar acceso a los servicios de
-**posicionamiento de flota** y **predicción de llegada a paradero** del Sistema
-de Transporte Público Metropolitano, de acuerdo con el procedimiento publicado
-en la sección «Datos y Servicios» del sitio del DTPM.
+Junto con saludar, adjunto el **Formulario de registro para uso de datos y/o
+servicios** solicitando acceso al **Web Service de Posicionamiento** y al
+**Web Service de Alertas**.
 
-**Quién solicita**
+Me presento brevemente, porque el formulario no tiene espacio para hacerlo.
 
-- Nombre: ⟨nombre completo⟩
-- RUT: ⟨RUT⟩
-- Correo: ⟨correo⟩
-- Teléfono: ⟨teléfono⟩
-- Calidad: ⟨persona natural / estudiante de ⟨carrera⟩ en ⟨universidad⟩⟩
+Soy ⟨nombre completo⟩, estudiante, tengo 17 años y vivo en Santiago. Estoy
+desarrollando *Kupay*, una aplicación de información a pasajeros para la Región
+Metropolitana. La idea nació de algo que me pasa a mí y le pasa a todo el que se
+mueve en micro: uno no sabe si el bus que está esperando va a llegar. Saber que
+pasa cada diez minutos no sirve cuando el que correspondía ya no viene.
 
-**Uso previsto de la información**
+Hoy la aplicación funciona sólo con el **GTFS estático** que ustedes publican.
+Con eso puede mostrar los paraderos, los recorridos, los trazados y las
+frecuencias programadas, y ya está publicada como versión de prueba en
+`https://tomato885-dev.github.io/BusAPP`. Pero con horarios programados no se
+puede responder la única pregunta que importa cuando uno está parado en el
+paradero, y por eso escribo: **necesito la posición real de la flota.**
 
-Estoy desarrollando *Kupay*, una aplicación móvil de información a pasajeros
-para la Región Metropolitana. Su propósito es resolver un problema concreto y
-cotidiano del usuario del sistema: no saber si el bus que espera efectivamente
-va a llegar.
+Quiero ser explícito en dos cosas, para que la evaluación se haga sobre
+información completa.
 
-Hoy la aplicación funciona únicamente con el **GTFS estático** publicado por el
-DTPM, lo que permite mostrar paraderos, recorridos, trazados y frecuencias
-programadas. Con eso la aplicación puede decir cada cuánto pasa un servicio,
-pero no puede decir si el próximo bus viene en camino, que es exactamente la
-información que el pasajero necesita para decidir si espera, si camina al
-siguiente paradero o si toma otra alternativa.
+**Es un proyecto con fines comerciales.** La aplicación contempla una
+suscripción opcional. Consultar cuándo llega la micro en un paradero será y se
+mantendrá **gratuito**; lo que se cobra son funciones de conveniencia —avisos
+automáticos, rutinas guardadas—. No se contempla la reventa de los datos del
+Sistema ni su entrega a terceros.
 
-Declaro desde ya, para que la evaluación se haga sobre información completa,
-que **se trata de un proyecto con fines comerciales**: la aplicación contempla
-funciones de pago. La consulta de tiempos de llegada en un paradero será y se
-mantendrá **gratuita**; lo que se cobra son funciones de conveniencia
-(avisos automáticos, rutinas guardadas y similares). No se contempla la reventa
-de los datos crudos del Sistema ni su entrega a terceros.
+**El servicio no se consumiría desde los teléfonos.** Las consultas las haría un
+único servidor, a razón de una cada 30 segundos, y desde ahí se distribuye a la
+aplicación. El volumen no crece con el número de usuarios, y las credenciales no
+viajan nunca dentro de la aplicación. Ese servidor todavía no está contratado, y
+por eso el campo «IP Origen» del formulario va por definir: comprometo
+informar la IP pública fija antes de cualquier paso a producción.
 
-**Lo que se solicita**
+Junto con lo anterior, quisiera consultar tres cosas:
 
-1. Acceso a los servicios de **posición de vehículos** y **predicción de
-   llegada a paradero**, en ambiente de desarrollo y posteriormente de
-   producción, con su documentación técnica.
-2. Confirmación de si el DTPM publica o proyecta publicar un feed
-   **GTFS-Realtime** (`VehiclePositions`, `TripUpdates`), estándar que ya
-   utiliza la aplicación para el GTFS estático.
-3. Las **condiciones de uso y licencia** aplicables tanto a estos servicios
-   como al **GTFS estático**, con precisión respecto del **uso comercial**, la
-   atribución exigida y cualquier restricción de redistribución. Esta
-   información es determinante para el diseño del producto, y prefiero
-   ajustarme a ella desde el inicio antes que corregir después.
-4. Los **requisitos técnicos y administrativos** que deba cumplir: registro de
-   IP pública fija, límites de consulta, convenios o acuerdos de uso que deba
-   suscribir, y cualquier antecedente adicional que corresponda acompañar.
+1. Si existe, o se proyecta, un servicio de **predicción de llegada a paradero**
+   además de los dos del formulario, o si el cálculo del tiempo de llegada queda
+   por cuenta de quien consume el posicionamiento.
+2. Si el DTPM publica o proyecta publicar un feed **GTFS-Realtime**
+   (`VehiclePositions`, `TripUpdates`), estándar que la aplicación ya utiliza
+   para el GTFS estático.
+3. Las **condiciones de uso y licencia** aplicables a estos servicios y al
+   **GTFS estático**, con precisión respecto del **uso comercial**, la
+   atribución exigida y las restricciones de redistribución. Prefiero ajustarme
+   a ellas desde el inicio antes que tener que corregir después.
 
-Quedo a disposición para completar los formularios que corresponda, suscribir
-los acuerdos de uso que el Directorio estime necesarios, o exponer el proyecto
-en una reunión si resulta útil para la evaluación.
+Por mi edad, si el procedimiento requiere suscribir un convenio o acuerdo de
+uso, puedo comparecer representado por ⟨nombre del apoderado⟩, ⟨parentesco⟩,
+quien figuraría como titular si así lo estiman necesario. Quedo atento a lo que
+corresponda.
 
-Agradeciendo de antemano su tiempo y su disposición,
+Agradezco de antemano su tiempo. Sé que la información que pido es la más
+sensible que administran, y estoy disponible para completar cualquier
+antecedente adicional, suscribir los acuerdos que estimen necesarios o exponer
+el proyecto si resulta útil para la evaluación.
+
+Atentamente,
 
 ⟨nombre completo⟩
 ⟨correo⟩ — ⟨teléfono⟩
@@ -131,40 +186,67 @@ Agradeciendo de antemano su tiempo y su disposición,
 
 ---
 
-## 3. Por qué está escrita así
+## 5. Por qué está escrita así
 
-**Dice que es comercial, en el tercer párrafo y no escondido al final.** Es la
-decisión que más se podría discutir, y es deliberada. Omitirlo sería obtener el
-acceso sobre una declaración falsa: quedaría un permiso revocable el día en que
-la app aparezca cobrando en la tienda — justo el día en que ya no se puede
-prescindir de él. Además, el DTPM entrega datos a operadores y a empresas de
-tecnología; lo comercial no es descalificante ahí, y decirlo de frente antes de
-que lo pregunten es lo que hace creíble todo lo demás.
+**Dice la edad, en el tercer párrafo.** Es la decisión más discutible del texto
+y es deliberada. El RUT va en el formulario, así que la edad se sabe igual: no
+decirla no la esconde, sólo hace que la descubran después. Dicha de frente
+explica el «0 usuarios» sin que parezca un proyecto abandonado, y hace que la
+solicitud se lea. Lo que **no** puede hacer es quedar sola, porque «estudiante
+de 17 años» leído sin contexto se archiva como tarea del colegio. Por eso en el
+mismo correo va el GTFS ya procesado, la versión publicada, la arquitectura de
+consumo y el modelo de negocio: la edad es un dato, no la explicación del
+proyecto.
 
-**Separa lo gratis de lo pagado.** «Ver cuándo llega la micro es gratis» es la
-regla del producto (`11`) y también la respuesta a la objeción natural de un
-organismo público: que un dato del Estado termine detrás de un muro de pago.
-No termina.
+**Dice que es comercial.** Omitirlo sería obtener el acceso sobre una
+declaración falsa, y dejaría un permiso revocable el día en que la app aparezca
+cobrando — justo el día en que ya no se podría prescindir de él.
 
-**Pide la licencia explícitamente.** Es el punto 3 y no una nota al pie, porque
-es el supuesto bloqueante del proyecto (`06` §6.3, supuesto 2). Si el GTFS no
-admite uso comercial, eso hay que saberlo ahora.
+**Separa lo gratis de lo pagado**, que es la regla del producto (`11`) y además
+la respuesta a la objeción natural de un organismo público: que un dato del
+Estado termine detrás de un muro de pago. No termina.
 
-**Menciona GTFS-Realtime por su nombre.** Señala que del otro lado hay alguien
-que sabe de qué habla, y abre la posibilidad de que la respuesta sea mucho
-mejor que la pregunta.
+**Ofrece el apoderado antes de que lo pidan.** En Chile un menor de 18 tiene
+capacidad limitada para obligarse. Si el acceso requiere firmar algo, eso va a
+aparecer; mencionarlo primero convierte un problema en un trámite resuelto.
 
-**No promete nada que no se pueda cumplir**: ni usuarios, ni fechas de
-lanzamiento, ni convenios. Sólo disposición.
+**Explica la arquitectura de consumo sin que la pregunten.** «Una consulta cada
+30 segundos desde un servidor, no desde los teléfonos» responde por adelantado
+el miedo real de quien administra un servicio: que alguien lo sature o filtre
+las credenciales.
+
+**No promete nada que no se pueda cumplir**: ni usuarios, ni fechas, ni
+convenios. Sólo disposición.
 
 ---
 
-## 4. Mientras tanto
+## 6. Si no responden
 
-Enviar esto no desbloquea nada hoy: la respuesta tarda semanas. Lo que sí se
+Tras tres o cuatro semanas sin respuesta, existe un segundo canal **con plazo
+legal**: la Ley 20.285 de Transparencia.
+
+> https://www.portaltransparencia.cl → *Solicitud de acceso a la información* →
+> organismo: **Ministerio de Transportes y Telecomunicaciones**
+
+El organismo debe responder por escrito en **20 días hábiles**.
+
+Diferencia importante, para no ilusionarse: Transparencia obliga a entregar
+**información**, no necesariamente a abrir un **servicio**. Pueden responder con
+datos en un archivo y no con credenciales. Aun así sirve: obliga a una respuesta
+escrita, deja constancia de la fecha, y una negativa se puede reclamar ante el
+Consejo para la Transparencia.
+
+**El orden correcto es primero el correo normal.** Empezar por la vía formal con
+un organismo que atiende por correo es una forma innecesaria de empezar mal.
+
+---
+
+## 7. Mientras tanto
+
+Mandar esto no desbloquea nada hoy: la respuesta tarda semanas. Lo que sí se
 puede adelantar en paralelo, y no depende de nadie más, es la **telemetría
 propia** (`01` §1.4) — que descansa entera en un supuesto todavía sin probar, y
 que sólo se prueba con las trazas GPS de `10-prueba-de-terreno.md`.
 
-Dicho de otro modo: la carta y las trazas son las dos únicas tareas del
-proyecto que el código no puede hacer por sí solo.
+La carta y las trazas son las dos únicas tareas del proyecto que el código no
+puede hacer por sí solo.

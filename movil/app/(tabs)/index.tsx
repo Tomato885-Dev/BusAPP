@@ -22,6 +22,7 @@ import { AvisoDemo } from "../../src/componentes/AvisoDemo";
 import { Respuesta } from "../../src/componentes/Respuesta";
 import { TarjetaAviso } from "../../src/componentes/TarjetaAviso";
 import { Hoja, useHoja, type Altura } from "../../src/componentes/Hoja";
+import { Icono } from "../../src/componentes/Icono";
 import { Mapa, type Marcador } from "../../src/mapa/Mapa";
 import { PARADEROS, PARADERO_POR_ID } from "../../src/red";
 import { elevacion, esp, fuente, radio, tipo, useColores, type Colores } from "../../src/tema";
@@ -133,7 +134,7 @@ export default function PantallaMapa() {
           onPress={() => router.push("/llegar")}
           accessibilityRole="button"
         >
-          <Text style={s.lupa}>⌕</Text>
+          <Icono nombre="buscar" tamano={20} color={c.textoSuave} />
           <Text style={s.buscadorTexto}>Buscar paradero o destino</Text>
         </Pressable>
 
@@ -162,7 +163,11 @@ export default function PantallaMapa() {
         accessibilityRole="button"
         accessibilityLabel="Ir a mi ubicación"
       >
-        <Text style={s.ubicacionIcono}>{buscandoUbicacion ? "…" : "⌖"}</Text>
+        {buscandoUbicacion ? (
+          <Text style={s.ubicacionIcono}>…</Text>
+        ) : (
+          <Icono nombre="ubicacion" tamano={22} color={c.marca} />
+        )}
       </Pressable>
 
       {paradero && datos ? (
@@ -284,7 +289,6 @@ const estilos = (c: Colores) =>
       height: ALTO_BUSCADOR,
       ...(Platform.OS === "web" ? ({ backdropFilter: "blur(20px)" } as object) : null),
     },
-    lupa: { fontSize: 19, color: c.textoSuave },
     buscadorTexto: { ...tipo.cuerpo, color: c.textoSuave },
 
     ubicacion: {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Icono, type NombreIcono } from "../src/componentes/Icono";
 import { Interruptor } from "../src/componentes/Interruptor";
 import { esperaTexto, misEstadisticas, type Estadisticas } from "../src/estadisticas";
 import { useFavoritos } from "../src/favoritos";
@@ -14,38 +15,38 @@ import { type Colores, esp, fuente, radio, tipo, useColores } from "../src/tema"
 import { useSesion } from "../src/useSesion";
 
 /** Las funciones del plan pagado, en el orden en que se explican. */
-const FUNCIONES: { icono: string; titulo: string; cuerpo: string; lista?: boolean }[] = [
+const FUNCIONES: { icono: NombreIcono; titulo: string; cuerpo: string; lista?: boolean }[] = [
   {
-    icono: "▸",
+    icono: "campana",
     titulo: "Avísame antes de bajarme",
     cuerpo:
       "Le dices dónde te bajas y Kupay te avisa dos paradas antes. Sirve con audífonos, con sueño o en un recorrido que no conoces.",
   },
   {
-    icono: "◷",
+    icono: "reloj",
     titulo: "Rutinas ilimitadas",
     cuerpo:
       "Ida y vuelta, días distintos, paraderos distintos. Tu semana no cabe en una sola rutina.",
   },
   {
-    icono: "↗",
+    icono: "salida",
     titulo: "Aviso de salida",
     cuerpo:
       "No «tu micro llega en 7 minutos», sino «sal en 3». Kupay sabe a cuánto estás caminando y resta.",
   },
   {
-    icono: "✕",
+    icono: "desvio",
     titulo: "Alertas de desvío",
     cuerpo:
       "Si un recorrido del que dependes se desvía, te enteras sin abrir la app.",
   },
   {
-    icono: "★",
+    icono: "estrella",
     titulo: "Favoritos ilimitados",
     cuerpo: "Todos los paraderos que uses, no sólo tres.",
   },
   {
-    icono: "▤",
+    icono: "grafico",
     titulo: "Tus números",
     cuerpo:
       "Cuánto esperaste este mes y qué recorrido te falla más. Son datos tuyos.",
@@ -157,15 +158,18 @@ function Funcion({
   activa,
   s,
 }: {
-  icono: string;
+  icono: NombreIcono;
   titulo: string;
   cuerpo: string;
   activa?: boolean;
   s: ReturnType<typeof estilos>;
 }) {
+  const c = useColores();
   return (
     <View style={s.funcion}>
-      <Text style={[s.funcionIcono, activa && s.funcionIconoActiva]}>{icono}</Text>
+      <View style={s.funcionIcono}>
+        <Icono nombre={icono} tamano={20} color={activa ? c.marca : c.textoTenue} />
+      </View>
       <View style={s.funcionMedio}>
         <Text style={s.funcionTitulo}>{titulo}</Text>
         <Text style={s.funcionCuerpo}>{cuerpo}</Text>
@@ -323,14 +327,7 @@ const estilos = (c: Colores) =>
       padding: esp.lg,
       marginBottom: esp.sm,
     },
-    funcionIcono: {
-      fontSize: 16,
-      color: c.textoTenue,
-      width: 22,
-      textAlign: "center",
-      marginTop: 1,
-    },
-    funcionIconoActiva: { color: c.marca },
+    funcionIcono: { width: 22, alignItems: "center", marginTop: 1 },
     funcionMedio: { flex: 1, minWidth: 0 },
     funcionTitulo: { ...tipo.cuerpoFuerte, color: c.texto },
     funcionCuerpo: {
