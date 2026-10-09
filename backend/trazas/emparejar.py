@@ -28,7 +28,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from gtfs.geo import Punto, a_plano, distancia_m, distancias_acumuladas
+from gtfs.geo import Punto, TrazadoIndexado, distancia_m
 from gtfs.parse import Feed
 from .gpx import PuntoTraza, Traza
 from .segmentar import Tipo, Tramo, largo_recorrido, segmentar, velocidades
@@ -52,9 +52,6 @@ RADIO_PARADERO_M = 40.0
 #: metros en siete segundos; una micro que abre las puertas se queda veinticinco
 #: o más. Ése es todo el margen, y es suficiente.
 PERMANENCIA_MINIMA_S = 12.0
-
-#: Lado de la celda del índice de segmentos, en metros.
-CELDA_M = 120.0
 
 #: Lado de la celda del índice global de recorridos, en grados (~450 m).
 CELDA_GRADOS = 0.004
@@ -89,73 +86,6 @@ PARADAS_SUFICIENTES = 3
 #: más confianza que el dato bueno. Medido contra trazas sintéticas: la micro
 #: para en 7 de 9 paraderos, el auto en 0 de 9.
 UMBRAL_PARADAS = 0.35
-
-
-# --------------------------------------------------------------------------- #
-# Trazado indexado
-# --------------------------------------------------------------------------- #
-
-class TrazadoIndexado:
-    """Un trazado preparado para proyectar muchos puntos rápido.
-
-    `geo.proyectar` recorre todos los segmentos en cada llamada y reconstruye
-    la proyección plana del trazado entera cada vez. Para el motor —un punto,
-    un trazado conocido— está bien. Acá hay que cruzar mil puntos contra
-    sesenta trazados de dos mil vértices: son ciento veinte millones de
-    operaciones por traza, y el análisis no termina nunca.
-
-    Con una grilla de celdas de 120 m, cada punto sólo se compara contra los
-    segmentos que pasan por su celda y las ocho vecinas.
-    """
-
-    def __init__(self, trazado: list[Punto]):
-        if len(trazado) < 2:
-            raise ValueError("El trazado necesita al menos dos puntos")
-        self.trazado = trazado
-        self.lat_ref = trazado[0][0]
-        self.plano = [a_plano(lat, lon, self.lat_ref) for lat, lon in trazado]
-        self.acum = distancias_acumuladas(trazado)
-        self.largo = self.acum[-1]
-
-        self.celdas: dict[tuple[int, int], list[int]] = {}
-        for i, ((ax, ay), (bx, by)) in enumerate(zip(self.plano, self.plano[1:])):
-            largo = math.hypot(bx - ax, by - ay)
-            pasos = max(1, int(largo / (CELDA_M / 2)) + 1)
-            for k in range(pasos + 1):
-                t = k / pasos
-                x, y = ax + t * (bx - ax), ay + t * (by - ay)
-                llave = (int(x // CELDA_M), int(y // CELDA_M))
-                lista = self.celdas.setdefault(llave, [])
-                if not lista or lista[-1] != i:
-                    lista.append(i)
-
-    def proyectar(self, punto: Punto, desde_m: float = 0.0) -> tuple[float, float]:
-        """Devuelve (distancia recorrida, desviación) del punto sobre el trazado.
-
-        ``desde_m`` descarta los segmentos que quedan atrás, que es como se
-        impone que el avance sea monótono sin tener que recorrer el trazado dos
-        veces.
-        """
-        px, py = a_plano(punto[0], punto[1], self.lat_ref)
-        ci, cj = int(px // CELDA_M), int(py // CELDA_M)
-        mejor = (0.0, math.inf)
-        for di in (-1, 0, 1):
-            for dj in (-1, 0, 1):
-                for i in self.celdas.get((ci + di, cj + dj), ()):
-                    if self.acum[i + 1] < desde_m:
-                        continue
-                    ax, ay = self.plano[i]
-                    bx, by = self.plano[i + 1]
-                    dx, dy = bx - ax, by - ay
-                    largo2 = dx * dx + dy * dy
-                    t = 0.0 if largo2 == 0 else ((px - ax) * dx + (py - ay) * dy) / largo2
-                    t = max(0.0, min(1.0, t))
-                    qx, qy = ax + t * dx, ay + t * dy
-                    desviacion = math.hypot(px - qx, py - qy)
-                    if desviacion < mejor[1]:
-                        s = self.acum[i] + t * (self.acum[i + 1] - self.acum[i])
-                        mejor = (s, desviacion)
-        return mejor
 
 
 # --------------------------------------------------------------------------- #

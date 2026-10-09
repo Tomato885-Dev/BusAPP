@@ -28,7 +28,15 @@ siguen tres cosas que **no se negocian**:
   exactamente eso.
 
 Las únicas dos fuentes válidas para «dónde está el bus» son el **acceso oficial
-del DTPM** y la **telemetría propia** de usuarios a bordo. Ver `docs/01`.
+del DTPM** —concedido el 9 de octubre de 2026, ver `docs/15`— y la **telemetría
+propia** de usuarios a bordo.
+
+### 1b. Las credenciales del DTPM no se escriben en ninguna parte
+
+Van en las variables de entorno del servidor que consulta el servicio. **Nunca**
+en el repositorio, que es público, y **nunca** dentro de la app: el binario de
+una aplicación lo descomprime cualquiera y las cadenas que lleva dentro se leen
+en un minuto. La app habla sólo con nuestro servidor (`docs/01` §1.5).
 
 ### 2. La app se lee de reojo, en la calle, apurado
 
@@ -50,6 +58,7 @@ Ver `docs/12`.
 | `movil/` | La app (Expo + expo-router). `src/tema.ts` es el sistema de diseño |
 | `backend/gtfs/` | Ingesta del GTFS del DTPM → `movil/src/red.json` |
 | `backend/trazas/` | Análisis de trazas GPS: en qué recorrido iba alguien (`docs/14`) |
+| `backend/estimacion/` | De la posición de los buses a «¿viene o no viene?» (`docs/15`) |
 | `servidor/` | Esquema de Supabase (`esquema.sql`) y su verificador (`comprobar.sql`) |
 | `marca/` | La fuente única de la marca: geometría, logotipo e íconos |
 | `docs/` | Las decisiones y por qué se tomaron. `01` y `08` son los que más se usan |
@@ -58,7 +67,7 @@ Ver `docs/12`.
 
 ```sh
 cd movil && npm run typecheck     # tsc
-cd backend && python -m pytest tests/ -q   # 54 pruebas
+cd backend && python -m pytest tests/ -q   # 69 pruebas
 node marca/marca.mjs              # regenerar íconos y muestrario
 ```
 

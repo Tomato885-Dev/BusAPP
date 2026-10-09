@@ -25,137 +25,102 @@ termina, se marca y se pasa al siguiente.
 
 ---
 
-# BLOQUE 1 — Esta semana
+# BLOQUE 1 — Ahora
 
-> **Las cinco cosas que están esperándote a ti.** Ninguna la puedo hacer yo:
-> tres necesitan tu sesión iniciada en algún sitio, una necesita tu teléfono en
-> la calle y una necesita tu nombre al pie de una carta.
+> **El 9 de octubre el DTPM concedió el acceso al posicionamiento de la flota.**
+> Era el riesgo número uno del proyecto y estuvo nueve meses en la lista. Lo
+> resolvió un correo. Todo lo de abajo está ordenado según eso.
 
-| | Qué | Dónde | Cuánto toma |
+| | Qué | Dónde | Cuánto |
 |---|---|---|---|
-| 1.1 | Grabar 3 viajes en micro | Tu teléfono | 2 h repartidas |
-| 1.2 | ✅ Volver a correr `esquema.sql` | Supabase | *hecho el 20-09* |
-| 1.3 | ✅ Activar el inicio de sesión anónimo | Supabase | *hecho el 20-09* |
-| 1.4 | ✅ Mandar la solicitud al DTPM | Tu correo | *enviada el 20-09* |
+| **1.1** | **Mandarme los dos adjuntos del correo** ⭐ | Tu correo | 2 min |
+| 1.2 | Contratar un servidor con IP fija | Internet | 30 min · ~USD 5/mes |
+| 1.3 | Grabar 3 viajes en micro | Tu teléfono | 2 h repartidas |
+| 1.4 | Pedir la licencia por Transparencia | Portal | 20 min |
 | 1.5 | Guardar la clave de Stadia | GitHub | 10 min |
 
-## 1.1 🧑 Grabar viajes en micro ⭐ LO MÁS IMPORTANTE
+## 1.1 🧑 Mandarme los dos adjuntos ⭐ ES LO QUE BLOQUEA TODO
 
-Todo el proyecto descansa en un supuesto **que nunca hemos probado**: que una
-traza de GPS permite saber en qué micro va una persona.
+El correo del DTPM traía el documento que explica el formato de los servicios y
+un archivo llamado `serviciodeco`. **Sin eso no puedo escribir el adaptador**:
+no sé si la respuesta es XML o JSON, cómo se identifica cada bus, qué campo trae
+el recorrido ni cada cuánto se actualiza.
 
-Si eso falla, no hay telemetría, no hay detector de desvíos, no hay
-diferenciador y no hay dato que vender. **Es la única tarea que puede hundir el
-proyecto, y es la única que sigue pendiente.**
+El motor que convierte posiciones en «viene / no viene» **ya está escrito y
+probado**. Lo único que falta es traducir el formato de ellos al nuestro.
 
-**Qué hacer:**
+**Súbelos a `datos-terreno/` o mándamelos por acá.**
 
-1. Instala una app de registro GPS. Gratis: *Geo Tracker*, *OpenTracks* o
-   *GPX Logger*.
-2. Graba estos viajes, anotando **qué línea** y **a qué hora**:
+> ⚠️ **La contraseña no.** Ni acá ni en el repositorio, que es público. Va en las
+> variables de entorno del servidor, y ahí sólo entras tú. Lo que hiciste de
+> inventarte unas credenciales falsas para contarme fue exactamente lo correcto.
 
-| # | Viaje | Para qué |
-|---|---|---|
-| 1 | 3 viajes en micro, líneas distintas | La traza base |
-| 2 | 1 viaje en auto por la misma calle que una micro | ¿Se distinguen? |
-| 3 | 1 viaje por Alameda o Providencia | El caso difícil: muchas líneas juntas |
-| 4 | 1 viaje en Metro | Confirmar que el GPS se corta bajo tierra |
+## 1.2 🧑 Un servidor con IP fija
 
-Los tres primeros de la tabla son suficientes para empezar. El protocolo
-detallado —cuándo apretar el botón, qué anotar— está en `10-prueba-de-terreno.md`.
+El formulario pedía registrar la IP pública desde donde se consume el servicio,
+y respondimos «por definir». Hay que definirla, y hace falta **dos veces**:
+para pasar las posiciones a producción, y para pedir el predictor oficial, donde
+es requisito de entrada.
 
-3. Sube los archivos a `datos-terreno/` del repositorio, o mándamelos.
+Sirve cualquier servidor chico: **del orden de USD 5 al mes**, dentro del
+presupuesto. Hetzner, DigitalOcean o Vultr, el plan más barato.
 
-**Tiempo:** un par de horas repartidas en unos días.
+**No sirve la conexión de tu casa:** la IP cambia sola y el acceso se caería.
 
-**El analizador ya está escrito y probado** (`14`). No hay que esperar nada:
-apenas subas un `.gpx`, el resultado sale con una orden.
+Cuando lo tengas, dime la IP y preparo el aviso al DTPM.
 
-```sh
-cd backend && python -m trazas.cli analizar ../datos-terreno/*.gpx --detalle
-```
+## 1.3 🧑 Grabar viajes en micro *(bajó de prioridad, pero sigue sirviendo)*
 
-Sobre trazas **sintéticas** acierta el recorrido dentro de la respuesta el 93%
-de las veces. Eso es el mejor caso posible, porque las generó el mismo GTFS
-contra el que se comparan. **Lo que tus grabaciones van a decir es cuánto de
-ese 93% sobrevive a la calle**, y ésa es la cifra que decide el proyecto.
+Ya no es lo que puede hundir el proyecto. Con las posiciones oficiales la app
+funciona sin telemetría de usuarios, así que esto pasó de **cimiento** a
+**mejora**: sirve para explicar por qué un bus no avanza y para cubrir los
+huecos de la fuente oficial.
 
-## 1.2 ✅ Volver a correr `esquema.sql` — hecho
+El analizador está escrito y probado (`14`). Sobre trazas sintéticas acierta el
+93%; tus grabaciones dirán cuánto sobrevive a la calle.
 
-La vez pasada se pegó en Supabase una **copia antigua** del archivo: entró todo
-hasta la sección «5. Funciones premium» y de ahí en adelante nada. Por eso el
-verificador marcó `FALTA` en `rutinas`, `consultas`, `suscripciones` y
-`mis_estadisticas`.
+El protocolo está en `10-prueba-de-terreno.md`. Lo esencial: apretar *grabar*
+**antes de salir de tu casa** y pararlo **después de bajarte**.
 
-**Qué hacer:**
+## 1.4 🧑 Pedir la licencia por Transparencia
 
-1. Abre `servidor/esquema.sql` **desde GitHub** (no desde una pestaña vieja) y
-   cópialo entero — son 352 líneas, la última dice `-- Fin del esquema`.
-2. Supabase → **SQL Editor** → pegar → **Run**.
-3. Pega y corre después `servidor/comprobar.sql`. Tiene que salir ✅ en todas
-   las filas.
+El DTPM respondió que **no hay una cláusula que restrinja el uso**. Eso es la
+ausencia de una prohibición, no la presencia de un permiso, y para cobrar hace
+falta lo segundo.
 
-Está escrito para poder correrse dos veces sin romper nada (`create table if
-not exists`), así que no hay riesgo en repetirlo.
+Ellos mismos indicaron el camino:
 
-## 1.3 ✅ Activar el inicio de sesión anónimo — hecho
+> https://www.portaltransparencia.cl → crear usuario → *Solicitud de acceso a
+> la información* → **Ministerio de Transportes y Telecomunicaciones
+> (Subsecretaría de Transportes)**
 
-Supabase → **Authentication** → **Sign In / Providers** → **Anonymous Sign-ins**
-→ **activar el interruptor**.
+Plazo legal: **20 días hábiles**. Pídemelo y te redacto el texto.
 
-Encontraste la pantalla pero faltó activarlo. Sin esto los favoritos no se
-guardan en el servidor.
-
-**Cómo saber que quedó:** en la app, pestaña Favoritos, la línea de abajo debe
-decir *«Tus favoritos se guardan en el servidor»*.
-
-## 1.4 ✅ Solicitud al DTPM — enviada el 20 de septiembre
-
-Es el trámite más lento del proyecto — meses. **Cada semana sin enviarlo es una
-semana de retraso**, y no se recupera trabajando más. Y desde que se descartaron
-las fuentes comunitarias (`06` D12), es además el **único** camino oficial hacia
-el dato en vivo.
-
-Son **dos cosas en un mismo correo**: el formulario oficial lleno y adjunto, y
-un correo de presentación. Los dos están resueltos en `13-carta-dtpm.md`, que
-incluye además qué escribir en cada campo del formulario.
-
-Lo que falta es tuyo:
-
-1. Copiar la dirección de correo desde la página «Datos y Servicios» del DTPM
-   (desde acá no puedo abrir ese sitio).
-2. Llenar el formulario — ojo, el archivo descargado trae texto de prueba en
-   «Contacto Técnico → Nombre».
-3. Reemplazar los `⟨ ⟩` del correo con tus datos y enviar.
-
-- [x] Enviado el: **20 de septiembre de 2026**, con el formulario adjunto y las
-      dos casillas marcadas.
-- [ ] Respuesta el: `________`
-
-**Qué esperar:** el procedimiento habla de unos diez días hábiles para las
-credenciales del ambiente de desarrollo. Si al **10 de octubre** no hay ni
-acuse de recibo, hay que insistir por teléfono; a las tres o cuatro semanas,
-Transparencia (`13` §6).
-
-**Y lo importante mientras tanto:** esto no desbloquea nada hoy. Lo único que
-avanza el diferenciador sin depender de nadie son las trazas de 1.1.
+**No bloquea nada** —se puede construir mientras llega— pero conviene tenerlo
+antes de cobrarle a alguien, y antes de publicar en las tiendas.
 
 ## 1.5 🧑 Guardar la clave de Stadia Maps
 
-Ya no es sólo estético. Sin esta clave el mapa usa Esri, **que no tiene teselas
-sobre el zoom 16**: por eso la app tiene el acercamiento limitado ahí. Con la
-clave se llega a 19 y se ven los nombres de las calles chicas.
+Sin esta clave el mapa usa Esri, **que no tiene teselas sobre el zoom 16**: por
+eso la app tiene el acercamiento limitado ahí. Con la clave se llega a 19.
 
-Es gratis. En el registro de la última publicación se confirma que el secreto
-`STADIA_API_KEY` **sigue sin estar configurado** en GitHub.
-
-1. Crear cuenta en `stadiamaps.com` → *Manage Properties* → crear una propiedad
-   → copiar la **API key**.
+1. Crear cuenta en `stadiamaps.com` → *Manage Properties* → copiar la **API key**.
 2. GitHub → el repositorio → **Settings** → *Secrets and variables* → *Actions*
    → **New repository secret**.
-3. Nombre exacto: `STADIA_API_KEY`. Valor: la clave.
+3. Nombre exacto: `STADIA_API_KEY`.
 
 - [ ] Clave guardada como secreto `STADIA_API_KEY` en GitHub
+
+---
+
+## ✅ Hecho
+
+| | | |
+|---|---|---|
+| Correr `esquema.sql` | Supabase | 20-09 |
+| Activar el inicio de sesión anónimo | Supabase | 20-09 |
+| Enviar la solicitud al DTPM | correo | 20-09 |
+| **Respuesta del DTPM: acceso concedido** | | **09-10** |
 
 ---
 
@@ -317,11 +282,12 @@ Uno solo. Prueba que alguien paga, y eso vale más que cualquier proyección.
 
 # Si sólo haces tres cosas
 
-1. **Manda la carta al DTPM** (1.4) — ya está escrita; es lo único que no se
-   acelera trabajando más, y ahora es el único camino oficial al dato en vivo
-2. **Graba los viajes en micro** (1.1) — responde la pregunta que puede hundir todo
-3. **Vuelve a correr el `esquema.sql` y activa el anónimo** (1.2 y 1.3) — cinco
-   minutos entre las dos, y desbloquean el servidor completo
+1. **Mándame los dos adjuntos del correo** (1.1) — dos minutos, y es lo único
+   que separa la app de tener buses de verdad
+2. **Contrata el servidor con IP fija** (1.2) — lo necesitas dos veces y tarda
+   más en llegar de lo que uno cree
+3. **Graba los viajes en micro** (1.3) — ya no es urgente, pero es lo que hace
+   a Kupay mejor que las demás y no sólo igual
 
 ---
 
@@ -329,8 +295,9 @@ Uno solo. Prueba que alguien paga, y eso vale más que cualquier proyección.
 
 | Cuándo | Qué |
 |---|---|
-| **Ahora** | Carta al DTPM · trazas GPS · `esquema.sql` · inicio de sesión anónimo · clave de Stadia |
-| **Este mes** | Apps que te gusten · registrar el nombre · decidir si limpiamos el historial |
+| **Ahora** | Los dos adjuntos del DTPM · servidor con IP fija |
+| **Pronto** | Trazas GPS · licencia por Transparencia · clave de Stadia |
+| **Este mes** | Registrar el nombre · decidir si limpiamos el historial |
 | **Al publicar** | Cuentas de tiendas · zona de lanzamiento · abogado |
 | **Siempre** | Decirme qué se ve mal cuando pruebes la app |
 

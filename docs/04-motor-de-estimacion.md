@@ -30,6 +30,19 @@ sistema sabe cuándo llega esa micro, diga lo que diga la fuente oficial.
 
 ### E₁ — fuente oficial
 
+> **Corregido el 9 de octubre de 2026.** Este apartado suponía que la fuente
+> oficial entregaba un **ETA ya calculado**. No es así: el DTPM entrega
+> **posiciones crudas** de la flota (`15`). El ETA oficial existe, pero es otro
+> servicio y otro trámite.
+>
+> Eso mejora la situación en vez de empeorarla. El cálculo pasa a ser nuestro,
+> así que se puede medir su error y corregirlo, en vez de tener que repetir una
+> cifra ajena aunque se vea mal. Y la fórmula de E₁ resulta ser la misma de E₂
+> —distancia restante sobre velocidad esperada— con una posición de origen
+> distinta: la del operador en vez de la de un pasajero.
+>
+> Implementado en `backend/estimacion/`.
+
 Se consulta directamente y se guarda. Su incertidumbre **no se supone: se mide**
 (ver §4.6), contrastando cada predicción con la llegada que efectivamente
 ocurrió.

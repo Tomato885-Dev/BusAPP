@@ -2,19 +2,21 @@
 
 ## 6.1 Riesgos ordenados por impacto
 
-### R1 — No conseguir acceso a datos de posición en vivo 🔴 Crítico
+### R1 — No conseguir acceso a datos de posición en vivo 🟢 Resuelto
 
-**Probabilidad:** media-alta. **Impacto:** afecta la propuesta de valor completa.
+*Resuelto el 9 de octubre de 2026.* El DTPM concedió el acceso al
+posicionamiento de la flota completa y a las alertas de los operadores, 19 días
+después de enviar la solicitud. Ver `15`.
 
-Sin E₁ oficial de calidad, la fusión de `04` §4.3 pierde una de sus dos patas y
-el sistema depende enteramente de la telemetría propia, que necesita densidad de
-usuarios (R2).
+Era el riesgo número uno del proyecto y estuvo nueve meses en la lista. Lo
+resolvió un correo, no una decisión técnica.
 
-*Mitigación:* iniciar la gestión con el DTPM en la primera semana (`05`, F0-3);
-la telemetría propia es precisamente la vía de escape, y por eso es el núcleo
-del producto y no un complemento.
+**Queda un resto:** la licencia. El DTPM respondió que no existe una cláusula
+que restrinja el uso, lo que es la ausencia de una prohibición y no la
+presencia de un permiso. Para el permiso por escrito que pide la regla 1 de
+`CLAUDE.md` hay que pedirlo por Transparencia (`15` §4).
 
-### R2 — Densidad de usuarios 🔴 Crítico
+### R2 — Densidad de usuarios 🟡 Medio *(era crítico)*
 
 **Probabilidad:** media. **Impacto:** anula el diferenciador.
 
@@ -28,7 +30,7 @@ usuarios; **concentrar el lanzamiento en un área acotada** para alcanzar densid
 local antes que cobertura amplia. **Es preferible ser la app dominante en Ñuñoa
 que marginal en todo Santiago.**
 
-### R2b — Que el emparejamiento de trazas no funcione 🟠 Alto *(era crítico)*
+### R2b — Que el emparejamiento de trazas no funcione 🟡 Medio *(era crítico)*
 
 **Probabilidad:** media. **Impacto:** sin emparejamiento no hay telemetría
 propia, y sin telemetría no hay diferenciador.
@@ -46,6 +48,11 @@ verdad sigue pendiente y depende de las trazas grabadas a mano (`10`).
 
 *Mitigación:* confirmación de un toque cuando hay empate (D11); descarte duro
 del vehículo particular; y no emparejar cuando el GPS se cortó.
+
+*Baja otra vez el 9 de octubre de 2026, por R1:* con las posiciones oficiales la
+promesa central ya no depende de la telemetría propia. Ésta pasa de cimiento a
+mejora —explicar por qué un bus no avanza, cubrir huecos de la fuente—, y un
+fallo suyo deja de poder hundir el proyecto.
 
 ### R3 — Dependencia de fuentes no oficiales 🟢 Eliminado por decisión
 
@@ -130,6 +137,12 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 | D4 | Stack backend | ✅ **Python + FastAPI + PostGIS** (`03` §3.3) |
 | — | Presupuesto mensual | ✅ **USD 100** — la fase 1 cabe con holgura |
 
+**Resuelta el 9 de octubre de 2026:**
+
+| # | Decisión | Resultado |
+|---|---|---|
+| D6 | Fuente de datos en vivo para la fase 1 | ✅ **El servicio de posicionamiento del DTPM.** Concedido el 9 de octubre. La telemetría propia pasa a ser una segunda fuente para contrastar (`04` §4.4), no el cimiento (`15`) |
+
 **Resueltas el 20 de septiembre de 2026:**
 
 | # | Decisión | Resultado |
@@ -142,7 +155,6 @@ Ordenadas por urgencia. Las cuatro primeras bloquean el inicio del desarrollo.
 
 | # | Decisión | Depende de | Documento |
 |---|---|---|---|
-| D6 | Fuente de datos en vivo para la fase 1 | Respuesta del DTPM | `13` |
 | D7 | Proveedor de mapas: MapLibre / Google | Presupuesto | `02` §2.3 |
 | D8 | ¿Publicidad desde el inicio o después? | Modelo de negocio | Brief §7 |
 | D9 | Zona acotada de lanzamiento: ¿cuál? | Densidad, no cobertura | `04` §4.7 |
@@ -178,6 +190,8 @@ Dicho sin rodeos, porque es más útil que una lista de buenas prácticas:
 - **Dispersarse por todo Santiago** en vez de concentrar densidad en una zona.
 - **Mostrar un ETA falso con apariencia de certeza.** Es exactamente el problema
   que el producto dice venir a resolver; cometerlo lo deja sin razón de ser.
-- **Postergar la solicitud al DTPM** porque no es una tarea de programación.
+- ~~**Postergar la solicitud al DTPM** porque no es una tarea de programación.~~
+  *Evitado, y fue la decisión más rentable del proyecto: 19 días de trámite
+  resolvieron lo que meses de ingeniería no podían.*
 - **Elegir iOS-only** y descubrir en el mes ocho que el diferenciador necesita
   usuarios que están en Android. *(Evitado: D2 resuelta a favor de ambas.)*

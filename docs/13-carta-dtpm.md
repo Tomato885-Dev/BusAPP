@@ -5,13 +5,18 @@ decisión D12 (`06`) no hay alternativa comunitaria: **esta solicitud es el
 proyecto completo esperando en un trámite.**
 
 - [x] **Enviada el:** `20 / 09 / 2026` ✅
-- [ ] **Acuse de recibo:** `____ / ____ / 2026`
-- [ ] **Respuesta:** `____ / ____ / 2026`
+- [x] **Respuesta:** `09 / 10 / 2026` ✅ **concedida**
 
-> **Enviada con el formulario adjunto**, marcando los dos servicios. Si al
-> **10 de octubre** no hay respuesta ni acuse de recibo, corresponde insistir
-> por teléfono; y desde la tercera o cuarta semana, la vía de Transparencia
-> (§6).
+**Entregaron acceso a los dos servicios** —posicionamiento de flota y alertas—
+con usuario y contraseña, más la documentación del formato. Las tres consultas
+vienen respondidas. Todo eso está en `15-servicio-de-posiciones.md`; acá queda
+sólo el registro del trámite.
+
+Tardó **19 días** desde el envío. La estimación de «meses» que arrastraba este
+documento era pesimista, y conviene decirlo: el trámite que parecía el más lento
+del proyecto resultó el más rápido.
+
+> **Enviada con el formulario adjunto**, marcando los dos servicios.
 
 ---
 

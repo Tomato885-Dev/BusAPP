@@ -36,6 +36,14 @@ Y en `trazas/`, el análisis de las grabaciones GPS de la prueba de terreno
 | `trazas/emparejar.py` | Dice en qué recorrido iba, o que no se puede saber. |
 | `trazas/simular.py` | Trazas sintéticas para probar sin salir a la calle. |
 
+Y en `estimacion/`, el motor que convierte posiciones de buses en la respuesta
+del producto (`../docs/15-servicio-de-posiciones.md`):
+
+| Archivo | Qué hace |
+|---|---|
+| `estimacion/flota.py` | Dónde va cada bus a lo largo de su recorrido, y a qué velocidad. |
+| `estimacion/llegadas.py` | El ETA con su rango, y el veredicto: viene / no viene / sin datos. |
+
 ## Uso
 
 ```bash
@@ -67,12 +75,14 @@ python -m pytest tests/ -q
 ## Estado
 
 - ✅ **Probado:** geometría, lectura del feed, ubicación de paradas, validación,
-  emparejamiento de trazas. 54 pruebas.
+  emparejamiento de trazas, motor de llegadas. 69 pruebas.
 - ✅ **Ejecutado contra el feed real del DTPM** (tarea F0-1 completada).
 - ⚠️ **Sin ejecutar contra una base de datos:** `load.py` y `schema.sql` están
   escritos pero nunca se han corrido contra un PostgreSQL real.
 - ⚠️ **`trazas/` nunca ha visto una traza real.** Está medido sólo contra
   trazas sintéticas, que es el mejor caso posible.
+- ⚠️ **`estimacion/` nunca ha visto una posición real.** El adaptador del
+  servicio del DTPM está pendiente de su documentación.
 
 ## El feed real: qué trae y qué calidad tiene
 

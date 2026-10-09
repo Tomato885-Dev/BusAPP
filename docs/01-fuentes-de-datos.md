@@ -42,20 +42,30 @@ horario de llegada, así que "cuándo llega el tren" es menos relevante que en
 buses; lo que importa es el estado del servicio y el tiempo de viaje entre
 estaciones.
 
-### Posiciones GPS de buses y predicción oficial — NO abierto ❌
+### Posiciones GPS de la flota — **obtenidas** ✅ *(9 de octubre de 2026)*
 
-Este es el bloqueador.
+Era el bloqueador del proyecto. Dejó de serlo.
 
-- La app oficial Red Movilidad tiene un "Predictor" de llegada, alimentado por
-  datos de flota que el DTPM no publica como feed abierto.
-- Históricamente, el acceso a los servicios de posicionamiento y predicción se
-  gestiona **directamente con el DTPM**, mediante solicitud formal por correo
-  indicando el uso previsto de la información.
-- Reportes de desarrolladores describen ese proceso como lento y con requisitos
-  de infraestructura, incluyendo **IP fija** para el consumo del servicio.
-- **No hay constancia de un feed GTFS-Realtime público del DTPM** (el estándar
-  que usan la mayoría de las ciudades para publicar `VehiclePositions` y
-  `TripUpdates`).
+El DTPM entrega el posicionamiento de **toda la flota** y las alertas de los
+operadores, por solicitud formal, con usuario y contraseña. El trámite tomó 19
+días. El detalle está en `15-servicio-de-posiciones.md`.
+
+**Qué habilita:** la promesa central del producto —saber si una micro viene o no
+viene— desde el primer día y con un solo usuario, sin esperar a tener una masa
+de gente aportando telemetría.
+
+**Qué no entrega:** predicción de llegada. El DTPM da la **posición cruda**; el
+tiempo de llegada lo calcula Kupay (`04`). Existe además un predictor oficial en
+`red.cl`, que es otro trámite y requiere IP fija; no es urgente, y el ETA propio
+tiene la ventaja de que se puede medir y corregir.
+
+**Qué falta por saber:** el formato exacto, cada cuánto se actualiza, si reporta
+la flota completa, y si sus identificadores de recorrido coinciden con los del
+GTFS estático.
+
+> ⚠️ Las credenciales **no van en este repositorio ni en la app**: viven en las
+> variables de entorno del servidor. El repositorio es público y el binario de
+> una aplicación lo abre cualquiera.
 
 ### APIs comunitarias — **descartadas** ❌
 
@@ -89,21 +99,20 @@ El brief propone combinar (a) datos oficiales de posición y (b) información de
 usuarios. Si (a) no está disponible, el producto se apoya sólo en (b) y en
 horarios programados. Eso cambia la propuesta de valor:
 
-| Escenario | Qué puede prometer Kupay |
-|---|---|
-| **A. Con acceso oficial a GPS/predictor** | La visión completa del brief: "esta micro está a 3 cuadras y viene hacia acá", detección automática de desvíos, "esta micro no va a llegar". |
-| **B. Sin acceso oficial, con telemetría propia** | Posición real de los buses deducida de los usuarios a bordo. Equivalente funcional del escenario A, y **bajo control propio**. Depende de densidad local de usuarios (`04` §4.7). |
-| **C. Sin acceso oficial y sin usuarios (día 1)** | Horarios programados y mapas. Es decir: una app más, sin diferenciador. |
+Este apartado describía tres escenarios y la estrategia para salir del peor.
+**Se resolvió a favor del mejor el 9 de octubre de 2026**, y queda la nota
+porque la conclusión sigue valiendo.
 
-El escenario C es el punto de partida inevitable de cualquier lanzamiento. La
-estrategia del proyecto consiste en **salir de C lo antes posible**, y para eso
-hay dos caminos que conviene recorrer en paralelo:
+| Escenario | Qué puede prometer Kupay | |
+|---|---|---|
+| **A. Con acceso oficial a GPS** | «Esta micro está a 3 cuadras y viene hacia acá», y sobre todo: **no viene ninguna** | ✅ **es el actual** |
+| **B. Sin acceso oficial, con telemetría propia** | Lo mismo, deducido de los usuarios a bordo. Depende de densidad local (`04` §4.7) | pasa a ser mejora, no cimiento |
+| **C. Sin acceso oficial y sin usuarios** | Horarios programados y mapas: una app más | superado |
 
-1. **Gestionar el acceso oficial con el DTPM desde ya.** Es un trámite lento;
-   iniciarlo el primer mes y no el sexto puede ahorrar medio año de calendario.
-   Es una tarea administrativa, no de ingeniería, y por eso es fácil postergarla.
-2. **Diseñar el producto para que sea útil incluso en el escenario C**, de modo
-   que atraiga a los usuarios que después alimentan el escenario B.
+La estrategia era salir de C lo antes posible, y el camino que lo logró fue el
+administrativo y no el técnico: **la carta al DTPM.** Vale anotarlo porque
+durante meses pareció la tarea menos importante del proyecto, justamente porque
+no era programar.
 
 ## 1.4 El camino principal: la telemetría de los propios usuarios
 
